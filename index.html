@@ -482,7 +482,7 @@ footer a{color:var(--ink)}
     <div class="ph">
       <span class="wm" lang="ja" aria-hidden="true">取引</span>
       <div><p class="kicker"><b lang="ja">取引</b>Torihiki · trade</p><h1 class="disp" id="h-trade">Calculator</h1><p class="sub">Check a trade before you accept it. Add what you give and what you get. <b>W</b> means you gain more than 5% in value, <b>L</b> means you lose more than 5%. Skins at <b>?</b> can't be scored.</p></div>
-      <button class="btn ghost" type="button" id="resetTrade">Clear trade</button>
+      <div class="inv-tools"><button class="btn ghost" type="button" id="resetTrade">Clear trade</button><button class="btn" type="button" id="tradeImg">Copy image</button></div>
     </div>
     <div class="scale">
       <div class="side" id="sideA"></div>
@@ -495,7 +495,7 @@ footer a{color:var(--ink)}
     <div class="ph">
       <span class="wm" lang="ja" aria-hidden="true">所持品</span>
       <div><p class="kicker"><b lang="ja">所持品</b>Shojihin · belongings</p><h1 class="disp" id="h-inv">Inventory</h1><p class="sub">Track the skins you own and what they are worth. Your inventory stays on your device, nobody else can see it.</p></div>
-      <div class="inv-tools"><button class="btn ghost" type="button" id="invClear">Clear inventory</button><button class="btn" type="button" id="invCopy">Copy for Discord</button></div>
+      <div class="inv-tools"><button class="btn ghost" type="button" id="invClear">Clear inventory</button><button class="btn ghost" type="button" id="invCopy">Copy as text</button><button class="btn" type="button" id="invImg">Copy image</button></div>
     </div>
     <div class="inv-head">
       <div><span class="lbl">Total listed value</span><div class="inv-total" id="invTotal">0</div><div class="lbl" id="invUnknown" style="margin-top:8px"></div></div>
@@ -886,6 +886,79 @@ function openPost(){
 $("#bPost").onclick=openPost;
 setInterval(()=>{if(!$("#p-board").hidden&&document.visibilityState==="visible")loadBoard()},60e3);
 
+
+
+/* ---------- share as image ---------- */
+const imgCache={};
+function loadImg(src){if(!src)return Promise.resolve(null);if(imgCache[src])return imgCache[src];
+  return imgCache[src]=new Promise(res=>{const i=new Image();i.onload=()=>res(i);i.onerror=()=>res(null);i.src=src})}
+const C={bg:"#0b0b0b",paper:"#141414",line:"#2a2a28",ink:"#f1f1ec",mute:"#8b8b85",red:"#ff2b2b",plate:"#000"};
+const F=(w,sz,fam)=>`${w} ${sz}px ${fam==="m"?'"Geist Mono",ui-monospace,monospace':fam==="d"?'"Archivo","Arial Narrow",Arial,sans-serif':'"Geist",Arial,sans-serif'}`;
+function fitText(ctx,t,max){if(ctx.measureText(t).width<=max)return t;while(t.length>1&&ctx.measureText(t+"…").width>max)t=t.slice(0,-1);return t+"…"}
+async function drawThumb(ctx,x,y,w,h,skin){ctx.fillStyle=C.plate;ctx.fillRect(x,y,w,h);ctx.strokeStyle="#242427";ctx.lineWidth=1;ctx.strokeRect(x+.5,y+.5,w-1,h-1);
+  const src=IMGX[skin.key]||IMG[skin.key]||IMG[skin.name];const im=await loadImg(src);
+  if(im){const s=Math.min((w*.88)/im.width,(h*.8)/im.height),iw=im.width*s,ih=im.height*s;ctx.drawImage(im,x+(w-iw)/2,y+(h-ih)/2,iw,ih)}}
+async function cardHeader(ctx,W,title){ctx.fillStyle=C.bg;ctx.fillRect(0,0,W,ctx.canvas.height);
+  const logo=await loadImg("favicon-liner.png");if(logo)ctx.drawImage(logo,40,26,58,58);
+  ctx.fillStyle=C.red;ctx.font=F(800,30,"b");ctx.fillText("/",116,66);const sw=ctx.measureText("/").width;
+  ctx.fillStyle=C.ink;ctx.fillText("liner",116+sw,66);const lw=ctx.measureText("liner").width;ctx.fillStyle=C.mute;ctx.font=F(500,30,"b");ctx.fillText(" [Values]",116+sw+lw,66);
+  ctx.font=F(600,16,"m");ctx.fillStyle=C.mute;ctx.textAlign="right";ctx.fillText(title.toUpperCase(),W-40,60);ctx.textAlign="left";
+  ctx.fillStyle=C.red;ctx.fillRect(40,104,W-80,3)}
+function cardFooter(ctx,W,H){ctx.fillStyle=C.line;ctx.fillRect(40,H-62,W-80,1);ctx.font=F(500,15,"m");ctx.fillStyle=C.mute;
+  ctx.fillText(location.host.toUpperCase(),40,H-30);ctx.textAlign="right";ctx.fillText("VALUES "+UPDATED.toUpperCase(),W-40,H-30);ctx.textAlign="left"}
+async function itemRows(ctx,x,y,w,list){const rh=86;for(const{x:sk,q}of list){await drawThumb(ctx,x,y,128,72,sk);
+  ctx.fillStyle=C.ink;ctx.font=F(800,26,"d");ctx.fillText(fitText(ctx,sk.name.toUpperCase(),w-128-150),x+144,y+32);
+  ctx.font=F(500,14,"m");ctx.fillStyle=C.mute;ctx.fillText(`${sk.rar.toUpperCase()} · ×${q}`,x+144,y+58);
+  ctx.textAlign="right";ctx.font=F(700,24,"d");ctx.fillStyle=sk.val==null?C.mute:C.ink;ctx.fillText(sk.val==null?"?":fmt(sk.val*q),x+w,y+44);ctx.textAlign="left";y+=rh}return y}
+async function buildTradeImage(){
+  const side=k=>Object.entries(trade[k]).filter(([kk])=>KEY[kk]).map(([kk,q])=>({x:KEY[kk],q}));
+  const A=side("A"),B=side("B");if(!A.length&&!B.length)return null;
+  const W=1200,rows=Math.max(A.length,B.length,2),H=170+24+rows*86+120+80;
+  const cv=document.createElement("canvas");cv.width=W;cv.height=H;const ctx=cv.getContext("2d");
+  await cardHeader(ctx,W,"Trade check");
+  const colW=(W-80-240)/2,xA=40,xB=40+colW+240,y0=150;
+  ctx.font=F(700,16,"m");ctx.fillStyle=C.mute;ctx.fillText("YOU GIVE",xA,y0);ctx.fillText("YOU GET",xB,y0);
+  await itemRows(ctx,xA,y0+24,colW,A);await itemRows(ctx,xB,y0+24,colW,B);
+  const a=tot("A"),b=tot("B"),yT=y0+24+rows*86+20;
+  ctx.fillStyle=C.line;ctx.fillRect(xA,yT,colW,1);ctx.fillRect(xB,yT,colW,1);
+  ctx.font=F(800,52,"d");ctx.fillStyle=C.ink;ctx.textAlign="right";ctx.fillText(fmt(a.t)+(a.u?" +?":""),xA+colW,yT+70);ctx.fillText(fmt(b.t)+(b.u?" +?":""),xB+colW,yT+70);ctx.textAlign="left";
+  ctx.font=F(500,14,"m");ctx.fillStyle=C.mute;ctx.fillText("TOTAL",xA,yT+66);ctx.fillText("TOTAL",xB,yT+66);
+  // verdict
+  let word="—",bg=C.paper,fg=C.ink,line="";
+  if((a.t||a.u)&&(b.t||b.u)){if(a.u||b.u){word="?";line="Some skins have no value"}else{const p=(b.t-a.t)/a.t*100;line=(p>=0?"+":"")+p.toFixed(1)+"%";if(p>5){word="W";bg=C.ink;fg=C.bg}else if(p<-5){word="L";bg=C.red;fg="#fff"}else{word="FAIR"}}}
+  const vx=xA+colW+30,vw=180,vy=y0+24;ctx.fillStyle=bg;ctx.fillRect(vx,vy,vw,vw);ctx.strokeStyle=word==="FAIR"||word==="—"||word==="?"?C.ink:bg;ctx.lineWidth=2;ctx.strokeRect(vx+1,vy+1,vw-2,vw-2);
+  ctx.fillStyle=fg;ctx.textAlign="center";ctx.font=F(900,word.length>2?56:110,"d");ctx.fillText(word,vx+vw/2,vy+vw/2+(word.length>2?20:40));
+  ctx.font=F(600,18,"m");ctx.fillStyle=word==="L"?C.red:C.ink;if(line)ctx.fillText(line,vx+vw/2,vy+vw+36);ctx.textAlign="left";
+  cardFooter(ctx,W,H);return cv}
+async function buildInvImage(){
+  const rows=invRows().sort((a,b)=>RAR[a.x.rar].o-RAR[b.x.rar].o||(b.x.val??-1)*b.q-(a.x.val??-1)*a.q);if(!rows.length)return null;
+  const W=1200,cols=4,gap=16,cw=(W-80-gap*(cols-1))/cols,ch=cw*0.5625,MAX=24,shown=rows.slice(0,MAX),r=Math.ceil(shown.length/cols);
+  const H=170+120+r*(ch+78)+(rows.length>MAX?40:0)+80;
+  const cv=document.createElement("canvas");cv.width=W;cv.height=H;const ctx=cv.getContext("2d");
+  await cardHeader(ctx,W,"Inventory");
+  let t=0,u=0;rows.forEach(({x,q})=>{if(x.val==null)u+=q;else t+=x.val*q});
+  ctx.font=F(500,15,"m");ctx.fillStyle=C.mute;ctx.fillText("TOTAL LISTED VALUE",40,150);
+  ctx.font=F(900,72,"d");ctx.fillStyle=C.ink;ctx.fillText(fmt(Math.round(t))+(u?" +?":""),40,222);
+  ctx.textAlign="right";ctx.font=F(500,15,"m");ctx.fillStyle=C.mute;ctx.fillText(`${rows.reduce((n,r)=>n+r.q,0)} SKINS`,W-40,222);ctx.textAlign="left";
+  let i=0;for(const{x,q}of shown){const cx=40+(i%cols)*(cw+gap),cy=260+Math.floor(i/cols)*(ch+78);await drawThumb(ctx,cx,cy,cw,ch,x);
+    if(q>1){ctx.fillStyle=C.red;ctx.fillRect(cx+cw-54,cy+8,46,26);ctx.fillStyle="#fff";ctx.font=F(700,15,"m");ctx.textAlign="center";ctx.fillText("×"+q,cx+cw-31,cy+27);ctx.textAlign="left"}
+    ctx.fillStyle=C.ink;ctx.font=F(800,22,"d");ctx.fillText(fitText(ctx,x.name.toUpperCase(),cw-90),cx,cy+ch+30);
+    ctx.textAlign="right";ctx.font=F(700,20,"d");ctx.fillStyle=x.val==null?C.mute:C.ink;ctx.fillText(x.val==null?"?":fmt(x.val*q),cx+cw,cy+ch+30);ctx.textAlign="left";
+    ctx.font=F(500,12,"m");ctx.fillStyle=C.mute;ctx.fillText(x.rar.toUpperCase(),cx,cy+ch+52);i++}
+  if(rows.length>MAX){ctx.font=F(500,16,"m");ctx.fillStyle=C.mute;ctx.fillText(`+ ${rows.length-MAX} more skins`,40,H-100)}
+  cardFooter(ctx,W,H);return cv}
+async function shareImage(build,name,btn){
+  const old=btn.textContent;btn.disabled=true;btn.textContent="Making image…";
+  try{if(document.fonts&&document.fonts.ready)await document.fonts.ready;
+    const cv=await build();if(!cv){toast("Add some skins first");return}
+    const blob=await new Promise(r=>cv.toBlob(r,"image/png"));
+    let copied=false;
+    try{if(navigator.clipboard&&window.ClipboardItem){await navigator.clipboard.write([new ClipboardItem({"image/png":blob})]);copied=true}}catch(e){}
+    if(copied)toast("Image copied, paste it in <b>Discord</b> with Ctrl+V");
+    else{const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4e3);toast("Image <b>downloaded</b>, send it on Discord")}
+  }catch(e){toast("Couldn't make the image")}finally{btn.disabled=false;btn.textContent=old}}
+$("#tradeImg").onclick=e=>shareImage(buildTradeImage,"liner-trade.png",e.currentTarget);
+$("#invImg").onclick=e=>shareImage(buildInvImage,"liner-inventory.png",e.currentTarget);
 
 /* ---------- live visitors ---------- */
 {const sid=(()=>{try{let v=localStorage.getItem("rv_vid");if(!v){v=[...crypto.getRandomValues(new Uint8Array(12))].map(b=>b.toString(16).padStart(2,"0")).join("");localStorage.setItem("rv_vid",v)}return v}catch(e){return [...crypto.getRandomValues(new Uint8Array(12))].map(b=>b.toString(16).padStart(2,"0")).join("")}})();
