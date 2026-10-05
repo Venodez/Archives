@@ -154,6 +154,8 @@ a.iconbtn,a.btn{text-decoration:none}
 .report{margin:-8px 0 0;font-size:13px;line-height:1.5;color:var(--mute)}
 .report.copy{margin-top:-14px;font-size:11px}
 .report b{color:var(--ink);font-weight:600}
+.credit-sep{display:inline-block;width:22px}
+@media (max-width:560px){.credit-sep{display:block;height:8px}}
 .credit b::before{content:"";display:inline-block;width:14px;height:2px;margin:0 8px 3px 2px;background:var(--red);vertical-align:middle}
 .cv-art{position:relative;margin:0;align-self:stretch;display:grid;place-items:center;min-height:min(60vh,620px)}
 .cv-art img{position:relative;z-index:1;display:block;width:100%;height:100%;max-height:calc(100vh - 190px);object-fit:contain;mix-blend-mode:multiply;animation:reveal 1.15s .2s cubic-bezier(.7,0,.2,1) both}
@@ -428,7 +430,7 @@ footer a{color:var(--ink)}
       </div>
       <div class="cta2"><button class="link" type="button" id="goTrade">Trade calculator</button><button class="link" type="button" id="goInv">My inventory</button><button class="link" type="button" id="goBoard">Trade board</button></div>
       <div class="cv-facts" id="facts"></div>
-      <p class="credit">Made by <b>@venodez</b></p>
+      <p class="credit">Made by <b>@venodez</b><span class="credit-sep"></span>Art &amp; logo by <b>@rinrinmatsu</b></p>
       <p class="report">Spotted a wrong value or a bug? <b>DM me</b> on Discord.</p>
       <p class="report copy">© 2026 /liner Values. All rights reserved.</p>
     </div>
@@ -528,6 +530,7 @@ footer a{color:var(--ink)}
     <span>Join the community on Discord: <a href="https://discord.gg/redliner" target="_blank" rel="noopener">discord.gg/redliner</a></span>
     <span>/liner Values is a fan-made site, not affiliated with Redliner or Roblox.</span>
     <span>Spotted a wrong value or a bug? DM @venodez on Discord.</span>
+    <span>Logo and home screen art by @rinrinmatsu.</span>
     <span>© 2026 /liner Values. All rights reserved.</span>
   </footer>
 </main>
