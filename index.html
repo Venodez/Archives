@@ -399,6 +399,14 @@ footer a{color:var(--ink)}
 .pf .chk{display:flex;gap:8px;align-items:center;margin-top:8px;font-size:13px}
 .pf .hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
 @media (max-width:760px){.board{grid-template-columns:minmax(0,1fr)}}
+
+/* live visitors */
+.live{display:inline-flex;align-items:center;gap:7px;height:30px;padding:0 10px;border:1px solid var(--line);font-family:var(--f-mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--mute);white-space:nowrap}
+.live b{color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums}
+.live i{width:7px;height:7px;border-radius:50%;background:var(--red);box-shadow:0 0 0 0 var(--red);animation:livepulse 2s infinite}
+@keyframes livepulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--red) 60%,transparent)}70%{box-shadow:0 0 0 7px transparent}100%{box-shadow:0 0 0 0 transparent}}
+.nav .live{margin-right:8px}
+@media (max-width:560px){.live{padding:0 7px;letter-spacing:.06em}.nav .live{display:none}}
 </style>
 </head>
 <body>
@@ -407,7 +415,7 @@ footer a{color:var(--ink)}
   <header class="cv-top">
     <div class="brand"><i class="mark"></i><span><b>/</b>liner <em>[Values]</em></span></div>
     <span class="jp" aria-hidden="true">ライナー・バリュー</span>
-    <div class="cv-top-r"><span class="lbl">Values updated <span data-updated>Oct 4, 2026</span></span><a class="iconbtn" href="https://discord.gg/redliner" target="_blank" rel="noopener" aria-label="Join the Redliner Discord" title="Join the Redliner Discord"><svg class="dci" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z"/></svg></a><button class="iconbtn theme" type="button" aria-label="Switch between white and black theme"></button></div>
+    <div class="cv-top-r"><span class="live" data-live hidden title="People on the site right now"><i aria-hidden="true"></i><b>0</b> online</span><span class="lbl">Values updated <span data-updated>Oct 4, 2026</span></span><a class="iconbtn" href="https://discord.gg/redliner" target="_blank" rel="noopener" aria-label="Join the Redliner Discord" title="Join the Redliner Discord"><svg class="dci" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z"/></svg></a><button class="iconbtn theme" type="button" aria-label="Switch between white and black theme"></button></div>
   </header>
   <div class="cv-hero">
     <div class="cv-copy">
@@ -443,7 +451,7 @@ footer a{color:var(--ink)}
       <button class="tab" role="tab" type="button" id="tab-inv" data-tab="inv" aria-selected="false">Inventory</button>
       <button class="tab" role="tab" type="button" id="tab-board" data-tab="board" aria-selected="false">Board<small id="boardCount"></small></button>
     </nav>
-    <a class="iconbtn" href="https://discord.gg/redliner" target="_blank" rel="noopener" aria-label="Join the Redliner Discord" title="Join the Redliner Discord"><svg class="dci" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z"/></svg></a>
+    <span class="live" data-live hidden title="People on the site right now"><i aria-hidden="true"></i><b>0</b> online</span><a class="iconbtn" href="https://discord.gg/redliner" target="_blank" rel="noopener" aria-label="Join the Redliner Discord" title="Join the Redliner Discord"><svg class="dci" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z"/></svg></a>
     <button class="iconbtn theme" type="button" aria-label="Switch between white and black theme"></button>
   </div>
 </header>
@@ -877,6 +885,15 @@ function openPost(){
 }
 $("#bPost").onclick=openPost;
 setInterval(()=>{if(!$("#p-board").hidden&&document.visibilityState==="visible")loadBoard()},60e3);
+
+
+/* ---------- live visitors ---------- */
+{const sid=(()=>{try{let v=sessionStorage.getItem("rv_sid");if(!v){v=[...crypto.getRandomValues(new Uint8Array(12))].map(b=>b.toString(16).padStart(2,"0")).join("");sessionStorage.setItem("rv_sid",v)}return v}catch(e){return [...crypto.getRandomValues(new Uint8Array(12))].map(b=>b.toString(16).padStart(2,"0")).join("")}})();
+ let failed=0;
+ const show=n=>$$("[data-live]").forEach(el=>{if(n==null){el.hidden=true;return}el.hidden=false;el.querySelector("b").textContent=String(Math.max(1,n))});
+ const ping=async()=>{if(document.visibilityState!=="visible"||failed>3)return;
+   try{const r=await fetch("/api/live",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({sid})});if(!r.ok)throw 0;const d=await r.json();failed=0;show(d.online)}catch(e){failed++;if(failed>3)show(null)}};
+ ping();setInterval(ping,45e3);document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")ping()});}
 
 /* ---------- COVER ---------- */
 const cover=$("#cover");
