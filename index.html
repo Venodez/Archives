@@ -367,27 +367,27 @@ footer a{color:var(--ink)}
 /* ---------- TRADE BOARD ---------- */
 .board{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);margin-bottom:40px}
 .board>.empty{grid-column:1/-1;background:var(--bg)}
-.ad{background:var(--bg);padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
-.ad.mine{box-shadow:inset 3px 0 0 var(--red)}
-.ad-h{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
-.ad-user{font-family:var(--f-display);font-stretch:125%;font-weight:800;font-size:14px;letter-spacing:.02em;overflow-wrap:anywhere}
-.ad-sides{display:grid;grid-template-columns:minmax(0,1fr) 22px minmax(0,1fr);gap:8px;align-items:start}
-.ad-arrow{align-self:center;text-align:center;color:var(--red);font-weight:700}
-.ad-side{display:flex;flex-direction:column;gap:6px;min-width:0}
-.ad-it{display:grid;grid-template-columns:54px minmax(0,1fr);gap:8px;align-items:center;font-size:12.5px;line-height:1.2}
-.ad-it .th{aspect-ratio:2/1}
-.ad-it b{font-family:var(--f-mono);font-weight:600;color:var(--red);margin-right:3px}
-.ad-it span{overflow-wrap:anywhere}
-.ad-tot{margin-top:2px;font-family:var(--f-display);font-stretch:62%;font-weight:800;font-size:22px;font-variant-numeric:tabular-nums}
-.ad-tot .plus{font-size:14px;color:var(--mute)}
-.ad-open{font-size:12.5px;color:var(--ink2);font-style:italic}
-.ad-note{margin:0;padding:10px 12px;background:var(--soft);font-size:13px;line-height:1.45;color:var(--ink2);overflow-wrap:anywhere}
-.ad-f{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:auto;padding-top:4px;border-top:1px solid var(--line)}
-.ad-f button{height:30px;padding:0 10px;border:1px solid var(--line);background:transparent;font-family:var(--f-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink2)}
-.ad-f button:hover{border-color:var(--ink);color:var(--ink)}
-.ad-f .tag{margin-left:auto;font-family:var(--f-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:4px 7px;border:1px solid var(--line)}
-.ad-f .tag.w{border-color:var(--red);color:var(--red)}
-.ad-f .del{color:var(--red)}
+.tp{background:var(--bg);padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.tp.mine{box-shadow:inset 3px 0 0 var(--red)}
+.tp-h{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.tp-user{font-family:var(--f-display);font-stretch:125%;font-weight:800;font-size:14px;letter-spacing:.02em;overflow-wrap:anywhere}
+.tp-sides{display:grid;grid-template-columns:minmax(0,1fr) 22px minmax(0,1fr);gap:8px;align-items:start}
+.tp-arrow{align-self:center;text-align:center;color:var(--red);font-weight:700}
+.tp-side{display:flex;flex-direction:column;gap:6px;min-width:0}
+.tp-it{display:grid;grid-template-columns:54px minmax(0,1fr);gap:8px;align-items:center;font-size:12.5px;line-height:1.2}
+.tp-it .th{aspect-ratio:2/1}
+.tp-it b{font-family:var(--f-mono);font-weight:600;color:var(--red);margin-right:3px}
+.tp-it span{overflow-wrap:anywhere}
+.tp-tot{margin-top:2px;font-family:var(--f-display);font-stretch:62%;font-weight:800;font-size:22px;font-variant-numeric:tabular-nums}
+.tp-tot .plus{font-size:14px;color:var(--mute)}
+.tp-open{font-size:12.5px;color:var(--ink2);font-style:italic}
+.tp-note{margin:0;padding:10px 12px;background:var(--soft);font-size:13px;line-height:1.45;color:var(--ink2);overflow-wrap:anywhere}
+.tp-f{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:auto;padding-top:4px;border-top:1px solid var(--line)}
+.tp-f button{height:30px;padding:0 10px;border:1px solid var(--line);background:transparent;font-family:var(--f-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink2)}
+.tp-f button:hover{border-color:var(--ink);color:var(--ink)}
+.tp-f .tag{margin-left:auto;font-family:var(--f-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:4px 7px;border:1px solid var(--line)}
+.tp-f .tag.w{border-color:var(--red);color:var(--red)}
+.tp-f .del{color:var(--red)}
 .pf label.f{display:block;margin:16px 0 6px}
 .pf input[type=text],.pf textarea{width:100%;border:1px solid var(--ink);background:var(--bg);color:var(--ink);padding:10px 12px;font-size:14px}
 .pf textarea{min-height:70px;resize:vertical}
@@ -777,7 +777,7 @@ renderInv();
 
 
 /* ---------- TRADE BOARD ---------- */
-const API="/api/ads";
+const API="/api/trades";
 let ADS=[],boardMsg="",boardLoaded=0,boardBusy=false;
 let myAds=store.get("rv_myads",{});if(!myAds||typeof myAds!=="object")myAds={};
 let ADMIN="";try{ADMIN=sessionStorage.getItem("rv_admin")||""}catch(e){}
@@ -786,19 +786,19 @@ $("#bRar").insertAdjacentHTML("beforeend",RORDER.map(r=>`<option value="${r}">${
 const keyName=k=>KEY[k]?label(KEY[k]):k.split("|")[0].replace(/\b\w/g,c=>c.toUpperCase());
 const sideVal=list=>{let t=0,u=0;for(const{k,q}of list){const x=KEY[k];if(!x||x.val==null)u+=q;else t+=x.val*q}return{t,u}};
 const ago=ms=>{const m=Math.max(0,Math.round((Date.now()-ms)/6e4));return m<1?"just now":m<60?m+" min ago":m<1440?Math.floor(m/60)+" h ago":Math.floor(m/1440)+" d ago"};
-function adItems(list){return list.map(({k,q})=>{const x=KEY[k]||{name:keyName(k),key:k};return `<div class="ad-it"><div class="th">${KEY[k]?art(x):""}</div><span><b>${q}×</b>${esc(keyName(k))}</span></div>`}).join("")}
+function adItems(list){return list.map(({k,q})=>{const x=KEY[k]||{name:keyName(k),key:k};return `<div class="tp-it"><div class="th">${KEY[k]?art(x):""}</div><span><b>${q}×</b>${esc(keyName(k))}</span></div>`}).join("")}
 function adHTML(a){
   const h=sideVal(a.has),w=sideVal(a.wants),mine=!!myAds[a.id];
   let tag="";if((h.t||h.u)&&(w.t||w.u)&&!h.u&&!w.u&&h.t){const p=(w.t-h.t)/h.t*100;tag=p>5?'<span class="tag">Asks more</span>':p<-5?'<span class="tag w">Good deal</span>':'<span class="tag">Fair</span>'}
-  return `<article class="ad${mine?" mine":""}" data-id="${esc(a.id)}">
-    <header class="ad-h"><span class="ad-user">@${esc(a.user)}</span><span class="lbl">${mine?"Your post · ":""}${ago(a.created)}</span></header>
-    <div class="ad-sides">
-      <div class="ad-side"><span class="lbl">Has</span>${a.has.length?adItems(a.has)+`<div class="ad-tot">${totHTML(h)}</div>`:'<span class="ad-open">Nothing listed</span>'}</div>
-      <div class="ad-arrow" aria-hidden="true">⇄</div>
-      <div class="ad-side"><span class="lbl">Wants</span>${a.wants.length?adItems(a.wants)+`<div class="ad-tot">${totHTML(w)}</div>`:""}${a.offers||!a.wants.length?'<span class="ad-open">Open to offers</span>':""}</div>
+  return `<article class="tp${mine?" mine":""}" data-id="${esc(a.id)}">
+    <header class="tp-h"><span class="tp-user">@${esc(a.user)}</span><span class="lbl">${mine?"Your post · ":""}${ago(a.created)}</span></header>
+    <div class="tp-sides">
+      <div class="tp-side"><span class="lbl">Has</span>${a.has.length?adItems(a.has)+`<div class="tp-tot">${totHTML(h)}</div>`:'<span class="tp-open">Nothing listed</span>'}</div>
+      <div class="tp-arrow" aria-hidden="true">⇄</div>
+      <div class="tp-side"><span class="lbl">Wants</span>${a.wants.length?adItems(a.wants)+`<div class="tp-tot">${totHTML(w)}</div>`:""}${a.offers||!a.wants.length?'<span class="tp-open">Open to offers</span>':""}</div>
     </div>
-    ${a.note?`<p class="ad-note">${esc(a.note)}</p>`:""}
-    <footer class="ad-f"><button type="button" data-copy="${esc(a.user)}">Copy username</button>${mine||ADMIN?`<button type="button" class="del" data-del="${esc(a.id)}">Delete</button>`:`<button type="button" data-rep="${esc(a.id)}">Report</button>`}${tag}</footer>
+    ${a.note?`<p class="tp-note">${esc(a.note)}</p>`:""}
+    <footer class="tp-f"><button type="button" data-copy="${esc(a.user)}">Copy username</button>${mine||ADMIN?`<button type="button" class="del" data-del="${esc(a.id)}">Delete</button>`:`<button type="button" data-rep="${esc(a.id)}">Report</button>`}${tag}</footer>
   </article>`}
 function renderBoard(){
   const box=$("#board");$("#boardCount").textContent=ADS.length?String(ADS.length):"";
