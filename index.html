@@ -360,11 +360,10 @@ footer a{color:var(--ink)}
 
 /* home screen always fits the window (no scrolling) */
 .cv{overflow-y:hidden}
-.cv-hero{min-height:0;flex:1 1 auto}
+.cv-hero{flex:1 0 auto}
 @media (max-width:760px){
-  .cv-art{aspect-ratio:auto;height:30vh;height:30dvh;min-height:150px}
-  .cv-art img{max-height:100%;width:auto;max-width:100%}
-  .cv-art img.bun{width:auto;height:100%}
+  .cv-art{aspect-ratio:auto;height:auto;min-height:0}
+  .cv-art img,.cv-art img.bun{width:100%!important;height:28vh!important;height:28dvh!important;max-height:none!important;object-fit:contain}
   .cv-hero{gap:14px;padding-top:12px}
 }
 </style>
@@ -745,10 +744,11 @@ function renderTicker(){
 renderFacts();renderTicker();
 
 function fitMast(){const m=$("#mast");m.style.fontSize="";const w=m.clientWidth;const sw=Math.max(...$$(".ln>span",m).map(s=>s.getBoundingClientRect().width));if(w>0&&sw>w){const cur=parseFloat(getComputedStyle(m).fontSize);m.style.fontSize=Math.floor(cur*w/sw*0.98)+"px"}}
-function fitCover(){const c=$("#cover"),h=$(".cv-hero"),t=$(".cv-top"),k=$(".tick");if(!c||c.hidden)return;h.style.zoom="";
-  for(let i=0;i<4;i++){const avail=c.clientHeight-t.offsetHeight-k.offsetHeight;const need=c.scrollHeight-t.offsetHeight-k.offsetHeight;if(need<=avail+1)break;
-    const z=(parseFloat(h.style.zoom)||1)*avail/need;h.style.zoom=Math.max(.5,z*0.99).toFixed(3)}
-  c.style.overflowY=c.scrollHeight>c.clientHeight+1?"auto":"hidden"}
+function fitCover(){const c=$("#cover"),h=$(".cv-hero"),k=$(".tick");if(!c||c.hidden)return;h.style.zoom="";c.style.overflowY="hidden";
+  const bottom=()=>Math.max(...[...h.querySelectorAll(".cv-copy>*,.cv-art")].map(e=>e.getBoundingClientRect().bottom));
+  for(let i=0;i<5;i++){const top=h.getBoundingClientRect().top,lim=c.getBoundingClientRect().bottom-k.offsetHeight-8,b=bottom();if(b<=lim+1)break;
+    const z=(parseFloat(h.style.zoom)||1)*(lim-top)/(b-top);h.style.zoom=Math.max(.5,z*0.995).toFixed(3)}
+  if(bottom()>c.getBoundingClientRect().bottom-k.offsetHeight+1)c.style.overflowY="auto"}
 if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{fitMast();fitCover()});
 fitMast();fitCover();addEventListener("resize",()=>{fitMast();fitCover()});
 
