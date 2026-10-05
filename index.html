@@ -888,7 +888,7 @@ setInterval(()=>{if(!$("#p-board").hidden&&document.visibilityState==="visible")
 
 
 /* ---------- live visitors ---------- */
-{const sid=(()=>{try{let v=sessionStorage.getItem("rv_sid");if(!v){v=[...crypto.getRandomValues(new Uint8Array(12))].map(b=>b.toString(16).padStart(2,"0")).join("");sessionStorage.setItem("rv_sid",v)}return v}catch(e){return [...crypto.getRandomValues(new Uint8Array(12))].map(b=>b.toString(16).padStart(2,"0")).join("")}})();
+{const sid=(()=>{try{let v=localStorage.getItem("rv_vid");if(!v){v=[...crypto.getRandomValues(new Uint8Array(12))].map(b=>b.toString(16).padStart(2,"0")).join("");localStorage.setItem("rv_vid",v)}return v}catch(e){return [...crypto.getRandomValues(new Uint8Array(12))].map(b=>b.toString(16).padStart(2,"0")).join("")}})();
  let failed=0;
  const show=n=>$$("[data-live]").forEach(el=>{if(n==null){el.hidden=true;return}el.hidden=false;el.querySelector("b").textContent=String(Math.max(1,n))});
  const ping=async()=>{if(document.visibilityState!=="visible"||failed>3)return;
