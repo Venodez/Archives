@@ -20,8 +20,8 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&display=swap">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@700&text=%E3%81%97%E3%81%AA%E3%82%A4%E3%83%8A%E3%83%90%E3%83%A5%E3%83%A9%E3%83%AA%E3%83%BB%E3%83%BC%E4%BA%92%E5%87%A1%E5%88%B6%E5%8B%9D%E5%8F%96%E5%93%81%E5%A0%B4%E5%AE%9A%E5%AF%86%E5%B0%91%E5%B8%8C%E5%BA%A6%E5%BC%95%E6%89%80%E6%8C%81%E6%9C%AA%E6%9D%A5%E6%9F%BB%E6%A5%B5%E6%A9%9F%E6%B8%88%E6%BA%96%E7%85%A7%E7%95%8C%E7%9B%B8%E7%A0%B4%E7%A7%98%E7%AA%81%E7%B2%BE%E8%88%B6%E8%A7%92%E8%B2%A0%E9%80%9F%E9%8B%AD%E9%99%90%E9%9D%9E&display=swap">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@800&text=%E3%81%97%E3%81%AA%E3%82%A4%E3%83%8A%E3%83%90%E3%83%A5%E3%83%A9%E3%83%AA%E3%83%BB%E3%83%BC%E4%BA%92%E5%87%A1%E5%88%B6%E5%8B%9D%E5%8F%96%E5%93%81%E5%A0%B4%E5%AE%9A%E5%AF%86%E5%B0%91%E5%B8%8C%E5%BA%A6%E5%BC%95%E6%89%80%E6%8C%81%E6%9C%AA%E6%9D%A5%E6%9F%BB%E6%A5%B5%E6%A9%9F%E6%B8%88%E6%BA%96%E7%85%A7%E7%95%8C%E7%9B%B8%E7%A0%B4%E7%A7%98%E7%AA%81%E7%B2%BE%E8%88%B6%E8%A7%92%E8%B2%A0%E9%80%9F%E9%8B%AD%E9%99%90%E9%9D%9E&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@700&text=%E3%81%97%E3%81%AA%E3%82%A4%E3%83%8A%E3%83%90%E3%83%A5%E3%83%A9%E3%83%AA%E3%83%BB%E3%83%BC%E4%BA%92%E5%87%A1%E5%88%B6%E5%8B%9D%E5%8F%96%E5%93%81%E5%A0%B4%E5%AE%9A%E5%AF%86%E5%B0%91%E5%B8%8C%E5%BA%A6%E5%BC%95%E6%89%80%E6%8C%81%E6%8E%B2%E6%9C%AA%E6%9D%A5%E6%9D%BF%E6%9F%BB%E6%A5%B5%E6%A9%9F%E6%B8%88%E6%BA%96%E7%85%A7%E7%95%8C%E7%9B%B8%E7%A0%B4%E7%A4%BA%E7%A7%98%E7%AA%81%E7%B2%BE%E8%88%B6%E8%A7%92%E8%B2%A0%E9%80%9F%E9%8B%AD%E9%99%90%E9%9D%9E&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@800&text=%E3%81%97%E3%81%AA%E3%82%A4%E3%83%8A%E3%83%90%E3%83%A5%E3%83%A9%E3%83%AA%E3%83%BB%E3%83%BC%E4%BA%92%E5%87%A1%E5%88%B6%E5%8B%9D%E5%8F%96%E5%93%81%E5%A0%B4%E5%AE%9A%E5%AF%86%E5%B0%91%E5%B8%8C%E5%BA%A6%E5%BC%95%E6%89%80%E6%8C%81%E6%8E%B2%E6%9C%AA%E6%9D%A5%E6%9D%BF%E6%9F%BB%E6%A5%B5%E6%A9%9F%E6%B8%88%E6%BA%96%E7%85%A7%E7%95%8C%E7%9B%B8%E7%A0%B4%E7%A4%BA%E7%A7%98%E7%AA%81%E7%B2%BE%E8%88%B6%E8%A7%92%E8%B2%A0%E9%80%9F%E9%8B%AD%E9%99%90%E9%9D%9E&display=swap">
 <style>
 /* Layout: a monochrome catalogue for the /liner Discord. A welcome screen with the community artwork on white paper and a value ticker, then a ruled ledger, a two-sided trade scale and an inventory contact sheet. Red marks only the redline, rises, hype and losses. */
 :root{
@@ -363,6 +363,41 @@ footer a{color:var(--ink)}
   .cv-art img,.cv-art img.bun{width:100%!important;height:28vh!important;height:28dvh!important;max-height:none!important;object-fit:contain}
   .cv-hero{gap:14px;padding-top:12px}
 }
+
+/* ---------- TRADE BOARD ---------- */
+.board{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);margin-bottom:40px}
+.board>.empty{grid-column:1/-1;background:var(--bg)}
+.ad{background:var(--bg);padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.ad.mine{box-shadow:inset 3px 0 0 var(--red)}
+.ad-h{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.ad-user{font-family:var(--f-display);font-stretch:125%;font-weight:800;font-size:14px;letter-spacing:.02em;overflow-wrap:anywhere}
+.ad-sides{display:grid;grid-template-columns:minmax(0,1fr) 22px minmax(0,1fr);gap:8px;align-items:start}
+.ad-arrow{align-self:center;text-align:center;color:var(--red);font-weight:700}
+.ad-side{display:flex;flex-direction:column;gap:6px;min-width:0}
+.ad-it{display:grid;grid-template-columns:54px minmax(0,1fr);gap:8px;align-items:center;font-size:12.5px;line-height:1.2}
+.ad-it .th{aspect-ratio:2/1}
+.ad-it b{font-family:var(--f-mono);font-weight:600;color:var(--red);margin-right:3px}
+.ad-it span{overflow-wrap:anywhere}
+.ad-tot{margin-top:2px;font-family:var(--f-display);font-stretch:62%;font-weight:800;font-size:22px;font-variant-numeric:tabular-nums}
+.ad-tot .plus{font-size:14px;color:var(--mute)}
+.ad-open{font-size:12.5px;color:var(--ink2);font-style:italic}
+.ad-note{margin:0;padding:10px 12px;background:var(--soft);font-size:13px;line-height:1.45;color:var(--ink2);overflow-wrap:anywhere}
+.ad-f{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:auto;padding-top:4px;border-top:1px solid var(--line)}
+.ad-f button{height:30px;padding:0 10px;border:1px solid var(--line);background:transparent;font-family:var(--f-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink2)}
+.ad-f button:hover{border-color:var(--ink);color:var(--ink)}
+.ad-f .tag{margin-left:auto;font-family:var(--f-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:4px 7px;border:1px solid var(--line)}
+.ad-f .tag.w{border-color:var(--red);color:var(--red)}
+.ad-f .del{color:var(--red)}
+.pf label.f{display:block;margin:16px 0 6px}
+.pf input[type=text],.pf textarea{width:100%;border:1px solid var(--ink);background:var(--bg);color:var(--ink);padding:10px 12px;font-size:14px}
+.pf textarea{min-height:70px;resize:vertical}
+.pf .side{margin-top:6px}
+.pf .rules{margin:14px 0 0;font-size:12.5px;color:var(--mute);line-height:1.5}
+.pf .err{margin:12px 0 0;color:var(--red);font-size:13px;min-height:1em}
+.pf .pfrow{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+.pf .chk{display:flex;gap:8px;align-items:center;margin-top:8px;font-size:13px}
+.pf .hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+@media (max-width:760px){.board{grid-template-columns:minmax(0,1fr)}}
 </style>
 </head>
 <body>
@@ -382,7 +417,7 @@ footer a{color:var(--ink)}
         <button class="btn" type="button" id="enter">Browse values <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6"/></svg></button>
         <a class="btn ghost" href="https://discord.gg/redliner" target="_blank" rel="noopener"><svg class="dci" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z"/></svg>Join the Discord</a>
       </div>
-      <div class="cta2"><button class="link" type="button" id="goTrade">Trade calculator</button><button class="link" type="button" id="goInv">My inventory</button></div>
+      <div class="cta2"><button class="link" type="button" id="goTrade">Trade calculator</button><button class="link" type="button" id="goInv">My inventory</button><button class="link" type="button" id="goBoard">Trade board</button></div>
       <div class="cv-facts" id="facts"></div>
       <p class="credit">Made by <b>@venodez</b></p>
       <p class="report">Spotted a wrong value or a bug? <b>DM me</b> on Discord.</p>
@@ -404,6 +439,7 @@ footer a{color:var(--ink)}
       <button class="tab" role="tab" type="button" id="tab-values" data-tab="values" aria-selected="true">Values</button>
       <button class="tab" role="tab" type="button" id="tab-trade" data-tab="trade" aria-selected="false"><span class="t-lg">Calculator</span><span class="t-sm">Trade</span><small id="tradeCount"></small></button>
       <button class="tab" role="tab" type="button" id="tab-inv" data-tab="inv" aria-selected="false">Inventory</button>
+      <button class="tab" role="tab" type="button" id="tab-board" data-tab="board" aria-selected="false">Board<small id="boardCount"></small></button>
     </nav>
     <a class="iconbtn" href="https://discord.gg/redliner" target="_blank" rel="noopener" aria-label="Join the Redliner Discord" title="Join the Redliner Discord"><svg class="dci" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z"/></svg></a>
     <button class="iconbtn theme" type="button" aria-label="Switch between white and black theme"></button>
@@ -458,6 +494,22 @@ footer a{color:var(--ink)}
     <div class="legend" id="legend"></div>
     <div class="inv-add"><select id="invPick" aria-label="Choose a skin to add"></select><button type="button" id="invAdd">Add</button></div>
     <div class="inv-grid" id="invGrid"></div>
+  </section>
+
+  <section id="p-board" hidden aria-labelledby="h-board">
+    <div class="ph">
+      <span class="wm" lang="ja" aria-hidden="true">掲示板</span>
+      <div><p class="kicker"><b lang="ja">掲示板</b>Keijiban · trade board</p><h1 class="disp" id="h-board">Board</h1><p class="sub">Trade posts from the community. Post what you have and what you want, then sort and filter to find a deal. Posts disappear after 48 hours. Contact people on Discord, and never pay first to a stranger.</p></div>
+      <button class="btn" type="button" id="bPost">Post a trade <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+    </div>
+    <div class="filters">
+      <label class="search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input id="bq" type="search" placeholder="Search a skin or a username" aria-label="Search trades"></label>
+      <select class="sel" id="bSide" aria-label="Where to look for the skin"><option value="any">In Has or Wants</option><option value="has">Only in Has</option><option value="wants">Only in Wants</option></select>
+      <select class="sel" id="bRar" aria-label="Rarity"><option value="">Any rarity</option></select>
+      <select class="sel" id="bSort" aria-label="Sort trades"><option value="new">Newest first</option><option value="old">Oldest first</option><option value="hasHi">Offer: high to low</option><option value="hasLo">Offer: low to high</option><option value="wantHi">Asking: high to low</option><option value="deal">Best deal for you</option></select>
+      <span class="count" id="bCount"></span>
+    </div>
+    <div class="board" id="board"></div>
   </section>
 
   <footer>
@@ -570,7 +622,7 @@ const effTheme=()=>root.dataset.theme||(matchMedia("(prefers-color-scheme: dark)
 $$(".theme").forEach(b=>{b.innerHTML=THEME_ICON;b.onclick=()=>{const t=effTheme()==="dark"?"light":"dark";root.dataset.theme=t;store.set("rv_theme",t)}});
 
 /* ---------- tabs ---------- */
-function show(tab){["values","trade","inv"].forEach(t=>{$("#p-"+t).hidden=t!==tab;$("#tab-"+t).setAttribute("aria-selected",t===tab?"true":"false")});store.set("rv_tab",tab)}
+function show(tab){["values","trade","inv","board"].forEach(t=>{$("#p-"+t).hidden=t!==tab;$("#tab-"+t).setAttribute("aria-selected",t===tab?"true":"false")});store.set("rv_tab",tab);if(tab==="board"&&typeof loadBoard==="function")loadBoard()}
 $$(".tab").forEach(b=>b.onclick=()=>{show(b.dataset.tab);window.scrollTo({top:0})});
 
 /* ---------- VALUES ---------- */
@@ -723,6 +775,106 @@ $("#invCopy").onclick=()=>{
 };
 renderInv();
 
+
+/* ---------- TRADE BOARD ---------- */
+const API="/api/ads";
+let ADS=[],boardMsg="",boardLoaded=0,boardBusy=false;
+let myAds=store.get("rv_myads",{});if(!myAds||typeof myAds!=="object")myAds={};
+let ADMIN="";try{ADMIN=sessionStorage.getItem("rv_admin")||""}catch(e){}
+if(/[?&]admin\b/.test(location.search)&&!ADMIN){const k=prompt("Admin key");if(k){ADMIN=k;try{sessionStorage.setItem("rv_admin",k)}catch(e){}}}
+$("#bRar").insertAdjacentHTML("beforeend",RORDER.map(r=>`<option value="${r}">${r}</option>`).join(""));
+const keyName=k=>KEY[k]?label(KEY[k]):k.split("|")[0].replace(/\b\w/g,c=>c.toUpperCase());
+const sideVal=list=>{let t=0,u=0;for(const{k,q}of list){const x=KEY[k];if(!x||x.val==null)u+=q;else t+=x.val*q}return{t,u}};
+const ago=ms=>{const m=Math.max(0,Math.round((Date.now()-ms)/6e4));return m<1?"just now":m<60?m+" min ago":m<1440?Math.floor(m/60)+" h ago":Math.floor(m/1440)+" d ago"};
+function adItems(list){return list.map(({k,q})=>{const x=KEY[k]||{name:keyName(k),key:k};return `<div class="ad-it"><div class="th">${KEY[k]?art(x):""}</div><span><b>${q}×</b>${esc(keyName(k))}</span></div>`}).join("")}
+function adHTML(a){
+  const h=sideVal(a.has),w=sideVal(a.wants),mine=!!myAds[a.id];
+  let tag="";if((h.t||h.u)&&(w.t||w.u)&&!h.u&&!w.u&&h.t){const p=(w.t-h.t)/h.t*100;tag=p>5?'<span class="tag">Asks more</span>':p<-5?'<span class="tag w">Good deal</span>':'<span class="tag">Fair</span>'}
+  return `<article class="ad${mine?" mine":""}" data-id="${esc(a.id)}">
+    <header class="ad-h"><span class="ad-user">@${esc(a.user)}</span><span class="lbl">${mine?"Your post · ":""}${ago(a.created)}</span></header>
+    <div class="ad-sides">
+      <div class="ad-side"><span class="lbl">Has</span>${a.has.length?adItems(a.has)+`<div class="ad-tot">${totHTML(h)}</div>`:'<span class="ad-open">Nothing listed</span>'}</div>
+      <div class="ad-arrow" aria-hidden="true">⇄</div>
+      <div class="ad-side"><span class="lbl">Wants</span>${a.wants.length?adItems(a.wants)+`<div class="ad-tot">${totHTML(w)}</div>`:""}${a.offers||!a.wants.length?'<span class="ad-open">Open to offers</span>':""}</div>
+    </div>
+    ${a.note?`<p class="ad-note">${esc(a.note)}</p>`:""}
+    <footer class="ad-f"><button type="button" data-copy="${esc(a.user)}">Copy username</button>${mine||ADMIN?`<button type="button" class="del" data-del="${esc(a.id)}">Delete</button>`:`<button type="button" data-rep="${esc(a.id)}">Report</button>`}${tag}</footer>
+  </article>`}
+function renderBoard(){
+  const box=$("#board");$("#boardCount").textContent=ADS.length?String(ADS.length):"";
+  if(boardMsg&&!ADS.length){box.innerHTML=`<div class="empty">${boardMsg}</div>`;$("#bCount").textContent="";return}
+  const q=$("#bq").value.trim().toLowerCase(),side=$("#bSide").value,rar=$("#bRar").value,sort=$("#bSort").value;
+  const lists=a=>side==="has"?a.has:side==="wants"?a.wants:a.has.concat(a.wants);
+  let L=ADS.filter(a=>{const it=lists(a);
+    if(rar&&!it.some(({k})=>KEY[k]&&KEY[k].rar===rar))return false;
+    if(!q)return true;
+    return a.user.toLowerCase().includes(q)||it.some(({k})=>keyName(k).toLowerCase().includes(q));});
+  const H=a=>sideVal(a.has).t,W=a=>sideVal(a.wants).t;
+  const S={new:(a,b)=>b.created-a.created,old:(a,b)=>a.created-b.created,hasHi:(a,b)=>H(b)-H(a),hasLo:(a,b)=>H(a)-H(b),wantHi:(a,b)=>W(b)-W(a),deal:(a,b)=>(H(b)-W(b))-(H(a)-W(a))};
+  L.sort(S[sort]||S.new);
+  $("#bCount").textContent=`${L.length} of ${ADS.length} trade${ADS.length===1?"":"s"}`;
+  box.innerHTML=L.length?L.map(adHTML).join(""):`<div class="empty">${ADS.length?"No trade matches your search.":"No trades posted yet. Be the first: press “Post a trade”."}</div>`;
+}
+async function loadBoard(force){
+  if(boardBusy||(!force&&Date.now()-boardLoaded<30e3))return;boardBusy=true;
+  try{const r=await fetch(API,{cache:"no-store"});const d=await r.json().catch(()=>({}));
+    if(!r.ok)throw new Error(d.error||"Couldn't load trades.");
+    ADS=Array.isArray(d.ads)?d.ads:[];boardMsg="";boardLoaded=Date.now();
+    for(const id of Object.keys(myAds))if(!ADS.some(a=>a.id===id))delete myAds[id];store.set("rv_myads",myAds);
+  }catch(e){boardMsg=esc(e.message||"Couldn't load trades. Try again in a moment.")}
+  boardBusy=false;renderBoard();
+}
+["#bq","#bSide","#bRar","#bSort"].forEach(id=>{$(id).addEventListener(id==="#bq"?"input":"change",renderBoard)});
+$("#board").addEventListener("click",async e=>{
+  const c=e.target.closest("[data-copy]");if(c){const t="@"+c.dataset.copy;try{await navigator.clipboard.writeText(c.dataset.copy);toast(`Copied <b>${esc(t)}</b>, DM them on Discord`)}catch(_){toast(esc(t))}return}
+  const r=e.target.closest("[data-rep]");if(r){if(r.dataset.armed!=="1"){r.dataset.armed="1";r.textContent="Press again to report";setTimeout(()=>{r.dataset.armed="";r.textContent="Report"},3000);return}
+    const res=await fetch(API,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({action:"report",id:r.dataset.rep})}).catch(()=>null);
+    toast(res&&res.ok?"Thanks, the post was reported":"Couldn't report right now");r.disabled=true;r.textContent="Reported";return}
+  const d=e.target.closest("[data-del]");if(d){if(d.dataset.armed!=="1"){d.dataset.armed="1";d.textContent="Press again to delete";setTimeout(()=>{d.dataset.armed="";d.textContent="Delete"},3000);return}
+    const id=d.dataset.del;const res=await fetch(API,{method:"DELETE",headers:{"content-type":"application/json"},body:JSON.stringify({id,token:myAds[id]||"",admin:ADMIN||undefined})}).catch(()=>null);
+    if(res&&res.ok){delete myAds[id];store.set("rv_myads",myAds);ADS=ADS.filter(a=>a.id!==id);renderBoard();toast("Post deleted")}else toast("Couldn't delete this post");}
+});
+/* post form */
+let draft={has:{},wants:{},user:store.get("rv_user","")};
+function draftSide(side){const L=Object.entries(draft[side]).filter(([k])=>KEY[k]);
+  return `<div class="side"><div class="side-h"><h2>${side==="has"?"I have":"I want"}</h2><span class="tot">${totHTML(sideVal(L.map(([k,q])=>({k,q}))))}</span></div>
+   <div class="picker"><select id="pf-${side}" aria-label="Choose a skin">${optHTML()}</select><button type="button" data-padd="${side}">Add</button></div>
+   <div class="items">${L.length?L.map(([k,q])=>itemHTML(KEY[k],q,side+":"+KEY[k].id)).join(""):`<div class="empty" style="padding:16px">Nothing yet.</div>`}</div></div>`}
+function renderForm(){const box=$("#pfSides");if(!box)return;const kh=$("#pf-has")?.value,kw=$("#pf-wants")?.value;box.innerHTML=draftSide("has")+draftSide("wants");keepPick($("#pf-has"),kh);keepPick($("#pf-wants"),kw)}
+function openPost(){
+  const hasCalc=Object.keys(trade.A).length||Object.keys(trade.B).length;
+  openPanel(`<div class="dr-top"><span class="lbl">Post a trade</span><button class="iconbtn" type="button" id="drClose" aria-label="Close">${X_ICON}</button></div>
+  <form class="pf" id="pf" autocomplete="off">
+    <h2 class="disp" style="margin:0;font-size:44px">New post</h2>
+    <label class="f lbl" for="pfUser">Your Discord username</label><input type="text" id="pfUser" maxlength="32" placeholder="e.g. venodez" value="${esc(draft.user||"")}">
+    ${hasCalc?'<div class="pfrow"><button class="btn ghost" type="button" id="pfCalc">Use my calculator trade</button></div>':""}
+    <div id="pfSides"></div>
+    <label class="chk"><input type="checkbox" id="pfOffers" checked> Open to other offers</label>
+    <label class="f lbl" for="pfNote">Note (optional)</label><textarea id="pfNote" maxlength="160" placeholder="e.g. Can add small skins. Online in the evening."></textarea>
+    <div class="hp" aria-hidden="true"><input type="text" id="pfWeb" tabindex="-1"></div>
+    <p class="rules">No links and no scams. Posts disappear after 48 hours. Trades happen in the game, at your own risk.</p>
+    <p class="err" id="pfErr" role="alert"></p>
+    <div class="pfrow"><button class="btn" type="submit" id="pfSend">Post it</button></div>
+  </form>`);
+  renderForm();
+  const f=$("#pf");
+  f.addEventListener("click",e=>{const a=e.target.closest("[data-padd]");if(a){const sd=a.dataset.padd,k=$("#pf-"+sd).value;if(KEY[k]){draft[sd][k]=(draft[sd][k]||0)+1;renderForm()}return}
+    const d=e.target.closest("[data-d]");if(d){const[sd,id,n]=d.dataset.d.split(":");const x=byId(id);if(!x)return;draft[sd][x.key]=(draft[sd][x.key]||0)+(+n);if(draft[sd][x.key]<=0)delete draft[sd][x.key];renderForm()}
+    if(e.target.id==="pfCalc"){draft.has={...trade.A};draft.wants={...trade.B};renderForm()}});
+  f.onsubmit=async e=>{e.preventDefault();const err=$("#pfErr"),btn=$("#pfSend");err.textContent="";
+    draft.user=$("#pfUser").value.trim().replace(/^@/,"");store.set("rv_user",draft.user);
+    const toList=o=>Object.entries(o).filter(([k])=>KEY[k]).map(([k,q])=>({k,q}));
+    const body={user:draft.user,has:toList(draft.has),wants:toList(draft.wants),offers:$("#pfOffers").checked,note:$("#pfNote").value,website:$("#pfWeb").value};
+    if(!body.has.length&&!body.wants.length){err.textContent="Add at least one skin.";return}
+    btn.disabled=true;btn.textContent="Posting…";
+    try{const r=await fetch(API,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify(body)});const d=await r.json().catch(()=>({}));
+      if(!r.ok)throw new Error(d.error||"Couldn't post right now.");
+      myAds[d.id]=d.token;store.set("rv_myads",myAds);draft.has={};draft.wants={};closeDrawer();toast("Your trade is <b>posted</b>");loadBoard(true);
+    }catch(x){err.textContent=x.message;btn.disabled=false;btn.textContent="Post it"}};
+}
+$("#bPost").onclick=openPost;
+setInterval(()=>{if(!$("#p-board").hidden&&document.visibilityState==="visible")loadBoard()},60e3);
+
 /* ---------- COVER ---------- */
 const cover=$("#cover");
 function renderFacts(){
@@ -763,6 +915,7 @@ function toCover(){
 $("#enter").onclick=()=>enter("values");
 $("#goTrade").onclick=()=>enter("trade");
 $("#goInv").onclick=()=>enter("inv");
+$("#goBoard").onclick=()=>enter("board");
 $("#toCover").onclick=toCover;
 
 /* ---------- live values from the Google Sheet ---------- */
@@ -813,14 +966,14 @@ async function loadSheet(){
     SOURCE="sheet";return true;
   }catch(e){console.warn("Live values unavailable, using the backup list:",e.message);return false}
 }
-function refreshAll(){renderStats();renderLedger(false);renderTrade();fillInvPick();renderInv(true);renderFacts();renderTicker()}
+function refreshAll(){if(typeof renderBoard==="function")renderBoard();renderStats();renderLedger(false);renderTrade();fillInvPick();renderInv(true);renderFacts();renderTicker()}
 const syncSheet=()=>loadSheet().then(ok=>{if(ok)refreshAll();return ok});
 syncSheet();
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&Date.now()-lastLoad>60000)syncSheet()});
 
 /* start */
 const hash=location.hash.slice(1);
-if(["values","trade","inv"].includes(hash)){cover.hidden=true;show(hash)}
+if(["values","trade","inv","board"].includes(hash)){cover.hidden=true;show(hash)}
 else{root.classList.add("lock");show(store.get("rv_tab","values"))}
 window.RV={enter,toCover,openDrawer,addTo,show,sync:syncSheet,get source(){return SOURCE},get skins(){return SKINS}};
 </script>
