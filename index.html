@@ -351,6 +351,15 @@ footer a{color:var(--ink)}
   .card h3{font-size:21px}
 }
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+
+/* home screen always fits the window (no scrolling) */
+.cv{overflow-y:hidden}
+.cv-hero{flex:1 0 auto}
+@media (max-width:760px){
+  .cv-art{aspect-ratio:auto;height:auto;min-height:0}
+  .cv-art img,.cv-art img.bun{width:100%!important;height:28vh!important;height:28dvh!important;max-height:none!important;object-fit:contain}
+  .cv-hero{gap:14px;padding-top:12px}
+}
 </style>
 </head>
 <body>
@@ -729,8 +738,13 @@ function renderTicker(){
 renderFacts();renderTicker();
 
 function fitMast(){const m=$("#mast");m.style.fontSize="";const w=m.clientWidth;const sw=Math.max(...$$(".ln>span",m).map(s=>s.getBoundingClientRect().width));if(w>0&&sw>w){const cur=parseFloat(getComputedStyle(m).fontSize);m.style.fontSize=Math.floor(cur*w/sw*0.98)+"px"}}
-if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fitMast);
-fitMast();addEventListener("resize",fitMast);
+function fitCover(){const c=$("#cover"),h=$(".cv-hero"),k=$(".tick");if(!c||c.hidden)return;h.style.zoom="";c.style.overflowY="hidden";
+  const bottom=()=>Math.max(...[...h.querySelectorAll(".cv-copy>*,.cv-art")].map(e=>e.getBoundingClientRect().bottom));
+  for(let i=0;i<5;i++){const top=h.getBoundingClientRect().top,lim=c.getBoundingClientRect().bottom-k.offsetHeight-8,b=bottom();if(b<=lim+1)break;
+    const z=(parseFloat(h.style.zoom)||1)*(lim-top)/(b-top);h.style.zoom=Math.max(.5,z*0.995).toFixed(3)}
+  if(bottom()>c.getBoundingClientRect().bottom-k.offsetHeight+1)c.style.overflowY="auto"}
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{fitMast();fitCover()});
+fitMast();fitCover();addEventListener("resize",()=>{fitMast();fitCover()});
 
 function enter(tab,then){
   if(cover.hidden){show(tab);if(then)then();return}
@@ -740,7 +754,7 @@ function enter(tab,then){
   cover.animate([{transform:"translateY(0)"},{transform:"translateY(-100%)"}],{duration:780,easing:"cubic-bezier(.76,0,.24,1)"}).onfinish=done;
 }
 function toCover(){
-  closeDrawer();cover.hidden=false;root.classList.add("lock");cover.scrollTop=0;fitMast();
+  closeDrawer();cover.hidden=false;root.classList.add("lock");cover.scrollTop=0;fitMast();fitCover();
   if(motionOK&&cover.animate)cover.animate([{transform:"translateY(-100%)"},{transform:"translateY(0)"}],{duration:720,easing:"cubic-bezier(.76,0,.24,1)"});
 }
 $("#enter").onclick=()=>enter("values");
