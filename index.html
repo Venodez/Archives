@@ -409,6 +409,22 @@ footer a{color:var(--ink)}
 @keyframes livepulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--red) 60%,transparent)}70%{box-shadow:0 0 0 7px transparent}100%{box-shadow:0 0 0 0 transparent}}
 .nav .live{margin-right:8px}
 @media (max-width:560px){.live{padding:0 7px;letter-spacing:.06em}.nav .live{display:none}}
+
+/* site updates */
+.news-btn{position:relative}
+.news-btn svg{width:18px;height:18px}
+.news-btn .dot{position:absolute;top:7px;right:7px;width:8px;height:8px;border-radius:50%;background:var(--red)}
+.news-line{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px;max-width:100%;padding:8px 12px;border:1px solid var(--line);background:transparent;color:var(--ink);text-align:left;font-size:13.5px;line-height:1.35;cursor:pointer}
+.news-line:hover{border-color:var(--ink)}
+@media (max-width:760px){.news-line{display:none!important}}
+.news-line b{font-family:var(--f-mono);font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:#fff;background:var(--red);padding:2px 6px}
+.news-line em{font-style:normal;font-family:var(--f-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute)}
+.upd{padding:18px 0;border-top:1px solid var(--line)}
+.upd:first-of-type{border-top:2px solid var(--ink)}
+.upd .lbl{display:block;margin-bottom:6px}
+.upd h3{margin:0 0 6px;font-family:var(--f-display);font-stretch:62%;font-weight:800;font-size:28px;line-height:1;text-transform:uppercase}
+.upd p{margin:0;color:var(--ink2);line-height:1.55;white-space:pre-line}
+.upd .new{margin-left:8px;color:var(--red)}
 </style>
 </head>
 <body>
@@ -417,7 +433,7 @@ footer a{color:var(--ink)}
   <header class="cv-top">
     <div class="brand"><i class="mark"></i><span><b>/</b>liner <em>[Values]</em></span></div>
     <span class="jp" aria-hidden="true">ライナー・バリュー</span>
-    <div class="cv-top-r"><span class="live" data-live hidden title="People on the site right now"><i aria-hidden="true"></i><b>0</b> online</span><span class="lbl">Values updated <span data-updated>Oct 4, 2026</span></span><a class="iconbtn" href="https://discord.gg/redliner" target="_blank" rel="noopener" aria-label="Join the Redliner Discord" title="Join the Redliner Discord"><svg class="dci" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z"/></svg></a><button class="iconbtn theme" type="button" aria-label="Switch between white and black theme"></button></div>
+    <div class="cv-top-r"><span class="live" data-live hidden title="People on the site right now"><i aria-hidden="true"></i><b>0</b> online</span><span class="lbl">Values updated <span data-updated>Oct 4, 2026</span></span><a class="iconbtn" href="https://discord.gg/redliner" target="_blank" rel="noopener" aria-label="Join the Redliner Discord" title="Join the Redliner Discord"><svg class="dci" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z"/></svg></a><button class="iconbtn news-btn" type="button" data-news aria-label="Site updates" title="Site updates"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 11v2a1 1 0 0 0 1 1h2l5 4V6L6 10H4a1 1 0 0 0-1 1z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg><i class="dot" hidden></i></button><button class="iconbtn theme" type="button" aria-label="Switch between white and black theme"></button></div>
   </header>
   <div class="cv-hero">
     <div class="cv-copy">
@@ -429,6 +445,7 @@ footer a{color:var(--ink)}
         <a class="btn ghost" href="https://discord.gg/redliner" target="_blank" rel="noopener"><svg class="dci" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z"/></svg>Join the Discord</a>
       </div>
       <div class="cta2"><button class="link" type="button" id="goTrade">Trade calculator</button><button class="link" type="button" id="goInv">My inventory</button><button class="link" type="button" id="goBoard">Trade board</button></div>
+      <button class="news-line" type="button" data-news hidden><b>New</b><span id="newsLine"></span><em>See all updates →</em></button>
       <div class="cv-facts" id="facts"></div>
       <p class="credit">Made by <b>@venodez</b><span class="credit-sep"></span>Art &amp; logo by <b>@rinrinmatsu</b></p>
       <p class="report">Spotted a wrong value or a bug? <b>DM me</b> on Discord.</p>
@@ -454,7 +471,7 @@ footer a{color:var(--ink)}
       <button class="tab" role="tab" type="button" id="tab-board" data-tab="board" aria-selected="false">Board<small id="boardCount"></small></button>
     </nav>
     <span class="live" data-live hidden title="People on the site right now"><i aria-hidden="true"></i><b>0</b> online</span><a class="iconbtn" href="https://discord.gg/redliner" target="_blank" rel="noopener" aria-label="Join the Redliner Discord" title="Join the Redliner Discord"><svg class="dci" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z"/></svg></a>
-    <button class="iconbtn theme" type="button" aria-label="Switch between white and black theme"></button>
+    <button class="iconbtn news-btn" type="button" data-news aria-label="Site updates" title="Site updates"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 11v2a1 1 0 0 0 1 1h2l5 4V6L6 10H4a1 1 0 0 0-1 1z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg><i class="dot" hidden></i></button><button class="iconbtn theme" type="button" aria-label="Switch between white and black theme"></button>
   </div>
 </header>
 
@@ -962,6 +979,36 @@ async function shareImage(build,name,btn){
   }catch(e){toast("Couldn't make the image")}finally{btn.disabled=false;btn.textContent=old}}
 $("#tradeImg").onclick=e=>shareImage(buildTradeImage,"liner-trade.png",e.currentTarget);
 $("#invImg").onclick=e=>shareImage(buildInvImage,"liner-inventory.png",e.currentTarget);
+
+
+/* ---------- site updates (tab "Updates" in the Google Sheet) ---------- */
+const UPDATES_TAB="Updates";
+let UPDATES=[
+ ["Oct 5, 2026","Copy image","Press “Copy image” in the calculator or your inventory, then paste it straight into Discord. No more screenshots."],
+ ["Oct 5, 2026","Live counter","See how many people are on the site right now, top right."],
+ ["Oct 5, 2026","Trade board","Post what you have and what you want, then sort and filter other people's trades in the Board tab."],
+ ["Oct 5, 2026","New pictures","Funeralist, Nihility and both Sub-Zero now have their picture."]
+];
+async function loadUpdates(){const m=/\/d\/([\w-]{20,})/.exec(SHEET_URL);if(!m)return;
+  try{const r=await fetch(`https://docs.google.com/spreadsheets/d/${m[1]}/gviz/tq?tqx=out:json&headers=1&sheet=${encodeURIComponent(UPDATES_TAB)}&t=${Date.now()}`,{cache:"no-store"});
+    const t=await r.text(),j=JSON.parse(t.slice(t.indexOf("{"),t.lastIndexOf("}")+1));
+    const H=j.table.cols.map(c=>String(c.label||"").trim().toLowerCase()),ci=n=>H.findIndex(h=>h.startsWith(n));
+    const cd=ci("date"),ct=ci("title"),cx=ci("text");if(ct<0||cx<0||H.includes("rarity"))return;
+    const val=(c)=>{if(!c||c.v==null)return "";const m2=/^Date\((\d+),(\d+),(\d+)/.exec(String(c.v));return m2?new Date(+m2[1],+m2[2],+m2[3]).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}):String(c.f??c.v).trim()};
+    const L=(j.table.rows||[]).map(r=>{const c=r.c||[];return [val(c[cd]),val(c[ct]),val(c[cx])]}).filter(u=>u[1]);
+    if(L.length){UPDATES=L.reverse();renderNews()}}catch(e){}}
+const newsSig=()=>UPDATES.length?UPDATES[0].join("|"):"";
+function renderNews(){const u=UPDATES[0];const unseen=u&&store.get("rv_news","")!==newsSig();
+  $$(".news-btn .dot").forEach(d=>d.hidden=!unseen);
+  const line=$(".news-line");if(u){line.hidden=false;$("#newsLine").textContent=u[1]+(u[0]?" · "+u[0]:"")}else line.hidden=true;
+  if(typeof fitCover==="function")fitCover()}
+function openNews(){store.set("rv_news",newsSig());const seenBefore=null;
+  openPanel(`<div class="dr-top"><span class="lbl">What's new</span><button class="iconbtn" type="button" id="drClose" aria-label="Close">${X_ICON}</button></div>
+   <h2 class="disp" style="margin:0 0 14px;font-size:44px">Updates</h2>
+   ${UPDATES.map((u,i)=>`<article class="upd"><span class="lbl">${esc(u[0]||"")}</span><h3>${esc(u[1])}</h3><p>${esc(u[2]||"")}</p></article>`).join("")}`);
+  renderNews()}
+document.addEventListener("click",e=>{if(e.target.closest("[data-news]"))openNews()});
+renderNews();loadUpdates();
 
 /* ---------- live visitors ---------- */
 {const sid=(()=>{try{let v=localStorage.getItem("rv_vid");if(!v){v=[...crypto.getRandomValues(new Uint8Array(12))].map(b=>b.toString(16).padStart(2,"0")).join("");localStorage.setItem("rv_vid",v)}return v}catch(e){return [...crypto.getRandomValues(new Uint8Array(12))].map(b=>b.toString(16).padStart(2,"0")).join("")}})();
