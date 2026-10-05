@@ -216,7 +216,7 @@ a.iconbtn,a.btn{text-decoration:none}
 .count{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);margin-left:auto}
 
 /* ledger */
-.lhead,.row{display:grid;grid-template-columns:150px minmax(0,1.6fr) 96px 120px 104px 112px 38px;gap:18px;align-items:center}
+.lhead,.row{display:grid;grid-template-columns:150px minmax(0,1.6fr) 96px 120px 104px 112px 76px;gap:18px;align-items:center}
 .lhead{padding:14px 12px 8px}
 .lhead .r{text-align:right}
 .grp{display:flex;align-items:center;gap:12px;padding:34px 12px 10px;border-bottom:2px solid var(--ink)}
@@ -334,7 +334,7 @@ footer a{color:var(--ink)}
 @media (max-width:820px){
   .lhead{display:none}
   .row{grid-template-columns:112px minmax(0,1fr) auto;grid-template-areas:"th nm val" "th trc add";gap:6px 14px}
-  .row .th{grid-area:th}.row .nm{grid-area:nm}.row .valc{grid-area:val}.row .trc{grid-area:trc}.row .add{grid-area:add;justify-self:end;width:30px;height:30px}
+  .row .th{grid-area:th}.row .nm{grid-area:nm}.row .valc{grid-area:val}.row .trc{grid-area:trc}.row .acts{grid-area:add;justify-self:end}.row .add,.row .fav{width:30px;height:30px}
   .row .base,.row .demc{display:none}
   .nm h3{font-size:24px}
   .val{font-size:28px}
@@ -418,6 +418,25 @@ footer a{color:var(--ink)}
 .gl-l .tr{font-family:var(--f-mono);font-stretch:100%;font-weight:400;text-transform:uppercase}
 @media (max-width:560px){.nav a.iconbtn{display:none}.nav .tab{padding:10px 4px;font-size:10px;letter-spacing:.01em}.nav-in{gap:4px}.nav .mark{width:34px;height:34px;margin:-6px 0 -6px -4px}.nav .iconbtn{width:32px;height:32px}.tab[aria-selected="true"]::after{left:6px;right:6px}}
 @media (max-width:820px){.gl{grid-template-columns:minmax(0,1fr)}.gl-l>div{grid-template-columns:minmax(0,1fr);gap:6px}}
+
+/* ---------- favorites, value changes, balance helper ---------- */
+.acts{display:flex;gap:4px;justify-content:flex-end}
+.fav{width:34px;height:34px;display:grid;place-items:center;border:1px solid transparent;background:transparent;color:color-mix(in srgb,var(--fg,var(--ink)) 45%,transparent);font-size:17px;line-height:1;transition:color .2s,border-color .2s}
+.fav:hover{border-color:color-mix(in srgb,var(--fg,var(--ink)) 32%,transparent);color:var(--fg,var(--ink))}
+.fav.on{color:#e8a200}
+.chip.fv.on{background:#e8a200;border-color:#e8a200;color:#111}
+.chip.cg.on{background:var(--red);border-color:var(--red);color:var(--on-red)}
+.chg{margin-top:5px;text-align:right;font-family:var(--f-mono);font-size:10.5px;letter-spacing:.06em;white-space:nowrap;color:color-mix(in srgb,var(--fg,var(--ink)) 60%,transparent)}
+.chg.up{color:var(--red)}
+.row:hover .chg.up{color:var(--red)}
+.dl dd .chg{display:inline;margin-left:8px}
+.fixit{width:100%;display:flex;flex-direction:column;gap:6px;padding-top:12px;border-top:1px solid var(--line)}
+.fixit .lbl{text-align:center}
+.fixit button{display:flex;justify-content:space-between;gap:8px;width:100%;padding:8px 10px;border:1px solid var(--line);background:var(--paper);text-align:left;font-size:12.5px;line-height:1.25;transition:border-color .2s,background .2s}
+.fixit button:hover{border-color:var(--ink)}
+.fixit button span:last-child{font-family:var(--f-mono);font-size:11px;color:var(--mute);white-space:nowrap}
+.fixit .none{font-size:12px;color:var(--mute);text-align:center}
+@media (max-width:960px){.verdict .fixit{grid-column:1/-1}}
 
 /* live visitors */
 .live{display:inline-flex;align-items:center;gap:7px;height:30px;padding:0 10px;border:1px solid var(--line);font-family:var(--f-mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--mute);white-space:nowrap}
@@ -519,7 +538,7 @@ footer a{color:var(--ink)}
     <div class="ph">
       <span class="wm" lang="ja" aria-hidden="true">取引</span>
       <div><p class="kicker"><b lang="ja">取引</b>Torihiki · trade</p><h1 class="disp" id="h-trade">Calculator</h1><p class="sub">Check a trade before you accept it. Add what you give and what you get. <b>W</b> means you gain more than 5% in value, <b>L</b> means you lose more than 5%. Skins at <b>?</b> can't be scored.</p></div>
-      <div class="inv-tools"><button class="btn ghost" type="button" id="resetTrade">Clear trade</button><button class="btn" type="button" id="tradeImg">Copy image</button></div>
+      <div class="inv-tools"><button class="btn ghost" type="button" id="resetTrade">Clear trade</button><button class="btn ghost" type="button" id="tradeLink">Copy link</button><button class="btn" type="button" id="tradeImg">Copy image</button></div>
     </div>
     <div class="scale">
       <div class="side" id="sideA"></div>
@@ -564,7 +583,7 @@ footer a{color:var(--ink)}
       <span class="wm" lang="ja" aria-hidden="true">案内</span>
       <div><p class="kicker"><b lang="ja">案内</b>Annai · guide</p><h1 class="disp" id="h-info">Info</h1><p class="sub">What every word, number and symbol on the site means.</p></div>
     </div>
-    <div class="gl"><section class="gl-g"><h2><span class="kt" lang="ja">相場</span>Value list</h2><dl class="gl-l"><div><dt>Value</dt><dd>What a skin is worth in trades, set by the community. Use it to compare skins with each other, not as a price set by the game.</dd></div><div><dt>?</dt><dd>The skin has no value yet, usually because it's new or too rare to have enough trades. Skins at <b>?</b> can't be scored in the calculator.</dd></div><div><dt>Demand</dt><dd>How much people want the skin, from 1 to 10. High demand means it's easy to trade away. Low demand means you may have to wait or add a bit to find a trade.</dd></div><div><dt>Base weapon</dt><dd>The weapon the skin goes on, like Redliner, Monarch or Phoenix. Some skins exist on two weapons, for example Sub-Zero.</dd></div><div><dt>Collection</dt><dd>The set the skin comes from, like Precede All or Dragonhunt.</dd></div><div><dt>Worth in AWPs</dt><dd>The skin's value counted in AWPs (one AWP = 150). A quick way to picture how big a value is.</dd></div></dl></section><section class="gl-g"><h2><span class="kt" lang="ja">動向</span>Trends</h2><dl class="gl-l"><div><dt><span class="tr"><span class="s">—</span>Stable</span></dt><dd>The value isn't moving. Safe to trade at the listed value.</dd></div><div><dt><span class="tr red"><span class="s">▲</span>Rising</span></dt><dd>The value is going up. People are paying more for it than before.</dd></div><div><dt><span class="tr"><span class="s">▼</span>Lowering</span></dt><dd>The value is going down, or fewer people want it right now.</dd></div><div><dt><span class="tr"><span class="s">≈</span>Unstable</span></dt><dd>Trades for it are all over the place, so the real value is hard to pin down. Be careful.</dd></div><div><dt><span class="tr red"><span class="s">✶</span>Hyped</span></dt><dd>Lots of people want it right now, often because it's new. Hype can fade fast.</dd></div></dl></section><section class="gl-g"><h2><span class="kt" lang="ja">等級</span>Rarities</h2><dl class="gl-l"><div><dt><span class="bdg b-class">Classified</span></dt><dd>The top tier.</dd></div><div><dt><span class="bdg b-direct">Direct Classified</span></dt><dd>The second tier, shown in red.</dd></div><div><dt><span class="bdg b-exo">Exotic</span></dt><dd>The third tier.</dd></div><div><dt><span class="bdg b-elite">Elite</span></dt><dd>The fourth tier.</dd></div><div><dt><span class="bdg b-rare">Rare</span></dt><dd>The fifth tier.</dd></div><div><dt><span class="bdg b-unc">Uncommon</span></dt><dd>The most common tier.</dd></div></dl></section><section class="gl-g"><h2><span class="kt" lang="ja">取引</span>Calculator</h2><dl class="gl-l"><div><dt>You give / You get</dt><dd>Put your skins on the left and the other person's skins on the right. The site adds up both sides.</dd></div><div><dt><span style="color:var(--ink)">W</span></dt><dd>A win: you get more than 5% more value than you give.</dd></div><div><dt><span style="color:var(--red)">L</span></dt><dd>A loss: you give more than 5% more value than you get.</dd></div><div><dt>Fair</dt><dd>Both sides are within 5% of each other.</dd></div><div><dt>Copy image</dt><dd>Makes a picture of your trade that you can paste straight into Discord.</dd></div></dl></section><section class="gl-g"><h2><span class="kt" lang="ja">所持品</span>Inventory</h2><dl class="gl-l"><div><dt>Total listed value</dt><dd>All your skins added up at their listed value. Skins at <b>?</b> aren't counted.</dd></div><div><dt>Copy as text</dt><dd>Copies a ready-made Discord message listing your skins, with a coloured square for each rarity.</dd></div><div><dt>Your device only</dt><dd>Your inventory and calculator are saved in your browser. Nobody else can see them, and they're gone if you clear your browser data.</dd></div></dl></section><section class="gl-g"><h2><span class="kt" lang="ja">掲示板</span>Trade board</h2><dl class="gl-l"><div><dt>Has / Wants</dt><dd>What the person is offering, and what they want in return.</dd></div><div><dt>Open to offers</dt><dd>They'll look at other offers too, not only what they listed.</dd></div><div><dt>Good deal</dt><dd>They ask for less value than they offer: good for you.</dd></div><div><dt>Fair</dt><dd>What they ask and what they offer are close in value.</dd></div><div><dt>Asks more</dt><dd>They ask for more value than they offer.</dd></div><div><dt>48 hours</dt><dd>Posts delete themselves after 48 hours. You can delete your own post anytime, and report posts that break the rules.</dd></div></dl></section><section class="gl-g"><h2><span class="kt" lang="ja">用語</span>Trading words</h2><dl class="gl-l"><div><dt>Overpay</dt><dd>Giving more than the listed value to get a skin you really want. If a skin often gets overpays, its value tends to rise.</dd></div><div><dt>Trade down</dt><dd>Trading one expensive skin for several cheaper ones.</dd></div><div><dt>Trade up</dt><dd>Trading several cheaper skins for one more expensive skin.</dd></div><div><dt>Cross-trading</dt><dd>Trading Redliner skins for things outside the game, like items from another game or real money. Not allowed here.</dd></div></dl></section></div>
+    <div class="gl"><section class="gl-g"><h2><span class="kt" lang="ja">相場</span>Value list</h2><dl class="gl-l"><div><dt>Value</dt><dd>What a skin is worth in trades, set by the community. Use it to compare skins with each other, not as a price set by the game.</dd></div><div><dt>?</dt><dd>The skin has no value yet, usually because it's new or too rare to have enough trades. Skins at <b>?</b> can't be scored in the calculator.</dd></div><div><dt>Demand</dt><dd>How much people want the skin, from 1 to 10. High demand means it's easy to trade away. Low demand means you may have to wait or add a bit to find a trade.</dd></div><div><dt>Base weapon</dt><dd>The weapon the skin goes on, like Redliner, Monarch or Phoenix. Some skins exist on two weapons, for example Sub-Zero.</dd></div><div><dt>Collection</dt><dd>The set the skin comes from, like Precede All or Dragonhunt.</dd></div><div><dt><span style="color:var(--red)">▲</span> 650</dt><dd>How much the value changed in the last update. Red ▲ means it went up, ▼ means it went down. Use the <b>Changed</b> filter to see only those skins.</dd></div><div><dt>☆ Favorite</dt><dd>Press the star next to a skin to keep it in your <b>Favorites</b> filter. Saved on your device only.</dd></div><div><dt>Worth in AWPs</dt><dd>The skin's value counted in AWPs (one AWP = 150). A quick way to picture how big a value is.</dd></div></dl></section><section class="gl-g"><h2><span class="kt" lang="ja">動向</span>Trends</h2><dl class="gl-l"><div><dt><span class="tr"><span class="s">—</span>Stable</span></dt><dd>The value isn't moving. Safe to trade at the listed value.</dd></div><div><dt><span class="tr red"><span class="s">▲</span>Rising</span></dt><dd>The value is going up. People are paying more for it than before.</dd></div><div><dt><span class="tr"><span class="s">▼</span>Lowering</span></dt><dd>The value is going down, or fewer people want it right now.</dd></div><div><dt><span class="tr"><span class="s">≈</span>Unstable</span></dt><dd>Trades for it are all over the place, so the real value is hard to pin down. Be careful.</dd></div><div><dt><span class="tr red"><span class="s">✶</span>Hyped</span></dt><dd>Lots of people want it right now, often because it's new. Hype can fade fast.</dd></div></dl></section><section class="gl-g"><h2><span class="kt" lang="ja">等級</span>Rarities</h2><dl class="gl-l"><div><dt><span class="bdg b-class">Classified</span></dt><dd>The top tier.</dd></div><div><dt><span class="bdg b-direct">Direct Classified</span></dt><dd>The second tier, shown in red.</dd></div><div><dt><span class="bdg b-exo">Exotic</span></dt><dd>The third tier.</dd></div><div><dt><span class="bdg b-elite">Elite</span></dt><dd>The fourth tier.</dd></div><div><dt><span class="bdg b-rare">Rare</span></dt><dd>The fifth tier.</dd></div><div><dt><span class="bdg b-unc">Uncommon</span></dt><dd>The most common tier.</dd></div></dl></section><section class="gl-g"><h2><span class="kt" lang="ja">取引</span>Calculator</h2><dl class="gl-l"><div><dt>You give / You get</dt><dd>Put your skins on the left and the other person's skins on the right. The site adds up both sides.</dd></div><div><dt><span style="color:var(--ink)">W</span></dt><dd>A win: you get more than 5% more value than you give.</dd></div><div><dt><span style="color:var(--red)">L</span></dt><dd>A loss: you give more than 5% more value than you get.</dd></div><div><dt>Fair</dt><dd>Both sides are within 5% of each other.</dd></div><div><dt>Balance helper</dt><dd>When a trade is a W or an L, the calculator suggests one or two skins that would make it fair. Press a suggestion to add it.</dd></div><div><dt>Copy link</dt><dd>Makes a link to your trade. Whoever opens it sees the exact same trade in their calculator.</dd></div><div><dt>Copy image</dt><dd>Makes a picture of your trade that you can paste straight into Discord.</dd></div></dl></section><section class="gl-g"><h2><span class="kt" lang="ja">所持品</span>Inventory</h2><dl class="gl-l"><div><dt>Total listed value</dt><dd>All your skins added up at their listed value. Skins at <b>?</b> aren't counted.</dd></div><div><dt>Copy as text</dt><dd>Copies a ready-made Discord message listing your skins, with a coloured square for each rarity.</dd></div><div><dt>Your device only</dt><dd>Your inventory and calculator are saved in your browser. Nobody else can see them, and they're gone if you clear your browser data.</dd></div></dl></section><section class="gl-g"><h2><span class="kt" lang="ja">掲示板</span>Trade board</h2><dl class="gl-l"><div><dt>Has / Wants</dt><dd>What the person is offering, and what they want in return.</dd></div><div><dt>Open to offers</dt><dd>They'll look at other offers too, not only what they listed.</dd></div><div><dt>Good deal</dt><dd>They ask for less value than they offer: good for you.</dd></div><div><dt>Fair</dt><dd>What they ask and what they offer are close in value.</dd></div><div><dt>Asks more</dt><dd>They ask for more value than they offer.</dd></div><div><dt>48 hours</dt><dd>Posts delete themselves after 48 hours. You can delete your own post anytime, and report posts that break the rules.</dd></div></dl></section><section class="gl-g"><h2><span class="kt" lang="ja">用語</span>Trading words</h2><dl class="gl-l"><div><dt>Overpay</dt><dd>Giving more than the listed value to get a skin you really want. If a skin often gets overpays, its value tends to rise.</dd></div><div><dt>Trade down</dt><dd>Trading one expensive skin for several cheaper ones.</dd></div><div><dt>Trade up</dt><dd>Trading several cheaper skins for one more expensive skin.</dd></div><div><dt>Cross-trading</dt><dd>Trading Redliner skins for things outside the game, like items from another game or real money. Not allowed here.</dd></div></dl></section></div>
   </section>
 
   <footer>
@@ -650,7 +669,10 @@ const RORDER=Object.keys(RAR).sort((a,b)=>RAR[a].o-RAR[b].o);
 const TR={Stable:{t:"Stable",s:"—"},Rising:{t:"Rising",s:"▲",red:1},Lowering:{t:"Lowering",s:"▼"},Unstable:{t:"Unstable",s:"≈"},Hyped:{t:"Hyped",s:"✶",red:1}};
 let SKINS=[],KEY={};
 const IMGX={};
-function setSkins(rows){SKINS=rows.map((r,i)=>({id:i,key:(r[3]+"|"+r[2]).toLowerCase(),rar:r[0],coll:r[1],weapon:r[2],name:r[3],val:r[4],dem:r[5],trend:r[6]}));KEY={};SKINS.forEach(s=>{KEY[s.key]=s})}
+/* Value before the last change, used for the ▲/▼ marks. The sheet's "Old value" column wins; this list covers the Oct 5 update until Oct 19. */
+const PREV={"dragora|monarch":18350,"domini|siege":6500,"kugelblitz|phoenix":6250,"funeralist|castigate":4500,"nihility|redliner":2300,"sub-zero|redliner":600,"sub-zero|monarch":500,"radiance|monarch":1000};
+const PREV_UNTIL=Date.UTC(2026,9,19);
+function setSkins(rows){SKINS=rows.map((r,i)=>{const key=(r[3]+"|"+r[2]).toLowerCase();let prev=r[7]??null;if(prev==null&&Date.now()<PREV_UNTIL&&PREV[key]!=null)prev=PREV[key];return {id:i,key,rar:r[0],coll:r[1],weapon:r[2],name:r[3],val:r[4],dem:r[5],trend:r[6],prev}});KEY={};SKINS.forEach(s=>{KEY[s.key]=s})}
 setSkins(RAW);
 
 /* ---------- helpers ---------- */
@@ -666,6 +688,10 @@ const art=s=>{const src=IMGX[s.key]||IMG[s.key]||IMG[s.name];return src?`<div cl
 const bdg=s=>`<span class="bdg ${RAR[s.rar].cls}">${s.rar}</span>`;
 const trend=s=>{const t=TR[s.trend]||TR.Stable;return `<span class="tr${t.red?" red":""}"><span class="s">${t.s}</span>${t.t}</span>`};
 const dem=d=>{let h="";for(let i=1;i<=10;i++)h+=`<i class="${d&&i<=d?"f":""}"></i>`;return `<div class="dem" role="img" aria-label="Demand ${d??"unknown"} out of 10">${h}</div>`};
+const changed=s=>s.val!=null&&s.prev!=null&&s.prev!==s.val;
+const chgHTML=s=>{if(!changed(s))return "";const d=s.val-s.prev;return `<div class="chg${d>0?" up":""}" title="Was ${fmt(s.prev)}">${d>0?"▲":"▼"} ${fmt(Math.abs(d))}</div>`};
+let favs=new Set(store.get("rv_favs",[]));
+const saveFavs=()=>store.set("rv_favs",[...favs]);
 const pips=g=>{const n=6-RAR[g].o;let h="";for(let i=0;i<6;i++)h+=`<i class="${i<n?"f":""}"></i>`;return `<span class="pips${g==="Direct Classified"?" red":""}" aria-hidden="true">${h}</span>`};
 const optHTML=()=>RORDER.map(g=>`<optgroup label="${g}">`+SKINS.filter(s=>s.rar===g).sort((a,b)=>(b.val??-1)-(a.val??-1)).map(s=>`<option value="${esc(s.key)}">${esc(label(s))} — ${fmt(s.val)}</option>`).join("")+"</optgroup>").join("");
 function toast(msg){const h=$("#toastHost");h.innerHTML="";const t=document.createElement("div");t.className="toast";t.innerHTML=msg;h.appendChild(t);clearTimeout(toast.t);toast.t=setTimeout(()=>t.remove(),1900)}
@@ -684,7 +710,10 @@ $$(".tab").forEach(b=>b.onclick=()=>{show(b.dataset.tab);window.scrollTo({top:0}
 
 /* ---------- VALUES ---------- */
 let filter="all";
-$("#chips").innerHTML=[["all","All"],...RORDER.map(g=>[g,g])].map(([k,l])=>`<button class="chip${k==="all"?" on":""}${k==="Direct Classified"?" dc":""}" type="button" data-k="${k}">${l}</button>`).join("");
+function renderChips(){const cur=filter;const nC=SKINS.filter(changed).length;
+  $("#chips").innerHTML=[["all","All"],["fav","★ Favorites"],...(nC?[["chg",`Changed <span>${nC}</span>`]]:[]),...RORDER.map(g=>[g,g])].map(([k,l])=>`<button class="chip${k===cur?" on":""}${k==="Direct Classified"?" dc":""}${k==="fav"?" fv":""}${k==="chg"?" cg":""}" type="button" data-k="${k}">${l}</button>`).join("");
+  if(cur==="chg"&&!nC){filter="all";renderChips()}}
+renderChips();
 $("#chips").onclick=e=>{const b=e.target.closest(".chip");if(!b)return;filter=b.dataset.k;$$(".chip").forEach(c=>c.classList.toggle("on",c===b));renderLedger(true)};
 $("#q").oninput=()=>renderLedger(false);
 $("#sort").onchange=()=>renderLedger(true);
@@ -700,15 +729,15 @@ function rowHTML(x,i){return `<div class="row" role="button" tabindex="0" data-i
   <div class="base">${esc(x.weapon)}</div>
   <div class="demc">${dem(x.dem)}<div class="dem-l">${x.dem==null?"?":x.dem+" / 10"}</div></div>
   <div class="trc">${trend(x)}</div>
-  <div class="valc"><div class="val${x.val==null?" q":""}">${fmt(x.val)}</div></div>
-  <button class="add" type="button" data-add="${x.id}" aria-label="Add ${esc(x.name)} to your side of the calculator" title="Add to calculator">+</button>
+  <div class="valc"><div class="val${x.val==null?" q":""}">${fmt(x.val)}</div>${chgHTML(x)}</div>
+  <div class="acts"><button class="fav${favs.has(x.key)?" on":""}" type="button" data-fav="${x.id}" aria-pressed="${favs.has(x.key)}" aria-label="${favs.has(x.key)?"Remove":"Add"} ${esc(x.name)} ${favs.has(x.key)?"from":"to"} favorites" title="Favorite">${favs.has(x.key)?"★":"☆"}</button><button class="add" type="button" data-add="${x.id}" aria-label="Add ${esc(x.name)} to your side of the calculator" title="Add to calculator">+</button></div>
 </div>`}
 function cmpVal(a,b,dir){if(a.val==null&&b.val==null)return a.name.localeCompare(b.name);if(a.val==null)return 1;if(b.val==null)return -1;return dir*(b.val-a.val)||a.name.localeCompare(b.name)}
 function renderLedger(anim){
   const q=$("#q").value.trim().toLowerCase(),s=$("#sort").value;
-  const L=SKINS.filter(x=>(filter==="all"||x.rar===filter)&&(!q||[x.name,x.weapon,x.coll,x.rar].join(" ").toLowerCase().includes(q)));
+  const L=SKINS.filter(x=>(filter==="all"||x.rar===filter||(filter==="fav"&&favs.has(x.key))||(filter==="chg"&&changed(x)))&&(!q||[x.name,x.weapon,x.coll,x.rar].join(" ").toLowerCase().includes(q)));
   let h="";
-  if(!L.length)h=`<div class="empty">No skin matches “${esc(q)}”. Try another name or pick “All”.</div>`;
+  if(!L.length)h=filter==="fav"&&!q?`<div class="empty">No favorites yet. Press ☆ next to a skin to keep it here.</div>`:`<div class="empty">No skin matches “${esc(q)}”. Try another name or pick “All”.</div>`;
   else if(s==="vdesc"||s==="vasc"){const dir=s==="vdesc"?1:-1;let i=0;
     for(const g of (dir===1?RORDER:[...RORDER].reverse())){const items=L.filter(x=>x.rar===g).sort((a,b)=>cmpVal(a,b,dir));if(!items.length)continue;
       h+=`<div class="grp">${pips(g)}<h2>${g}</h2><span class="kt" lang="ja" title="${g}">${RAR[g].jp}</span><span class="lbl">${items.length} skin${items.length>1?"s":""}</span></div>`+items.map(x=>rowHTML(x,i++)).join("")}}
@@ -716,7 +745,9 @@ function renderLedger(anim){
   const led=$("#ledger");led.classList.toggle("anim",!!anim);led.innerHTML=h;
   $("#count").textContent=`${L.length} of ${SKINS.length} skins`;
 }
-$("#ledger").onclick=e=>{const a=e.target.closest("[data-add]");if(a){e.stopPropagation();addTo("A",+a.dataset.add);toast(`Added <b>${esc(byId(a.dataset.add).name)}</b> to your side`);return}
+function toggleFav(x){if(favs.has(x.key)){favs.delete(x.key);toast(`Removed <b>${esc(x.name)}</b> from favorites`)}else{favs.add(x.key);toast(`Added <b>${esc(x.name)}</b> to favorites`)}saveFavs();renderLedger(false)}
+$("#ledger").onclick=e=>{const f=e.target.closest("[data-fav]");if(f){e.stopPropagation();toggleFav(byId(f.dataset.fav));return}
+const a=e.target.closest("[data-add]");if(a){e.stopPropagation();addTo("A",+a.dataset.add);toast(`Added <b>${esc(byId(a.dataset.add).name)}</b> to your side`);return}
   const r=e.target.closest(".row");if(r)openDrawer(+r.dataset.id)};
 $("#ledger").onkeydown=e=>{const r=e.target.closest(".row");if(r&&e.target===r&&(e.key==="Enter"||e.key===" ")){e.preventDefault();openDrawer(+r.dataset.id)}};
 renderLedger(true);
@@ -737,11 +768,12 @@ function openDrawer(id){
      <dt>Trend</dt><dd>${(TR[x.trend]||TR.Stable).t}</dd>
      <dt>Base weapon</dt><dd>${esc(x.weapon)}</dd>
      <dt>Collection</dt><dd>${esc(x.coll)}</dd>
+     ${changed(x)?`<dt>Before</dt><dd>${fmt(x.prev)}${chgHTML(x)}</dd>`:""}
      <dt>Worth in AWPs</dt><dd>${x.val==null?"?":(x.val/150).toLocaleString("en-US",{maximumFractionDigits:1})}</dd>
    </dl>
-   <div class="dr-act"><button class="btn" type="button" data-s="A">Add to my side</button><button class="btn ghost" type="button" data-s="B">Add to their side</button><button class="btn ghost" type="button" data-s="I">Add to inventory</button></div>`);
+   <div class="dr-act"><button class="btn" type="button" data-s="A">Add to my side</button><button class="btn ghost" type="button" data-s="B">Add to their side</button><button class="btn ghost" type="button" data-s="I">Add to inventory</button><button class="btn ghost" type="button" data-s="F">${favs.has(x.key)?"★ Remove from favorites":"☆ Add to favorites"}</button></div>`);
   const key=x.key;
-  $("#drawer .dr-act").onclick=e=>{const b=e.target.closest("[data-s]");if(!b)return;const s=b.dataset.s;
+  $("#drawer .dr-act").onclick=e=>{const b=e.target.closest("[data-s]");if(!b)return;const s=b.dataset.s;if(s==="F"){toggleFav(x);closeDrawer();return}
     if(s==="I"){invAddKey(key);toast(`Added <b>${esc(x.name)}</b> to inventory`)}else{addKey(s,key);toast(`Added <b>${esc(x.name)}</b> to ${s==="A"?"your":"their"} side`)}closeDrawer()};
 }
 function closeDrawer(){const d=$("#drawer");if(!d.classList.contains("on"))return;d.classList.remove("on");d.setAttribute("aria-hidden","true");$("#scrim").classList.remove("on");if(lastFocus&&lastFocus.focus)lastFocus.focus({preventScroll:true})}
@@ -771,6 +803,18 @@ function renderSide(side){
 }
 function keepPick(sel,v){if(v)sel.value=v;if(sel.selectedIndex<0)sel.selectedIndex=0}
 let lastVerdict="";
+/* Suggest up to 3 ways to bring a W or L back inside ±5%, using one or two skins with a known value. */
+function fixHTML(a,b,cls){if((cls!=="w"&&cls!=="l")||!a.t)return "";
+  const side=cls==="l"?"B":"A";let lo,hi;
+  if(side==="B"){lo=a.t*.95-b.t;hi=a.t*1.05-b.t}else{lo=b.t/1.05-a.t;hi=b.t/.95-a.t}
+  const mid=(lo+hi)/2,pool=SKINS.filter(s=>s.val>0);const found=[];
+  for(const s of pool)if(s.val>=lo&&s.val<=hi)found.push({it:[[s,1]],v:s.val,n:1,dem:s.dem||0});
+  if(found.length<3)for(let i=0;i<pool.length;i++)for(let j=i;j<pool.length;j++){const v=pool[i].val+pool[j].val;if(v>=lo&&v<=hi)found.push({it:i===j?[[pool[i],2]]:[[pool[i],1],[pool[j],1]],v,n:2,dem:((pool[i].dem||0)+(pool[j].dem||0))/2})}
+  found.sort((x,y)=>x.n-y.n||y.dem-x.dem||Math.abs(x.v-mid)-Math.abs(y.v-mid));
+  const seen=new Set(),top=[];for(const f of found){const k=f.it.map(([s])=>s.key).join("+");if(seen.has(k))continue;seen.add(k);top.push(f);if(top.length===3)break}
+  const who=side==="B"?"They could add":"You could add";
+  if(!top.length)return `<div class="fixit"><span class="lbl">To make it fair</span><div class="none">No one or two skins fit the gap. Try removing a skin instead.</div></div>`;
+  return `<div class="fixit"><span class="lbl">${who}</span>${top.map(f=>`<button type="button" data-fix="${side}|${f.it.map(([s,q])=>encodeURIComponent(s.key)+"*"+q).join(",")}" title="Add to ${side==="B"?"their":"your"} side"><span>${f.it.map(([s,q])=>esc(label(s))+(q>1?" ×"+q:"")).join(" + ")}</span><span>${fmt(f.v)}</span></button>`).join("")}</div>`}
 function renderTrade(){
   const keepA=$("#pickA")?.value,keepB=$("#pickB")?.value;
   renderSide("A");renderSide("B");keepPick($("#pickA"),keepA);keepPick($("#pickB"),keepB);
@@ -787,13 +831,19 @@ function renderTrade(){
   const sum=a.t+b.t,wa=sum?a.t/sum*100:50;
   $("#verdict").innerHTML=`<div class="stamp ${cls}${word!==lastVerdict&&cls!=="idle"&&motionOK?" pop":""}" role="status" aria-label="Verdict ${word==="—"?"not scored":word}">${word}${kanji?`<span class="hanko${kanji.length===1?" one":""}" lang="ja" aria-hidden="true">${kanji}</span>`:""}</div>
     ${diff?`<div class="v-diff">${diff}</div>`:""}<div class="v-say">${say}</div>
-    <div class="balance" aria-hidden="true"><i style="width:${wa}%"></i><i style="width:${100-wa}%"></i></div><div class="bal-l"><span>Give</span><span>Get</span></div>`;
+    <div class="balance" aria-hidden="true"><i style="width:${wa}%"></i><i style="width:${100-wa}%"></i></div><div class="bal-l"><span>Give</span><span>Get</span></div>${fixHTML(a,b,cls)}`;
   lastVerdict=word;
 }
 $(".scale").addEventListener("click",e=>{
   const p=e.target.closest("[data-pick]");if(p){const s=p.dataset.pick;addKey(s,$("#pick"+s).value);return}
+  const fx=e.target.closest("[data-fix]");if(fx){const[s,list]=fx.dataset.fix.split("|");for(const part of list.split(",")){const i=part.lastIndexOf("*"),k=decodeURIComponent(part.slice(0,i)),q=+part.slice(i+1);if(KEY[k])trade[s][k]=(trade[s][k]||0)+q}renderTrade();toast(`Added to ${s==="A"?"your":"their"} side`);return}
   const d=e.target.closest("[data-d]");if(d){const[s,id,k]=d.dataset.d.split(":");const key=byId(id)&&byId(id).key;if(!key)return;trade[s][key]=(trade[s][key]||0)+(+k);if(trade[s][key]<=0)delete trade[s][key];renderTrade()}
 });
+const encSide=o=>Object.entries(o).filter(([k,q])=>KEY[k]&&q>0).map(([k,q])=>encodeURIComponent(k)+"*"+q).join(",");
+function decSide(str){const o={};if(!str)return o;for(const part of str.split(",")){const i=part.lastIndexOf("*");if(i<1)continue;const k=decodeURIComponent(part.slice(0,i)).toLowerCase(),q=Math.min(99,Math.max(1,parseInt(part.slice(i+1))||1));if(k.length<60)o[k]=q}return o}
+$("#tradeLink").onclick=async()=>{const a=encSide(trade.A),b=encSide(trade.B);if(!a&&!b){toast("Add some skins first");return}
+  const url=location.origin+location.pathname+"#t="+a+"~"+b;
+  try{await navigator.clipboard.writeText(url);toast("Link copied, paste it in <b>Discord</b>")}catch(e){openPanel(`<div class="dr-top"><span class="lbl">Copy this link</span><button class="iconbtn" type="button" id="drClose" aria-label="Close">${X_ICON}</button></div><textarea id="cpText" aria-label="Trade link" style="width:100%;min-height:120px;border:1px solid var(--ink);background:var(--bg);color:var(--ink);padding:12px;font-family:var(--f-mono);font-size:12px"></textarea>`);$("#cpText").value=url;$("#cpText").select()}};
 $("#resetTrade").onclick=()=>{trade={A:{},B:{}};renderTrade();toast("Trade cleared")};
 renderTrade();
 
@@ -1010,6 +1060,7 @@ $("#invImg").onclick=e=>shareImage(buildInvImage,"akasen-inventory.png",e.curren
 /* ---------- site updates (tab "Updates" in the Google Sheet) ---------- */
 const UPDATES_TAB="Updates";
 let UPDATES=[
+ ["Oct 5, 2026","Favorites, changes and trade links","★ Star the skins you care about and find them in the Favorites filter.\n▲ See how much each skin moved in the last update, or pick the Changed filter.\nThe calculator now suggests skins to make a trade fair, and “Copy link” lets you send a trade to someone."],
  ["Oct 5, 2026","Info tab","New Info tab that explains every word on the site: demand, trends, rarities, W and L, the trade board and trading words like overpay and cross-trading."],
  ["Oct 5, 2026","Value list changes","From the top:\n\n• Dragora: 18,350 ➔ 19,000\nIt's growing increasingly hard to find Dragoras and to trade down Inheritors. People want even more for it.\n\n• Domini: 6,500 ➔ 7,000\nIncreasing overpays for it.\n\n• Kugelblitz: 6,250 ➔ 6,750\nSame increase as Domini, to match a lot of trades for it and its increased demand.\n\n• Funeralist: 4,500 ➔ 4,650\nJust a small increase.\n\n• Nihility: 2,300 ➔ 2,450\nMatches Funeralist trades.\nTrend: Hyped ➔ Stable. It has stabilized.\n\n• Sub-Zero (Redliner): 600 ➔ 750\n• Sub-Zero (Monarch): 500 ➔ 650\nThis brings them more in line with the rest of the Classifieds.\nTrend for both: Unstable ➔ Lowering. A lot of people don't want it right now.\n\n• Radiance: 1,000 ➔ 1,300\nLooks good and gets overpays.\n\n• Kōmyō: demand 7 ➔ 6, trend Unstable ➔ Stable\nSimilar demand to Demise."],
  ["Oct 5, 2026","New name: Akasen","/liner Values is now Akasen (赤線, “red line” in Japanese). Same site, same values, new name."],
@@ -1117,7 +1168,7 @@ async function loadSheet(){
     const H=j.table.cols.map(c=>String(c.label||"").trim().toLowerCase());
     const col=(...n)=>H.findIndex(h=>n.some(x=>h===x||h.startsWith(x)));
     const C={rar:col("rarity","rarete","rareté"),coll:col("collection"),weapon:col("weapon","base weapon","arme"),name:col("name","skin","nom"),
-      val:col("value","valeur"),dem:col("demand","demande"),trend:col("trend","tendance"),img:col("image"),upd:col("updated","last update","update","mise à jour")};
+      val:col("value","valeur"),dem:col("demand","demande"),trend:col("trend","tendance"),img:col("image"),prev:col("old value","previous","prev","before","ancienne"),upd:col("updated","last update","update","mise à jour")};
     if(C.name<0||C.rar<0)throw new Error("Name and Rarity columns not found");
     const out=[],imgs={};let upd="";
     for(const row of j.table.rows||[]){
@@ -1130,7 +1181,7 @@ async function loadSheet(){
       if(!name||!rar)continue;
       let dm=num(C.dem);dm=dm==null?null:Math.max(1,Math.min(10,Math.round(dm)));
       const weapon=txt(C.weapon)||"—";
-      out.push([rar,txt(C.coll)||"—",weapon,name,num(C.val),dm,TALIAS[txt(C.trend).toLowerCase().replace(/[^a-z]/g,"")]||"Stable"]);
+      out.push([rar,txt(C.coll)||"—",weapon,name,num(C.val),dm,TALIAS[txt(C.trend).toLowerCase().replace(/[^a-z]/g,"")]||"Stable",C.prev>=0?num(C.prev):null]);
       const im=txt(C.img);if(/^https?:\/\/\S+$/i.test(im)||/^[\w\-\/]+\.(webp|png|jpe?g|gif|avif|svg)$/i.test(im))imgs[(name+"|"+weapon).toLowerCase()]=im;
     }
     if(!out.length)throw new Error("no skins found");
@@ -1139,14 +1190,15 @@ async function loadSheet(){
     SOURCE="sheet";return true;
   }catch(e){console.warn("Live values unavailable, using the backup list:",e.message);return false}
 }
-function refreshAll(){if(typeof renderBoard==="function")renderBoard();renderStats();renderLedger(false);renderTrade();fillInvPick();renderInv(true);renderFacts();renderTicker()}
+function refreshAll(){renderChips();if(typeof renderBoard==="function")renderBoard();renderStats();renderLedger(false);renderTrade();fillInvPick();renderInv(true);renderFacts();renderTicker()}
 const syncSheet=()=>loadSheet().then(ok=>{if(ok)refreshAll();return ok});
 syncSheet();
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&Date.now()-lastLoad>60000)syncSheet()});
 
 /* start */
 const hash=location.hash.slice(1);
-if(["values","trade","inv","board","info"].includes(hash)){cover.hidden=true;show(hash)}
+if(hash.startsWith("t=")){const[a,b]=hash.slice(2).split("~");trade={A:decSide(a),B:decSide(b)};cover.hidden=true;show("trade");renderTrade();history.replaceState(null,"",location.pathname+location.search);setTimeout(()=>toast("Trade <b>loaded</b> from the link"),400)}
+else if(["values","trade","inv","board","info"].includes(hash)){cover.hidden=true;show(hash)}
 else{root.classList.add("lock");show(store.get("rv_tab","values"))}
 window.RV={enter,toCover,openDrawer,addTo,show,sync:syncSheet,get source(){return SOURCE},get skins(){return SKINS}};
 </script>
