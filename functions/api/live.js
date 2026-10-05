@@ -1,7 +1,8 @@
 // Live visitor counter. One id per browser (shared by all its tabs); at most 3 ids per network.
 // "Online" = pinged in the last 100 s.
 const WINDOW = 100e3, PER_IP = 3;
-const EXTRA = 10; // added to the number shown on the site
+// Added to the number shown on the site: drifts slowly between 5 and 15, the same for everyone at a given moment.
+const extra = t => { const m = t / 60000; return Math.round(10 + 5 * (0.6 * Math.sin(m * 2 * Math.PI / 17) + 0.4 * Math.sin(m * 2 * Math.PI / 41 + 1))); };
 const json = (d, s = 200) => new Response(JSON.stringify(d), { status: s, headers: { "content-type": "application/json", "cache-control": "no-store" } });
 async function ipHash(request, env) {
   const ip = request.headers.get("cf-connecting-ip") || "0";
@@ -24,5 +25,5 @@ export async function onRequest({ request, env }) {
     if (Math.random() < 0.1) await db.prepare("DELETE FROM live2 WHERE seen < ?").bind(now - WINDOW).run();
   }
   const r = await db.prepare("SELECT COUNT(*) AS n FROM live2 WHERE seen >= ?").bind(now - WINDOW).first();
-  return json({ online: (r ? r.n : 0) + EXTRA });
+  return json({ online: (r ? r.n : 0) + extra(now) });
 }
