@@ -42,6 +42,9 @@
 [hidden]{display:none!important}
 body{margin:0;background:var(--bg);color:var(--ink);font:400 15px/1.55 var(--f-body);overflow-x:hidden;-webkit-font-smoothing:antialiased;transition:background .3s,color .3s}
 button,input,select,textarea{font:inherit;color:inherit}
+select{color-scheme:inherit}
+select option,select optgroup{background-color:var(--paper);color:var(--ink)}
+select optgroup{font-weight:700;color:var(--mute)}
 button{cursor:pointer}
 :focus-visible{outline:2px solid var(--red);outline-offset:2px}
 img{max-width:100%}
