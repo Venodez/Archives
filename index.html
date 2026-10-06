@@ -12,6 +12,8 @@
 <meta property="og:description" content="The full player ranking and every past tournament champion.">
 <meta property="og:image" content="og.jpg">
 <meta name="twitter:card" content="summary_large_image">
+<script>try{var c=document.createElement("canvas"),g=c.getContext("webgl2");if(g&&HTMLScriptElement.supports&&HTMLScriptElement.supports("importmap"))document.documentElement.classList.add("try3d");var x=g&&g.getExtension("WEBGL_lose_context");if(x)x.loseContext()}catch(e){}</script>
+<script type="importmap">{"imports":{"three":"./vendor/three.module.min.js"}}</script>
 <link rel="icon" href="favicon.png" type="image/png">
 <link rel="apple-touch-icon" href="favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -154,6 +156,23 @@ html.lock,html.lock body{overflow:hidden}
 .cv.stack .scene-svg .glass{transform:translate(-150px,0)}
 .cv.stack .scene-svg .bottle{transform:translate(-130px,0)}
 .cv-copy.tight .lead{display:none}
+/* the room in 3D: a canvas under the words, the flat scene waits as the fallback */
+.room-box{position:absolute;inset:0;z-index:0;overflow:hidden}
+.room-box::after{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(130% 95% at 50% 42%,transparent 58%,rgba(0,0,0,.55))}
+#room{display:block;width:100%;height:100%;opacity:0;transition:opacity 1.4s ease;touch-action:pan-y}
+.cv.r3d #room{opacity:1}
+html.try3d .stage-box,html.try3d .cv:not(.r3d) .deck,html.try3d .cv:not(.r3d) .say{visibility:hidden}
+.cv.r3d .stage-box{display:none}
+.cv.r3d .layer{transform:none;width:100%;height:100%;animation:none}
+.cv.r3d .deck{position:absolute;inset:auto;left:0;top:0;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.cv.r3d .say{left:0;top:0;transform:translate(var(--sx,-9999px),calc(var(--sy,0px) - 50%));max-width:300px;padding:11px 15px 12px;font-size:19px;z-index:4}
+.cv.r3d .say b{font-size:20px}
+.cv.r3d .say::before{top:calc(50% - 8px)}
+.cv.stack .room-box{position:relative;inset:auto;height:min(calc(100vw*1.2 + 10px),calc(100svh - 150px),820px);min-height:360px}
+.cv.stack.r3d .layer{height:auto}
+.cv.stack.r3d .say{transform:none;margin:14px auto 6px}
+.cv.stack.r3d .say::before{top:-8px}
+.cv.stack.r3d .cv-copy{padding-top:18px}
 .tick{flex:none;background:#070605;border-top:1px solid var(--line2);overflow:hidden;white-space:nowrap;padding-bottom:env(safe-area-inset-bottom,0px)}
 .tick-track{display:inline-flex;animation:tick 120s linear infinite}
 .tick:hover .tick-track{animation-play-state:paused}
@@ -945,11 +964,12 @@ function say(lead,text,instant){let i=0;const w=t=>[...t].map(ch=>`<span style="
   sayEl.innerHTML=(lead?`<b>${w(lead)}</b> `:"")+w(text);void sayEl.offsetWidth;sayEl.classList.add("shown","on")}
 let sayBack=0;
 const sayCard=c=>{clearTimeout(sayBack);say("",c.dataset.say)},sayHome=()=>{clearTimeout(sayBack);sayBack=setTimeout(()=>say(...SAY0),260)};
-cards.forEach(c=>{c.addEventListener("mouseenter",()=>sayCard(c));c.addEventListener("focus",()=>sayCard(c));c.addEventListener("mouseleave",sayHome);c.addEventListener("blur",sayHome);
-  c.onclick=()=>{if(c.classList.contains("picked"))return;if(!MOTION){enter(c.dataset.go);return}
+const is3d=()=>cover.classList.contains("r3d")&&window.room3d;
+cards.forEach((c,i)=>{c.addEventListener("mouseenter",()=>sayCard(c));c.addEventListener("focus",()=>{sayCard(c);if(is3d())room3d.focus(i)});c.addEventListener("mouseleave",sayHome);c.addEventListener("blur",()=>{sayHome();if(is3d())room3d.focus(-1)});
+  c.onclick=()=>{if(is3d()){room3d.pick(i);return}if(c.classList.contains("picked"))return;if(!MOTION){enter(c.dataset.go);return}
     c.classList.add("picked");setTimeout(()=>{enter(c.dataset.go);setTimeout(()=>c.classList.remove("picked"),900)},240)}});
 const num=(c,k)=>parseFloat(c.style.getPropertyValue(k))||0;
-function dealCards(wait=650){clearTimeout(dealCards.t);
+function dealCards(wait=650){clearTimeout(dealCards.t);if(is3d()){room3d.deal(wait);return}
   if(!MOTION){say(...SAY0,true);return}
   const st=cover.classList.contains("stack");
   cards.forEach((c,i)=>{const fl=$(".pc-in",c);[c,fl].forEach(e=>e.getAnimations().forEach(a=>a.cancel()));
@@ -962,6 +982,7 @@ function dealCards(wait=650){clearTimeout(dealCards.t);
 function layoutScene(){if(cover.hidden)return;
   const head=$(".cv-top").offsetHeight,tk=$(".tick").offsetHeight,W=scene.clientWidth,H=innerHeight-head-tk;
   const st=innerWidth<=900||W/H<1.25;cover.classList.toggle("stack",st);
+  if(is3d()){room3d.layout(st);return}
   let s,ox,oy;
   if(st){s=Math.min(W/1060,Math.max(.3,(innerHeight-head)*.62/840));ox=(W-1600*s)/2;oy=-40*s}
   else{s=Math.min(H/860,W/1150);ox=(W-1600*s)/2;oy=H-890*s}
@@ -972,7 +993,8 @@ function layoutScene(){if(cover.hidden)return;
   if(T+h>lim)cp.style.transform=`scale(${Math.max(.6,(lim-T)/h).toFixed(3)})`}
 addEventListener("resize",layoutScene);if(document.fonts&&document.fonts.ready)document.fonts.ready.then(layoutScene);
 function renderAll(){buildSeasons();compute();$("#demo").hidden=!DEMO;renderRank();renderMatches();renderChamps();fillDuel();renderDuel();renderFacts();renderTicker();renderNews();layoutScene();$$("[data-updated]").forEach(e=>e.textContent=UPDATED?`Updated ${UPDATED}`:"")}
-setData(DEMO_DATA.m,DEMO_DATA.t);root.classList.add("lock");siteInert(true);show("rank");renderAll();dealCards();loadSheet();
+function no3d(){if(cover.classList.contains("r3d")||!root.classList.contains("try3d"))return;root.classList.remove("try3d");layoutScene();dealCards(200)}
+setData(DEMO_DATA.m,DEMO_DATA.t);root.classList.add("lock");siteInert(true);show("rank");renderAll();if(!root.classList.contains("try3d"))dealCards();else{setTimeout(no3d,9000);const m=document.createElement("script");m.type="module";m.src="room.js";m.onerror=no3d;document.body.appendChild(m)}loadSheet();
 </script>
 </body>
 </html>
