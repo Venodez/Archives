@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Aphrite · Ranked Redliner</title>
-<meta name="description" content="Aphrite, the ranked Redliner community: the full player ranking and every past tournament champion.">
+<meta name="description" content="Aphrite, the ranked Redliner community: the player ranking, every match and every tournament champion.">
 <meta name="theme-color" content="#0c0a08">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Aphrite">
@@ -191,6 +191,118 @@ footer{margin-top:64px;padding-top:18px;border-top:1px solid var(--line);display
   .count{margin-left:0}
 }
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+
+/* ---------- v2: seasons, form, matches, bracket, duel ---------- */
+.ph-r{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+.seasonsel{height:38px;border:1px solid var(--line2);background:var(--paper);color:var(--cream);padding:0 12px;font:700 13.5px var(--f-type);color-scheme:dark}
+.seasonsel:hover{border-color:var(--gold)}
+select option{background:var(--paper);color:var(--cream)}
+.lh,.lr{grid-template-columns:58px minmax(0,1fr) 92px 96px 74px 110px 54px}
+.form{display:flex;gap:3px;justify-content:flex-end}
+.form i{width:9px;height:9px;border-radius:50%;background:var(--line2)}
+.form i.w{background:var(--gold)}
+.form i.l{background:transparent;box-shadow:inset 0 0 0 1.5px var(--muted)}
+.dlt{font-size:11.5px;margin-left:6px}
+.up{color:var(--gold2)}.down{color:var(--muted)}
+.streak{font-size:11.5px;color:var(--neon);margin-left:6px;white-space:nowrap}
+
+/* match history */
+.mlist{margin-top:8px}
+.mday{padding:22px 4px 8px;font-size:12.5px;color:var(--muted);border-bottom:1px solid var(--line)}
+.mrow{display:grid;grid-template-columns:minmax(0,1fr) 74px minmax(0,1fr) 150px;gap:12px;align-items:center;padding:12px 4px;border-bottom:1px dashed var(--line)}
+.mrow .side{min-width:0;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.mrow .side.r{justify-content:flex-start}
+.mrow .side:first-child{justify-content:flex-end;text-align:right}
+.mrow button.n{background:none;border:0;padding:0;font-family:var(--f-disp);font-weight:800;font-size:19px;line-height:1.1;color:var(--cream);text-align:inherit}
+.mrow button.n:hover{color:var(--gold2)}
+.mrow .lose button.n{color:var(--muted);font-weight:600}
+.mrow .score{text-align:center;font:700 16px var(--f-type);color:var(--gold2);letter-spacing:.08em}
+.mrow .tag{justify-self:end;font-size:11.5px;color:var(--muted);text-align:right}
+.mrow .tag b{display:block;color:var(--cream2);font-weight:700}
+.more{display:block;margin:20px auto 0}
+
+/* champions + bracket */
+.seasonhd{margin:38px 0 4px;font-family:var(--f-disp);font-style:italic;font-weight:800;font-size:26px;color:var(--cream2)}
+.frame .acts{margin-top:14px}
+.frame .acts button{background:none;border:0;padding:0;font:700 13px var(--f-type);color:var(--gold);text-decoration:underline;text-underline-offset:3px}
+.frame .acts button:hover{color:var(--gold2)}
+.modal{position:fixed;inset:0;z-index:80;display:flex;flex-direction:column;background:var(--ink);opacity:0;pointer-events:none;transition:opacity .25s}
+.modal.on{opacity:1;pointer-events:auto}
+.modal-h{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:max(18px,env(safe-area-inset-top)) clamp(18px,4vw,48px) 14px;border-bottom:1px solid var(--line)}
+.modal-h h3{margin:0;font-family:var(--f-disp);font-style:italic;font-weight:900;font-size:clamp(28px,4vw,44px);line-height:1}
+.modal-h p{margin:4px 0 0;font-size:12.5px;color:var(--muted)}
+.bracket{flex:1;overflow:auto;display:flex;gap:28px;padding:28px clamp(18px,4vw,48px) 40px}
+.bcol{display:flex;flex-direction:column;justify-content:space-around;gap:14px;min-width:210px}
+.bcol h4{margin:0 0 4px;font:700 12px var(--f-type);color:var(--muted);text-align:center}
+.bm{border:1px solid var(--line2);background:var(--paper)}
+.bm div{display:flex;justify-content:space-between;gap:10px;padding:8px 12px;font-size:14px}
+.bm div+div{border-top:1px solid var(--line)}
+.bm .w{color:var(--cream);font-weight:700}
+.bm .w b{font-family:var(--f-disp);font-weight:800;font-size:16px}
+.bm .l{color:var(--muted)}
+.bm span{font-variant-numeric:tabular-nums}
+.bcol.final .bm{border-color:var(--gold);box-shadow:0 0 0 1px rgba(212,166,76,.35),0 0 30px -10px rgba(212,166,76,.6)}
+.bcol.final .bm .w b{color:var(--gold2)}
+.bcol.final .third .bm{border-color:var(--line2);box-shadow:none}.bcol.final .third .bm .w b{color:var(--cream)}
+.bcol .third{margin-top:18px}
+.bcol .third h4{margin-bottom:6px}
+
+/* duel */
+.duel-pick{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:16px;align-items:center;margin-top:30px}
+.duel-pick select{width:100%;height:52px;border:1px solid var(--line2);background:var(--paper);color:var(--cream);padding:0 14px;font:800 20px var(--f-disp);color-scheme:dark}
+.duel-pick .vs{font-family:var(--f-disp);font-style:italic;font-weight:900;font-size:34px;color:var(--neon)}
+.h2h{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:16px;align-items:center;margin-top:28px;padding:28px 20px;background:var(--paper);border:1px solid var(--line)}
+.h2h .big{font-family:var(--f-disp);font-weight:900;font-size:clamp(56px,9vw,104px);line-height:.9;text-align:center}
+.h2h .big.lead{color:var(--gold2)}
+.h2h .mid{text-align:center;font-size:12.5px;color:var(--muted);max-width:24ch}
+.h2h .mid b{display:block;font-family:var(--f-disp);font-style:italic;font-size:22px;color:var(--cream);margin-bottom:4px}
+.odds{margin-top:16px}
+.odds .bar{display:flex;height:10px;background:var(--line)}
+.odds .bar i{display:block;height:100%}
+.odds .bar i:first-child{background:var(--gold)}
+.odds .bar i:last-child{background:var(--cream2);opacity:.35}
+.odds .lbls{display:flex;justify-content:space-between;margin-top:6px;font-size:12.5px;color:var(--cream2)}
+.cmp{width:100%;margin-top:24px;border-collapse:collapse}
+.cmp td{padding:11px 6px;border-bottom:1px dashed var(--line);font-size:15px}
+.cmp td:first-child{text-align:right;width:40%}
+.cmp td:last-child{text-align:left;width:40%}
+.cmp td.k{text-align:center;font-size:12px;color:var(--muted)}
+.cmp .best{color:var(--gold2);font-weight:700}
+
+/* player drawer extras */
+.elo{margin:6px 0 4px}
+.elo svg{display:block;width:100%;height:auto}
+.elo .ln{fill:none;stroke:var(--gold);stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.elo .ar{fill:rgba(212,166,76,.10)}
+.elo text{font:11px var(--f-type);fill:var(--muted)}
+.dr-btns{display:flex;gap:8px;margin-top:20px}
+.dr-btns .btn{min-height:40px;padding:0 14px;font-size:13px}
+.recent li span:first-child b{color:var(--gold2)}
+
+@media (max-width:900px){
+  .lh,.lr{grid-template-columns:50px minmax(0,1fr) 84px 90px 70px}
+  .lh span:nth-child(6),.lr .fm,.lh span:nth-child(7),.lr .ti{display:none}
+  .mrow{grid-template-columns:minmax(0,1fr) 60px minmax(0,1fr)}
+  .mrow .tag{grid-column:1/-1;justify-self:center;text-align:center}
+  .mrow .tag b{display:inline;margin-right:6px}
+}
+@media (max-width:720px){
+  .lr{grid-template-columns:44px minmax(0,1fr) auto}
+  .lr .fm,.lr .ti{display:none}
+  .ph-r{align-items:flex-start}
+  .mrow button.n{font-size:16px}
+  .duel-pick{grid-template-columns:1fr;gap:8px}
+  .odds .lbls span:nth-child(2){display:none}
+  .nav-in{gap:8px;padding:0 12px}
+  .nav .mark{font-size:0}
+  .nav .mark::before{content:"A";font-size:24px}
+  .nav .mark i{font-size:24px}
+  .tabs{margin-left:auto;overflow-x:auto;scrollbar-width:none}
+  .tab{padding:8px 6px;font-size:12px;letter-spacing:0}
+  .duel-pick .vs{text-align:center;font-size:26px}
+  .h2h{padding:20px 10px;gap:8px}
+  .cmp td{font-size:13.5px}
+}
 </style>
 </head>
 <body>
@@ -201,10 +313,10 @@ footer{margin-top:64px;padding-top:18px;border-top:1px solid var(--line);display
   <div class="cv-top"><span class="mark">Aphrite<i>.</i></span><a class="iconbtn" href="#" data-discord target="_blank" rel="noopener" aria-label="Join the Aphrite Discord" title="Join the Aphrite Discord"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z"/></svg></a></div>
   <div class="cv-copy">
     <h1 class="disp">Aphrite<span>Ranked Redliner</span></h1>
-    <p class="lead">Every match counts, every name is written down. The full ranking of the family and every champion who ever took the table.</p>
+    <p class="lead">Every match counts, every name is written down. The ranking of the family, every result, and every champion who ever took the table.</p>
     <div class="cta">
-      <button class="btn" type="button" id="goRank">See the ranking</button>
-      <button class="btn ghost" type="button" id="goChamps">Hall of champions</button>
+      <button class="btn" type="button" data-go="rank">See the ranking</button>
+      <button class="btn ghost" type="button" data-go="champs">Hall of champions</button>
     </div>
     <div class="cv-facts" id="facts"></div>
     <p class="credit">Made by <b>@venodez</b> for the Aphrite community</p>
@@ -217,19 +329,22 @@ footer{margin-top:64px;padding-top:18px;border-top:1px solid var(--line);display
     <button class="mark" type="button" id="toCover" aria-label="Back to the welcome screen">Aphrite<i>.</i></button>
     <nav class="tabs" role="tablist" aria-label="Sections">
       <button class="tab" role="tab" type="button" id="tab-rank" data-tab="rank" aria-selected="true">Ranking</button>
+      <button class="tab" role="tab" type="button" id="tab-matches" data-tab="matches" aria-selected="false">Matches</button>
       <button class="tab" role="tab" type="button" id="tab-champs" data-tab="champs" aria-selected="false">Champions</button>
+      <button class="tab" role="tab" type="button" id="tab-duel" data-tab="duel" aria-selected="false">Duel</button>
     </nav>
     <a class="iconbtn" href="#" data-discord target="_blank" rel="noopener" aria-label="Join the Aphrite Discord" title="Join the Aphrite Discord"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z"/></svg></a>
   </div>
 </header>
 
 <main class="wrap">
+  <p class="note" id="demo" hidden>These are example players and matches so you can see how everything works. The real ranking shows up as soon as the Google Sheet is connected.</p>
+
   <section id="p-rank" aria-labelledby="h-rank">
     <div class="ph">
-      <div><h2 class="disp" id="h-rank">The Ranking</h2><p>Every ranked player in Aphrite, ordered by points. Click a name to see their record and the titles they've won.</p></div>
-      <span class="small" id="updated"></span>
+      <div><h2 class="disp" id="h-rank">The Ranking</h2><p>Every ranked player, ordered by ELO. Win and you climb, lose and you drop, and beating someone above you is worth more. Click a name to open their record.</p></div>
+      <div class="ph-r"><select class="seasonsel" aria-label="Season"></select><span class="small" id="updated"></span></div>
     </div>
-    <p class="note" id="demo" hidden>These are example players so you can see the layout. The real ranking shows up as soon as the Google Sheet is connected.</p>
     <div class="podium" id="podium"></div>
     <div class="filters">
       <label class="search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input id="q" type="search" placeholder="Find a player" aria-label="Find a player"></label>
@@ -237,17 +352,40 @@ footer{margin-top:64px;padding-top:18px;border-top:1px solid var(--line);display
       <span class="count" id="count"></span>
     </div>
     <div class="ledger">
-      <div class="lh" aria-hidden="true"><span>Rank</span><span>Player</span><span class="r">Points</span><span class="r">Wins – Losses</span><span class="r">Win rate</span><span class="r">Titles</span></div>
+      <div class="lh" aria-hidden="true"><span>Rank</span><span>Player</span><span class="r">ELO</span><span class="r">Wins – Losses</span><span class="r">Win rate</span><span class="r">Last 5</span><span class="r">Titles</span></div>
       <div id="rows"></div>
     </div>
   </section>
 
+  <section id="p-matches" hidden aria-labelledby="h-matches">
+    <div class="ph">
+      <div><h2 class="disp" id="h-matches">Match History</h2><p>Every ranked match, newest first, with the ELO each player won or lost.</p></div>
+      <div class="ph-r"><select class="seasonsel" aria-label="Season"></select></div>
+    </div>
+    <div class="filters">
+      <label class="search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input id="mq" type="search" placeholder="Matches of a player" aria-label="Show the matches of a player"></label>
+      <div class="chips" id="mkind"></div>
+      <span class="count" id="mcount"></span>
+    </div>
+    <div class="mlist" id="mlist"></div>
+    <button class="btn ghost more" type="button" id="mmore" hidden>Show older matches</button>
+  </section>
+
   <section id="p-champs" hidden aria-labelledby="h-champs">
     <div class="ph">
-      <div><h2 class="disp" id="h-champs">Hall of Champions</h2><p>Every Aphrite tournament and the player who walked away with it, newest first.</p></div>
+      <div><h2 class="disp" id="h-champs">Hall of Champions</h2><p>Every Aphrite tournament and the player who walked away with it. Open a bracket to see how it went down.</p></div>
     </div>
     <div class="most" id="most"></div>
-    <div class="wall" id="wall"></div>
+    <div id="wall"></div>
+  </section>
+
+  <section id="p-duel" hidden aria-labelledby="h-duel">
+    <div class="ph">
+      <div><h2 class="disp" id="h-duel">The Duel</h2><p>Pick two players and settle it: their record against each other, who the numbers favour, and every time they met.</p></div>
+      <div class="ph-r"><select class="seasonsel" aria-label="Season"></select></div>
+    </div>
+    <div class="duel-pick"><select id="dA" aria-label="First player"></select><span class="vs" aria-hidden="true">vs</span><select id="dB" aria-label="Second player"></select></div>
+    <div id="duel"></div>
   </section>
 
   <footer>
@@ -258,108 +396,203 @@ footer{margin-top:64px;padding-top:18px;border-top:1px solid var(--line);display
 
 <div class="scrim" id="scrim"></div>
 <aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-label="Player record" aria-hidden="true"></aside>
+<div class="modal" id="modal" role="dialog" aria-modal="true" aria-label="Tournament bracket" aria-hidden="true"></div>
 
 <script>
 /* =====================================================================
    DATA
    Paste the link of the Google Sheet between the quotes (shared as "Anyone with the link: Viewer").
-   Tab "Ranking":     Player | Points | Wins | Losses | Tier   (Tier is optional)
-   Tab "Tournaments": Date | Tournament | Winner | Runner-up | Third | Prize
-   Leave the link empty to show the example players.
+   Tab "Matches":      Date | Season | Winner | Loser | Score | Tournament | Round
+                       (Tournament and Round only for tournament matches. Round: R32, R16, QF, SF, 3rd, Final)
+   Tab "Tournaments":  Date | Tournament | Season | Prize | Winner
+                       (Winner is optional: if the bracket is in Matches, the site finds the champion itself)
+   Leave the link empty to show the example data.
    ===================================================================== */
 const SHEET_URL="";
 const DISCORD_URL="";
+const START_ELO=1000, K=32;
 
-/* Example data, only used while no sheet is connected */
-let PLAYERS=[
- ["Vito",1840,42,9],["Sal",1765,38,12],["Lucky",1710,35,13],["Nicky Blue",1650,31,15],["Frankie",1602,29,16],
- ["Tommy Two",1555,27,18],["Rocco",1510,24,18],["Carmine",1480,22,19],["Vinnie",1445,21,21],["Mickey",1410,19,20],
- ["Paulie",1380,18,22],["Benny",1350,16,21],["Johnny Ace",1320,15,23],["Leo",1290,13,22],["Dutch",1260,12,24]
-].map(([name,pts,w,l])=>({name,pts,w,l,tier:""}));
-let TOURNEYS=[
- ["Oct 4, 2026","Aphrite Open #3","Vito","Lucky","Sal","5,000 value"],
- ["Sep 20, 2026","Midnight Cup","Sal","Vito","Nicky Blue","Dragora"],
- ["Sep 6, 2026","Aphrite Open #2","Vito","Frankie","Rocco","3,000 value"],
- ["Aug 23, 2026","Back Room 1v1","Lucky","Sal","Tommy Two",""],
- ["Aug 9, 2026","Aphrite Open #1","Nicky Blue","Vito","Lucky","2,000 value"]
-].map(([date,name,win,second,third,prize])=>({date,name,win,second,third,prize}));
-let DEMO=true,UPDATED="";
+const DEMO_DATA={"m":[["2026-07-01","Season 1","Carmine","Sal","3-1","",""],["2026-07-01","Season 1","Leo","Vinnie","3-2","",""],["2026-07-02","Season 1","Vito","Nicky Blue","3-0","",""],["2026-07-02","Season 1","Lucky","Carmine","3-1","",""],["2026-07-02","Season 1","Carmine","Benny","3-2","",""],["2026-07-02","Season 1","Vinnie","Sal","3-2","",""],["2026-07-02","Season 1","Johnny Ace","Paulie","3-2","",""],["2026-07-03","Season 1","Nicky Blue","Vinnie","3-2","",""],["2026-07-03","Season 1","Rocco","Lucky","3-1","",""],["2026-07-05","Season 1","Sal","Vito","3-1","",""],["2026-07-05","Season 1","Leo","Johnny Ace","3-2","",""],["2026-07-05","Season 1","Rocco","Dutch","3-2","",""],["2026-07-06","Season 1","Mickey","Sal","3-2","",""],["2026-07-06","Season 1","Mickey","Tommy Two","3-2","",""],["2026-07-06","Season 1","Vito","Frankie","3-2","",""],["2026-07-06","Season 1","Dutch","Leo","3-2","",""],["2026-07-06","Season 1","Vinnie","Mickey","3-1","",""],["2026-07-07","Season 1","Nicky Blue","Ziggy","3-2","",""],["2026-07-07","Season 1","Mickey","Rocco","3-1","",""],["2026-07-09","Season 1","Carmine","Ziggy","3-2","",""],["2026-07-09","Season 1","Dutch","Carmine","3-0","",""],["2026-07-09","Season 1","Lucky","Frankie","3-2","",""],["2026-07-11","Season 1","Paulie","Rocco","3-2","",""],["2026-07-11","Season 1","Ziggy","Paulie","3-2","",""],["2026-07-12","Season 1","Paulie","Mickey","3-1","",""],["2026-07-13","Season 1","Tommy Two","Johnny Ace","3-2","",""],["2026-07-13","Season 1","Paulie","Johnny Ace","3-0","",""],["2026-07-14","Season 1","Vito","Carmine","3-1","",""],["2026-07-14","Season 1","Nicky Blue","Johnny Ace","3-1","",""],["2026-07-14","Season 1","Lucky","Frankie","3-0","",""],["2026-07-14","Season 1","Mickey","Leo","3-2","",""],["2026-07-14","Season 1","Rocco","Dutch","3-1","",""],["2026-07-15","Season 1","Vinnie","Johnny Ace","3-2","",""],["2026-07-16","Season 1","Sal","Vito","3-1","",""],["2026-07-16","Season 1","Rocco","Paulie","3-1","",""],["2026-07-17","Season 1","Ziggy","Leo","3-2","",""],["2026-07-17","Season 1","Vito","Tommy Two","3-0","",""],["2026-07-17","Season 1","Mickey","Paulie","3-2","",""],["2026-07-18","Season 1","Carmine","Ziggy","3-1","",""],["2026-07-19","Season 1","Tommy Two","Dutch","3-0","",""],["2026-07-20","Season 1","Vito","Nicky Blue","3-2","",""],["2026-07-20","Season 1","Carmine","Leo","3-1","",""],["2026-07-20","Season 1","Frankie","Paulie","3-2","",""],["2026-07-21","Season 1","Frankie","Sal","3-2","",""],["2026-07-21","Season 1","Nicky Blue","Benny","3-0","",""],["2026-07-22","Season 1","Frankie","Mickey","3-0","",""],["2026-07-23","Season 1","Paulie","Mickey","3-0","",""],["2026-07-24","Season 1","Dutch","Sal","3-1","",""],["2026-07-25","Season 1","Carmine","Dutch","3-2","",""],["2026-07-25","Season 1","Paulie","Ziggy","3-2","",""],["2026-07-25","Season 1","Paulie","Carmine","3-1","",""],["2026-07-26","Season 1","Nicky Blue","Leo","3-0","",""],["2026-07-27","Season 1","Lucky","Benny","3-1","",""],["2026-07-27","Season 1","Sal","Johnny Ace","3-1","",""],["2026-07-27","Season 1","Vito","Dutch","3-0","",""],["2026-07-28","Season 1","Lucky","Sal","3-1","",""],["2026-07-28","Season 1","Vinnie","Ziggy","3-1","",""],["2026-07-29","Season 1","Carmine","Dutch","3-2","",""],["2026-07-29","Season 1","Vito","Vinnie","3-1","",""],["2026-07-29","Season 1","Frankie","Ziggy","3-2","",""],["2026-07-29","Season 1","Sal","Paulie","3-1","",""],["2026-07-29","Season 1","Vinnie","Paulie","3-1","",""],["2026-07-31","Season 1","Johnny Ace","Benny","3-0","",""],["2026-07-31","Season 1","Benny","Ziggy","3-0","",""],["2026-07-31","Season 1","Vinnie","Frankie","3-2","",""],["2026-07-31","Season 1","Rocco","Lucky","3-0","Aphrite Open #1","QF"],["2026-07-31","Season 1","Vito","Nicky Blue","3-1","Aphrite Open #1","QF"],["2026-07-31","Season 1","Mickey","Sal","3-2","Aphrite Open #1","QF"],["2026-07-31","Season 1","Frankie","Tommy Two","3-0","Aphrite Open #1","QF"],["2026-07-31","Season 1","Vito","Rocco","3-2","Aphrite Open #1","SF"],["2026-07-31","Season 1","Frankie","Mickey","3-1","Aphrite Open #1","SF"],["2026-07-31","Season 1","Rocco","Mickey","3-2","Aphrite Open #1","3rd"],["2026-07-31","Season 1","Vito","Frankie","3-0","Aphrite Open #1","Final"],["2026-08-01","Season 1","Vito","Paulie","3-1","",""],["2026-08-01","Season 1","Nicky Blue","Vito","3-0","",""],["2026-08-01","Season 1","Nicky Blue","Leo","3-1","",""],["2026-08-02","Season 1","Mickey","Vito","3-0","",""],["2026-08-02","Season 1","Rocco","Tommy Two","3-1","",""],["2026-08-03","Season 1","Frankie","Sal","3-2","",""],["2026-08-03","Season 1","Vinnie","Mickey","3-2","",""],["2026-08-04","Season 1","Nicky Blue","Vinnie","3-2","",""],["2026-08-06","Season 1","Rocco","Johnny Ace","3-1","",""],["2026-08-06","Season 1","Vito","Mickey","3-2","",""],["2026-08-07","Season 1","Rocco","Vinnie","3-1","",""],["2026-08-07","Season 1","Vito","Mickey","3-0","",""],["2026-08-08","Season 1","Vito","Johnny Ace","3-2","",""],["2026-08-08","Season 1","Lucky","Rocco","3-0","",""],["2026-08-08","Season 1","Sal","Paulie","3-2","",""],["2026-08-09","Season 1","Lucky","Dutch","3-2","",""],["2026-08-09","Season 1","Lucky","Frankie","3-1","",""],["2026-08-09","Season 1","Tommy Two","Vinnie","3-2","",""],["2026-08-09","Season 1","Nicky Blue","Frankie","3-1","",""],["2026-08-10","Season 1","Frankie","Nicky Blue","3-1","",""],["2026-08-10","Season 1","Johnny Ace","Leo","3-1","",""],["2026-08-10","Season 1","Nicky Blue","Carmine","3-2","",""],["2026-08-10","Season 1","Rocco","Vinnie","3-2","",""],["2026-08-11","Season 1","Tommy Two","Mickey","3-2","",""],["2026-08-11","Season 1","Vito","Nicky Blue","3-1","",""],["2026-08-11","Season 1","Frankie","Rocco","3-0","",""],["2026-08-11","Season 1","Sal","Benny","3-1","",""],["2026-08-12","Season 1","Frankie","Ziggy","3-1","",""],["2026-08-13","Season 1","Rocco","Carmine","3-1","",""],["2026-08-15","Season 1","Frankie","Lucky","3-0","",""],["2026-08-15","Season 1","Rocco","Benny","3-2","",""],["2026-08-17","Season 1","Vito","Sal","3-2","",""],["2026-08-18","Season 1","Nicky Blue","Lucky","3-0","",""],["2026-08-18","Season 1","Vinnie","Ziggy","3-1","",""],["2026-08-18","Season 1","Carmine","Ziggy","3-1","",""],["2026-08-19","Season 1","Nicky Blue","Vinnie","3-0","",""],["2026-08-20","Season 1","Sal","Tommy Two","3-1","",""],["2026-08-20","Season 1","Paulie","Tommy Two","3-2","",""],["2026-08-21","Season 1","Nicky Blue","Carmine","3-1","",""],["2026-08-22","Season 1","Frankie","Ziggy","3-0","",""],["2026-08-23","Season 1","Mickey","Rocco","3-0","",""],["2026-08-23","Season 1","Frankie","Leo","3-1","",""],["2026-08-23","Season 1","Dutch","Ziggy","3-0","",""],["2026-08-23","Season 1","Tommy Two","Vinnie","3-2","",""],["2026-08-23","Season 1","Vinnie","Leo","3-1","",""],["2026-08-30","Season 2","Paulie","Dutch","3-2","",""],["2026-08-30","Season 2","Frankie","Vinnie","3-2","",""],["2026-08-30","Season 2","Johnny Ace","Leo","3-2","",""],["2026-08-30","Season 2","Ziggy","Dutch","3-1","",""],["2026-08-31","Season 2","Nicky Blue","Mickey","3-1","",""],["2026-08-31","Season 2","Carmine","Vinnie","3-1","",""],["2026-09-01","Season 2","Rocco","Tommy Two","3-2","",""],["2026-09-01","Season 2","Nicky Blue","Ziggy","3-0","",""],["2026-09-01","Season 2","Johnny Ace","Leo","3-1","",""],["2026-09-01","Season 2","Vinnie","Leo","3-1","",""],["2026-09-02","Season 2","Frankie","Carmine","3-1","",""],["2026-09-02","Season 2","Paulie","Benny","3-2","",""],["2026-09-02","Season 2","Lucky","Rocco","3-2","",""],["2026-09-03","Season 2","Mickey","Johnny Ace","3-1","",""],["2026-09-04","Season 2","Tommy Two","Vinnie","3-1","",""],["2026-09-04","Season 2","Lucky","Rocco","3-2","",""],["2026-09-04","Season 2","Vinnie","Benny","3-1","",""],["2026-09-04","Season 2","Vito","Paulie","3-0","",""],["2026-09-05","Season 2","Lucky","Dutch","3-1","",""],["2026-09-05","Season 2","Benny","Ziggy","3-2","",""],["2026-09-05","Season 2","Paulie","Johnny Ace","3-0","",""],["2026-09-06","Season 2","Leo","Tommy Two","3-1","",""],["2026-09-06","Season 2","Sal","Mickey","3-0","",""],["2026-09-06","Season 2","Mickey","Johnny Ace","3-1","",""],["2026-09-06","Season 2","Leo","Dutch","3-1","",""],["2026-09-07","Season 2","Mickey","Benny","3-2","",""],["2026-09-07","Season 2","Carmine","Ziggy","3-0","",""],["2026-09-07","Season 2","Vinnie","Ziggy","3-1","",""],["2026-09-07","Season 2","Lucky","Tommy Two","3-2","",""],["2026-09-08","Season 2","Dutch","Vinnie","3-2","",""],["2026-09-10","Season 2","Sal","Tommy Two","3-1","",""],["2026-09-10","Season 2","Vinnie","Rocco","3-1","",""],["2026-09-10","Season 2","Nicky Blue","Vito","3-1","",""],["2026-09-11","Season 2","Tommy Two","Rocco","3-1","",""],["2026-09-11","Season 2","Johnny Ace","Paulie","3-1","",""],["2026-09-11","Season 2","Vinnie","Johnny Ace","3-1","",""],["2026-09-11","Season 2","Lucky","Johnny Ace","3-1","",""],["2026-09-12","Season 2","Nicky Blue","Johnny Ace","3-2","",""],["2026-09-12","Season 2","Sal","Tommy Two","3-0","",""],["2026-09-12","Season 2","Frankie","Ziggy","3-2","",""],["2026-09-13","Season 2","Vito","Rocco","3-2","Midnight Cup","QF"],["2026-09-13","Season 2","Lucky","Tommy Two","3-1","Midnight Cup","QF"],["2026-09-13","Season 2","Sal","Paulie","3-1","Midnight Cup","QF"],["2026-09-13","Season 2","Frankie","Nicky Blue","3-2","Midnight Cup","QF"],["2026-09-13","Season 2","Vito","Lucky","3-2","Midnight Cup","SF"],["2026-09-13","Season 2","Frankie","Sal","3-2","Midnight Cup","SF"],["2026-09-13","Season 2","Sal","Lucky","3-1","Midnight Cup","3rd"],["2026-09-13","Season 2","Frankie","Vito","3-1","Midnight Cup","Final"],["2026-09-14","Season 2","Tommy Two","Lucky","3-0","",""],["2026-09-14","Season 2","Tommy Two","Paulie","3-1","",""],["2026-09-14","Season 2","Mickey","Ziggy","3-2","",""],["2026-09-14","Season 2","Mickey","Ziggy","3-0","",""],["2026-09-15","Season 2","Rocco","Dutch","3-1","",""],["2026-09-15","Season 2","Tommy Two","Leo","3-2","",""],["2026-09-15","Season 2","Rocco","Nicky Blue","3-0","",""],["2026-09-16","Season 2","Mickey","Vinnie","3-2","",""],["2026-09-16","Season 2","Vinnie","Dutch","3-1","",""],["2026-09-16","Season 2","Sal","Carmine","3-0","",""],["2026-09-17","Season 2","Johnny Ace","Mickey","3-2","",""],["2026-09-17","Season 2","Paulie","Ziggy","3-1","",""],["2026-09-17","Season 2","Vito","Ziggy","3-2","",""],["2026-09-17","Season 2","Frankie","Nicky Blue","3-1","",""],["2026-09-17","Season 2","Vito","Paulie","3-2","",""],["2026-09-18","Season 2","Ziggy","Sal","3-1","",""],["2026-09-18","Season 2","Rocco","Dutch","3-0","",""],["2026-09-18","Season 2","Benny","Ziggy","3-1","",""],["2026-09-18","Season 2","Johnny Ace","Frankie","3-0","",""],["2026-09-18","Season 2","Paulie","Johnny Ace","3-0","",""],["2026-09-19","Season 2","Johnny Ace","Lucky","3-2","",""],["2026-09-19","Season 2","Vinnie","Mickey","3-1","",""],["2026-09-19","Season 2","Rocco","Ziggy","3-1","",""],["2026-09-19","Season 2","Nicky Blue","Ziggy","3-1","",""],["2026-09-19","Season 2","Mickey","Rocco","3-1","",""],["2026-09-20","Season 2","Benny","Johnny Ace","3-1","",""],["2026-09-20","Season 2","Rocco","Paulie","3-1","",""],["2026-09-20","Season 2","Vinnie","Leo","3-0","",""],["2026-09-20","Season 2","Rocco","Dutch","3-1","",""],["2026-09-20","Season 2","Carmine","Lucky","3-2","",""],["2026-09-20","Season 2","Frankie","Mickey","3-1","",""],["2026-09-22","Season 2","Lucky","Dutch","3-2","",""],["2026-09-22","Season 2","Tommy Two","Nicky Blue","3-2","",""],["2026-09-22","Season 2","Mickey","Johnny Ace","3-1","",""],["2026-09-22","Season 2","Johnny Ace","Vinnie","3-2","",""],["2026-09-23","Season 2","Vito","Sal","3-1","",""],["2026-09-23","Season 2","Tommy Two","Rocco","3-1","",""],["2026-09-23","Season 2","Frankie","Tommy Two","3-2","",""],["2026-09-24","Season 2","Rocco","Mickey","3-2","",""],["2026-09-24","Season 2","Rocco","Benny","3-1","",""],["2026-09-25","Season 2","Tommy Two","Rocco","3-1","",""],["2026-09-26","Season 2","Benny","Mickey","3-1","",""],["2026-09-26","Season 2","Carmine","Benny","3-2","",""],["2026-09-27","Season 2","Lucky","Vinnie","3-0","",""],["2026-09-27","Season 2","Rocco","Carmine","3-1","",""],["2026-09-27","Season 2","Vito","Leo","3-2","",""],["2026-09-28","Season 2","Leo","Mickey","3-0","",""],["2026-09-28","Season 2","Nicky Blue","Paulie","3-2","",""],["2026-09-28","Season 2","Vito","Mickey","3-0","",""],["2026-09-28","Season 2","Lucky","Tommy Two","3-1","",""],["2026-09-29","Season 2","Vinnie","Johnny Ace","3-2","",""],["2026-09-29","Season 2","Tommy Two","Ziggy","3-1","",""],["2026-09-30","Season 2","Rocco","Sal","3-2","",""],["2026-09-30","Season 2","Leo","Frankie","3-0","",""],["2026-10-01","Season 2","Rocco","Dutch","3-0","",""],["2026-10-02","Season 2","Johnny Ace","Vinnie","3-1","",""],["2026-10-02","Season 2","Vito","Ziggy","3-2","Aphrite Open #2","R16"],["2026-10-02","Season 2","Vinnie","Paulie","3-2","Aphrite Open #2","R16"],["2026-10-02","Season 2","Nicky Blue","Leo","3-2","Aphrite Open #2","R16"],["2026-10-02","Season 2","Benny","Frankie","3-1","Aphrite Open #2","R16"],["2026-10-02","Season 2","Sal","Johnny Ace","3-0","Aphrite Open #2","R16"],["2026-10-02","Season 2","Carmine","Mickey","3-1","Aphrite Open #2","R16"],["2026-10-02","Season 2","Tommy Two","Dutch","3-1","Aphrite Open #2","R16"],["2026-10-02","Season 2","Lucky","Rocco","3-2","Aphrite Open #2","R16"],["2026-10-02","Season 2","Vito","Vinnie","3-1","Aphrite Open #2","QF"],["2026-10-02","Season 2","Nicky Blue","Benny","3-1","Aphrite Open #2","QF"],["2026-10-02","Season 2","Sal","Carmine","3-0","Aphrite Open #2","QF"],["2026-10-02","Season 2","Lucky","Tommy Two","3-1","Aphrite Open #2","QF"],["2026-10-02","Season 2","Vito","Nicky Blue","3-2","Aphrite Open #2","SF"],["2026-10-02","Season 2","Lucky","Sal","3-2","Aphrite Open #2","SF"],["2026-10-02","Season 2","Nicky Blue","Sal","3-1","Aphrite Open #2","3rd"],["2026-10-02","Season 2","Vito","Lucky","3-1","Aphrite Open #2","Final"],["2026-10-03","Season 2","Lucky","Rocco","3-2","",""],["2026-10-03","Season 2","Vito","Vinnie","3-0","",""],["2026-10-03","Season 2","Vito","Mickey","3-2","",""],["2026-10-04","Season 2","Ziggy","Leo","3-2","",""]],"t":[["2026-07-31","Aphrite Open #1","Season 1","2,000 value"],["2026-09-13","Midnight Cup","Season 2","Dragora"],["2026-10-02","Aphrite Open #2","Season 2","5,000 value"]]};
+let MATCHES=[],TOURS=[],DEMO=true,UPDATED="";
+function setData(m,t){
+  MATCHES=m.map((r,i)=>({i,date:r[0],t:Date.parse(r[0])||0,season:r[1]||"",win:r[2],lose:r[3],score:r[4]||"",tour:r[5]||"",round:normRound(r[6])})).filter(x=>x.win&&x.lose);
+  MATCHES.sort((a,b)=>a.t-b.t||a.i-b.i);
+  TOURS=t.map(r=>({date:r[0],t:Date.parse(r[0])||0,name:r[1],season:r[2]||"",prize:r[3]||"",win:r[4]||""})).filter(x=>x.name);
+}
 
 /* ---------- helpers ---------- */
 const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
 const esc=s=>String(s??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;");
-const fmt=n=>n==null?"—":Number(n).toLocaleString("en-US");
+const fmt=n=>n==null?"—":Math.round(n).toLocaleString("en-US");
 const norm=s=>String(s||"").trim().toLowerCase();
-const winRate=p=>p.w+p.l?Math.round(p.w/(p.w+p.l)*100):null;
-/* Family ranks by position, used when the sheet has no Tier column */
+const same=(a,b)=>norm(a)===norm(b);
+const pretty=d=>{const t=Date.parse(d);return t?new Date(t).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}):d};
+const ROUNDS={r64:"Round of 64",r32:"Round of 32",r16:"Round of 16",qf:"Quarter-finals",sf:"Semi-finals",b:"Third place",f:"Final"};
+const RORDER=["r64","r32","r16","qf","sf","f"];
+function normRound(r){const s=norm(r).replace(/\s+/g,"");if(!s)return "";
+  if(/^(f|final|finale|gf|grandfinal)$/.test(s))return "f";if(/^(3rd|third|bronze|3e|3rdplace|thirdplace|petitefinale)/.test(s))return "b";
+  if(/^(sf|semi|semis|semifinal|semifinals|demi|1\/2)/.test(s))return "sf";if(/^(qf|quarter|quarters|quarterfinal|quart|1\/4)/.test(s))return "qf";
+  if(/^(r16|ro16|roundof16|1\/8|8th)/.test(s))return "r16";if(/^(r32|ro32|roundof32|1\/16)/.test(s))return "r32";if(/^(r64|ro64)/.test(s))return "r64";return s}
 const TIERS=[["Boss",1],["Underboss",3],["Capo",10],["Soldier",25],["Associate",Infinity]];
-function tierOf(p,i){if(p.tier)return p.tier;for(const[t,max]of TIERS)if(i+1<=max)return t}
-function titlesOf(name){return TOURNEYS.filter(t=>norm(t.win)===norm(name))}
-function ranked(){return [...PLAYERS].sort((a,b)=>b.pts-a.pts||b.w-a.w||a.name.localeCompare(b.name)).map((p,i)=>({...p,rank:i+1,tierName:tierOf(p,i),titles:titlesOf(p.name).length}))}
+const tierAt=i=>{for(const[t,max]of TIERS)if(i+1<=max)return t};
 
-/* ---------- ranking ---------- */
+/* ---------- seasons ---------- */
+let SEASONS=[],season="";
+function buildSeasons(){const s=[...new Set(MATCHES.map(m=>m.season).filter(Boolean))];
+  SEASONS=s.sort((a,b)=>Math.max(...MATCHES.filter(m=>m.season===a).map(m=>m.t))-Math.max(...MATCHES.filter(m=>m.season===b).map(m=>m.t))).reverse();
+  if(!season||(season!=="all"&&!SEASONS.includes(season)))season=SEASONS[0]||"all";
+  const opts=SEASONS.map((x,i)=>`<option value="${esc(x)}">${esc(x)}${i===0?" (current)":""}</option>`).join("")+`<option value="all">All time</option>`;
+  $$(".seasonsel").forEach(sel=>{sel.innerHTML=opts;sel.value=season})}
+$$(".seasonsel").forEach(sel=>sel.onchange=()=>{season=sel.value;$$(".seasonsel").forEach(o=>o.value=season);renderAll()});
+const inSeason=m=>season==="all"||m.season===season;
+
+/* ---------- ELO engine ---------- */
+let STATS={},LIST=[];
+function compute(){
+  const st={},get=n=>{const k=norm(n);return st[k]||(st[k]={name:n,elo:START_ELO,w:0,l:0,res:[],hist:[{t:0,elo:START_ELO}],peak:START_ELO,titles:[],seconds:[]})};
+  for(const m of MATCHES){if(!inSeason(m))continue;const a=get(m.win),b=get(m.lose);
+    const ea=1/(1+Math.pow(10,(b.elo-a.elo)/400)),d=K*(1-ea);
+    a.elo+=d;b.elo-=d;a.w++;b.l++;a.res.push("w");b.res.push("l");m.d=d;
+    a.hist.push({t:m.t,elo:a.elo,m});b.hist.push({t:m.t,elo:b.elo,m});a.peak=Math.max(a.peak,a.elo)}
+  for(const t of tourResults())if(season==="all"||t.season===season){if(t.win)get(t.win).titles.push(t);if(t.second)get(t.second).seconds.push(t)}
+  LIST=Object.values(st).filter(p=>p.w+p.l>0).sort((a,b)=>b.elo-a.elo||b.w-a.w||a.name.localeCompare(b.name));
+  LIST.forEach((p,i)=>{p.rank=i+1;p.tier=tierAt(i);p.streak=streakOf(p.res);p.last=p.hist.length>1?p.hist[p.hist.length-1].elo-p.hist[p.hist.length-2].elo:0});
+  STATS=st}
+function streakOf(r){if(!r.length)return null;const x=r[r.length-1];let n=0;for(let i=r.length-1;i>=0&&r[i]===x;i--)n++;return {x,n}}
+const winRate=p=>p.w+p.l?Math.round(p.w/(p.w+p.l)*100):null;
+const pOf=n=>STATS[norm(n)];
+
+/* ---------- tournaments (champion from the Final when not written) ---------- */
+function tourResults(){return TOURS.map(t=>{const ms=MATCHES.filter(m=>same(m.tour,t.name));const fin=ms.find(m=>m.round==="f"),br=ms.find(m=>m.round==="b");
+  const sfl=ms.filter(m=>m.round==="sf").map(m=>m.lose);
+  return {...t,season:t.season||(ms[0]&&ms[0].season)||"",win:t.win||(fin?fin.win:""),second:fin?(same(fin.win,t.win||fin.win)?fin.lose:fin.win):"",third:br?br.win:"",semis:br?[]:sfl,matches:ms,score:fin?fin.score:""}}).sort((a,b)=>b.t-a.t)}
+
+/* ---------- RANKING ---------- */
 let tierFilter="all";
 function renderRank(){
-  const R=ranked();$("#demo").hidden=!DEMO;
   $("#updated").textContent=UPDATED?`Updated ${UPDATED}`:"";
-  const pod=R.slice(0,3),order=[1,0,2].filter(i=>pod[i]);
-  $("#podium").innerHTML=order.map(i=>{const p=pod[i];return `<div class="pod p${i+1}" role="button" tabindex="0" data-p="${esc(p.name)}"><div class="chip">${i+1}</div><div class="nm">${esc(p.name)}</div><div class="pts"><b>${fmt(p.pts)}</b> points</div><div class="tier">${esc(p.tierName)}${p.titles?` · ${p.titles} title${p.titles>1?"s":""}`:""}</div></div>`}).join("");
-  const tiers=[...new Set(R.map(p=>p.tierName))];
+  const pod=LIST.slice(0,3),order=[1,0,2].filter(i=>pod[i]);
+  $("#podium").innerHTML=order.map(i=>{const p=pod[i];return `<div class="pod p${i+1}" role="button" tabindex="0" data-p="${esc(p.name)}"><div class="chip">${i+1}</div><div class="nm">${esc(p.name)}</div><div class="pts"><b>${fmt(p.elo)}</b> ELO</div><div class="tier">${esc(p.tier)} · ${p.w}–${p.l}${p.titles.length?` · ♛ ${p.titles.length}`:""}</div></div>`}).join("");
+  const tiers=[...new Set(LIST.map(p=>p.tier))];if(!tiers.includes(tierFilter))tierFilter="all";
   $("#tiers").innerHTML=["all",...tiers].map(t=>`<button class="chipf${t===tierFilter?" on":""}" type="button" data-t="${esc(t)}">${t==="all"?"Everyone":esc(t)}</button>`).join("");
-  const q=norm($("#q").value);
-  const L=R.filter(p=>(tierFilter==="all"||p.tierName===tierFilter)&&(!q||norm(p.name).includes(q)));
-  $("#rows").innerHTML=L.length?L.map(p=>{const wr=winRate(p);return `<div class="lr${p.rank<=3?" top":""}" role="button" tabindex="0" data-p="${esc(p.name)}">
+  const q=norm($("#q").value),L=LIST.filter(p=>(tierFilter==="all"||p.tier===tierFilter)&&(!q||norm(p.name).includes(q)));
+  $("#rows").innerHTML=L.length?L.map(p=>{const wr=winRate(p),s=p.streak;return `<div class="lr${p.rank<=3?" top":""}" role="button" tabindex="0" data-p="${esc(p.name)}">
     <span class="rk">${String(p.rank).padStart(2,"0")}</span>
-    <span class="who"><b>${esc(p.name)}</b><span>${esc(p.tierName)}</span></span>
-    <span class="pts r">${fmt(p.pts)}</span>
+    <span class="who"><b>${esc(p.name)}</b><span>${esc(p.tier)}${s&&s.x==="w"&&s.n>=3?`<span class="streak">${s.n} wins in a row</span>`:""}</span></span>
+    <span class="pts r">${fmt(p.elo)}${p.last?`<span class="dlt ${p.last>0?"up":"down"}">${p.last>0?"▲":"▼"}${Math.abs(Math.round(p.last))}</span>`:""}</span>
     <span class="wl r">${p.w} – ${p.l}</span>
     <span class="wr r">${wr==null?"—":wr+"%"}</span>
-    <span class="ti r">${p.titles?"♛ "+p.titles:""}</span></div>`}).join(""):`<div class="empty">No player matches “${esc($("#q").value)}”.</div>`;
-  $("#count").textContent=`${L.length} of ${R.length} players`;
+    <span class="fm r"><span class="form" aria-label="Last 5 results">${p.res.slice(-5).map(x=>`<i class="${x}" title="${x==="w"?"Win":"Loss"}"></i>`).join("")}</span></span>
+    <span class="ti r">${p.titles.length?"♛ "+p.titles.length:""}</span></div>`}).join(""):`<div class="empty">${LIST.length?`No player matches “${esc($("#q").value)}”.`:"No match played this season yet."}</div>`;
+  $("#count").textContent=`${L.length} of ${LIST.length} players`;
 }
 $("#q").oninput=renderRank;
 $("#tiers").onclick=e=>{const b=e.target.closest("[data-t]");if(!b)return;tierFilter=b.dataset.t;renderRank()};
 
-/* ---------- champions ---------- */
-function renderChamps(){
-  const count={};TOURNEYS.forEach(t=>{if(t.win)count[t.win]=(count[t.win]||0)+1});
-  const top=Object.entries(count).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0]));
-  $("#most").innerHTML=top.map(([n,c])=>`<button type="button" data-p="${esc(n)}"><b>${esc(n)}</b><span>${"♛".repeat(Math.min(c,5))} ${c} title${c>1?"s":""}</span></button>`).join("");
-  $("#wall").innerHTML=TOURNEYS.length?TOURNEYS.map((t,i)=>`<article class="frame">${i===0?'<span class="crown" title="Latest champion">♛</span>':""}
-    <span class="when">${esc(t.date)}</span><h3>${esc(t.name)}</h3>
-    <button class="win" type="button" data-p="${esc(t.win)}">${esc(t.win)}</button><span class="lbl">Champion</span>
-    <dl>${t.second?`<dt>Runner-up</dt><dd>${esc(t.second)}</dd>`:""}${t.third?`<dt>Third</dt><dd>${esc(t.third)}</dd>`:""}${t.prize?`<dt>Prize</dt><dd>${esc(t.prize)}</dd>`:""}</dl></article>`).join(""):`<div class="empty">No tournament yet.</div>`;
+/* ---------- MATCHES ---------- */
+let mKind="all",mShown=40;
+function renderMatches(){
+  $("#mkind").innerHTML=[["all","All"],["ranked","Ranked"],["tour","Tournament"]].map(([k,l])=>`<button class="chipf${k===mKind?" on":""}" type="button" data-k="${k}">${l}</button>`).join("");
+  const q=norm($("#mq").value);
+  const L=MATCHES.filter(m=>inSeason(m)&&(mKind==="all"||(mKind==="tour")===!!m.tour)&&(!q||norm(m.win).includes(q)||norm(m.lose).includes(q))).reverse();
+  let h="",day="";
+  for(const m of L.slice(0,mShown)){if(m.date!==day){day=m.date;h+=`<div class="mday">${esc(pretty(m.date))}</div>`}
+    const d=m.d?Math.round(m.d):0;
+    h+=`<div class="mrow"><div class="side win"><span class="dlt up">+${d}</span><button class="n" type="button" data-p="${esc(m.win)}">${esc(m.win)}</button></div>
+      <div class="score">${esc(m.score||"W")}</div>
+      <div class="side r lose"><button class="n" type="button" data-p="${esc(m.lose)}">${esc(m.lose)}</button><span class="dlt down">−${d}</span></div>
+      <div class="tag">${m.tour?`<b>${esc(m.tour)}</b>${esc(ROUNDS[m.round]||m.round)}`:"Ranked match"}</div></div>`}
+  $("#mlist").innerHTML=h||`<div class="empty">No match found.</div>`;
+  $("#mcount").textContent=`${L.length} match${L.length===1?"":"es"}`;
+  $("#mmore").hidden=L.length<=mShown;
 }
+$("#mq").oninput=()=>{mShown=40;renderMatches()};
+$("#mkind").onclick=e=>{const b=e.target.closest("[data-k]");if(!b)return;mKind=b.dataset.k;mShown=40;renderMatches()};
+$("#mmore").onclick=()=>{mShown+=60;renderMatches()};
+
+/* ---------- CHAMPIONS ---------- */
+function renderChamps(){
+  const T=tourResults(),count={};T.forEach(t=>{if(t.win)count[t.win]=(count[t.win]||0)+1});
+  $("#most").innerHTML=Object.entries(count).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0])).map(([n,c])=>`<button type="button" data-p="${esc(n)}"><b>${esc(n)}</b><span>${"♛".repeat(Math.min(c,5))} ${c} title${c>1?"s":""}</span></button>`).join("");
+  if(!T.length){$("#wall").innerHTML=`<div class="empty">No tournament yet.</div>`;return}
+  const groups=[];for(const t of T){const g=groups.find(x=>x.s===t.season);g?g.t.push(t):groups.push({s:t.season,t:[t]})}
+  $("#wall").innerHTML=groups.map(g=>`${g.s?`<h3 class="seasonhd">${esc(g.s)}</h3>`:""}<div class="wall">${g.t.map(t=>`<article class="frame">${t===T[0]?'<span class="crown" title="Latest champion">♛</span>':""}
+    <span class="when">${esc(pretty(t.date))}</span><h3>${esc(t.name)}</h3>
+    ${t.win?`<button class="win" type="button" data-p="${esc(t.win)}">${esc(t.win)}</button><span class="lbl">Champion${t.score?` · won the final ${esc(t.score)}`:""}</span>`:`<span class="lbl">No champion yet</span>`}
+    <dl>${t.second?`<dt>Runner-up</dt><dd>${esc(t.second)}</dd>`:""}${t.third?`<dt>Third</dt><dd>${esc(t.third)}</dd>`:""}${t.semis.length?`<dt>Semi-finals</dt><dd>${t.semis.map(esc).join(", ")}</dd>`:""}${t.prize?`<dt>Prize</dt><dd>${esc(t.prize)}</dd>`:""}<dt>Players</dt><dd>${new Set(t.matches.flatMap(m=>[norm(m.win),norm(m.lose)])).size||"—"}</dd></dl>
+    ${t.matches.some(m=>m.round)?`<div class="acts"><button type="button" data-bracket="${esc(t.name)}">See the bracket</button></div>`:""}</article>`).join("")}</div>`).join("");
+}
+function openBracket(name){const t=tourResults().find(x=>same(x.name,name));if(!t)return;
+  const rounds=RORDER.filter(r=>t.matches.some(m=>m.round===r)),third=t.matches.find(m=>m.round==="b");
+  const card=m=>`<div class="bm"><div class="w"><b>${esc(m.win)}</b><span>${esc((m.score||"").split(/[-–:]/)[0]||"W")}</span></div><div class="l"><span>${esc(m.lose)}</span><span>${esc((m.score||"").split(/[-–:]/)[1]||"")}</span></div></div>`;
+  const md=$("#modal");md.innerHTML=`<div class="modal-h"><div><h3>${esc(t.name)}</h3><p>${esc(pretty(t.date))}${t.win?` · Champion: ${esc(t.win)}`:""}</p></div><button class="iconbtn" type="button" id="mdClose" aria-label="Close">${X_ICON}</button></div>
+    <div class="bracket">${rounds.map(r=>`<div class="bcol${r==="f"?" final":""}"><h4>${ROUNDS[r]}</h4>${t.matches.filter(m=>m.round===r).map(card).join("")}${r==="f"&&third?`<div class="third"><h4>${ROUNDS.b}</h4>${card(third)}</div>`:""}</div>`).join("")}</div>`;
+  md.classList.add("on");md.setAttribute("aria-hidden","false");$("#mdClose").onclick=closeModal;$("#mdClose").focus()}
+function closeModal(){const md=$("#modal");md.classList.remove("on");md.setAttribute("aria-hidden","true")}
+
+/* ---------- DUEL ---------- */
+function fillDuel(){const names=LIST.map(p=>p.name),a=$("#dA").value,b=$("#dB").value;
+  const opts=names.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join("");$("#dA").innerHTML=opts;$("#dB").innerHTML=opts;
+  $("#dA").value=names.includes(a)?a:names[0]||"";$("#dB").value=names.includes(b)&&b!==$("#dA").value?b:names.find(n=>n!==$("#dA").value)||""}
+function renderDuel(){
+  const A=pOf($("#dA").value),B=pOf($("#dB").value),box=$("#duel");
+  if(!A||!B){box.innerHTML=`<div class="empty">Not enough players this season.</div>`;return}
+  if(A===B){box.innerHTML=`<div class="empty">Pick two different players.</div>`;return}
+  const met=MATCHES.filter(m=>(same(m.win,A.name)&&same(m.lose,B.name))||(same(m.win,B.name)&&same(m.lose,A.name)));
+  const aw=met.filter(m=>same(m.win,A.name)).length,bw=met.length-aw;
+  const pa=Math.round(100/(1+Math.pow(10,(B.elo-A.elo)/400)));
+  const row=(k,a,b,hi=true)=>{const best=hi?(a>b?"a":b>a?"b":""):(a<b?"a":b<a?"b":"");return `<tr><td class="${best==="a"?"best":""}">${typeof a==="number"?fmt(a):a}</td><td class="k">${k}</td><td class="${best==="b"?"best":""}">${typeof b==="number"?fmt(b):b}</td></tr>`};
+  box.innerHTML=`<div class="h2h"><div class="big${aw>bw?" lead":""}">${aw}</div><div class="mid"><b>Head to head</b>${met.length?`${met.length} meeting${met.length>1?"s":""}, all seasons`:"They have never played each other"}</div><div class="big${bw>aw?" lead":""}">${bw}</div></div>
+    <div class="odds"><div class="bar"><i style="width:${pa}%"></i><i style="width:${100-pa}%"></i></div><div class="lbls"><span>${esc(A.name)} ${pa}%</span><span>Chance to win the next match, by ELO</span><span>${100-pa}% ${esc(B.name)}</span></div></div>
+    <table class="cmp">${row("Rank",`#${A.rank}`,`#${B.rank}`,false).replace(/class="best"/g,"").replace(/<td class="">/g,"<td>")}${row("ELO",A.elo,B.elo)}${row("Peak ELO",A.peak,B.peak)}${row("Wins",A.w,B.w)}${row("Win rate",(winRate(A)??0)+"%",(winRate(B)??0)+"%")}${row("Titles",A.titles.length,B.titles.length)}</table>
+    ${met.length?`<p class="small" style="margin:26px 0 6px">Every meeting</p><ul class="titles">${[...met].reverse().map(m=>`<li><span><b style="color:var(--gold2)">${esc(m.win)}</b> beat ${esc(m.lose)} ${esc(m.score)}${m.tour?` · ${esc(m.tour)}`:""}</span><span>${esc(pretty(m.date))}</span></li>`).join("")}</ul>`:""}`;
+  // fix rank row highlighting (lower rank number is better)
+  const r=box.querySelector(".cmp tr");if(r){const c=r.children;c[A.rank<B.rank?0:2].classList.add("best")}
+  const wr=box.querySelectorAll(".cmp tr")[4];if(wr){const a=winRate(A)??0,b=winRate(B)??0;wr.children[0].className=a>b?"best":"";wr.children[2].className=b>a?"best":""}
+}
+$("#dA").onchange=renderDuel;$("#dB").onchange=renderDuel;
+function duelWith(name){const other=LIST.find(p=>!same(p.name,name));closeDrawer();show("duel");$("#dA").value=name;if(same($("#dB").value,name)&&other)$("#dB").value=other.name;renderDuel();scrollTo(0,0)}
 
 /* ---------- player record ---------- */
 const X_ICON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+function eloChart(p){const h=p.hist;if(h.length<3)return "";const W=400,H=120,pad=6,min=Math.min(...h.map(x=>x.elo)),max=Math.max(...h.map(x=>x.elo)),rg=Math.max(20,max-min);
+  const X=i=>pad+i/(h.length-1)*(W-pad*2),Y=v=>pad+(1-(v-min)/rg)*(H-pad*2-14);
+  const pts=h.map((x,i)=>`${X(i).toFixed(1)},${Y(x.elo).toFixed(1)}`).join(" ");
+  return `<div class="elo"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="ELO over the season, from ${fmt(h[0].elo)} to ${fmt(p.elo)}"><polygon class="ar" points="${X(0)},${H-14} ${pts} ${X(h.length-1)},${H-14}"/><polyline class="ln" points="${pts}"/><text x="${pad}" y="${H-2}">Start ${fmt(h[0].elo)}</text><text x="${W-pad}" y="${H-2}" text-anchor="end">Peak ${fmt(p.peak)} · now ${fmt(p.elo)}</text></svg></div>`}
 function openPlayer(name){
-  const p=ranked().find(x=>norm(x.name)===norm(name)),won=titlesOf(name),podiums=TOURNEYS.filter(t=>norm(t.second)===norm(name)||norm(t.third)===norm(name));
-  const d=$("#drawer");
-  d.innerHTML=`<div class="dr-top"><span class="small">Player record</span><button class="iconbtn" type="button" id="drClose" aria-label="Close">${X_ICON}</button></div>
-    <h3>${esc(p?p.name:name)}</h3><div class="sub">${p?`#${p.rank} · ${esc(p.tierName)}`:"Not in the current ranking"}</div>
-    ${p?`<div class="stats"><div><b>${fmt(p.pts)}</b><span>Points</span></div><div><b>${winRate(p)==null?"—":winRate(p)+"%"}</b><span>Win rate</span></div><div><b>${p.w}</b><span>Wins</span></div><div><b>${p.l}</b><span>Losses</span></div></div>`:""}
-    <p class="small" style="margin:18px 0 6px">Titles (${won.length})</p>
-    ${won.length?`<ul class="titles">${won.map(t=>`<li><span>♛ ${esc(t.name)}</span><span>${esc(t.date)}</span></li>`).join("")}</ul>`:`<p style="margin:0;color:var(--cream2)">No title yet.</p>`}
-    ${podiums.length?`<p class="small" style="margin:18px 0 6px">Other podiums</p><ul class="titles">${podiums.map(t=>`<li><span>${norm(t.second)===norm(name)?"2nd":"3rd"} · ${esc(t.name)}</span><span>${esc(t.date)}</span></li>`).join("")}</ul>`:""}`;
-  d.classList.add("on");d.setAttribute("aria-hidden","false");$("#scrim").classList.add("on");$("#drClose").onclick=closeDrawer;$("#drClose").focus();
+  const p=pOf(name),d=$("#drawer");
+  const recent=MATCHES.filter(m=>inSeason(m)&&(same(m.win,name)||same(m.lose,name))).slice(-8).reverse();
+  d.innerHTML=`<div class="dr-top"><span class="small">Player record${season!=="all"?` · ${esc(season)}`:" · all time"}</span><button class="iconbtn" type="button" id="drClose" aria-label="Close">${X_ICON}</button></div>
+    <h3>${esc(p?p.name:name)}</h3><div class="sub">${p?`#${p.rank} · ${esc(p.tier)}${p.streak&&p.streak.n>=2?` · ${p.streak.n} ${p.streak.x==="w"?"wins":"losses"} in a row`:""}`:"No match this season"}</div>
+    ${p?`<div class="stats"><div><b>${fmt(p.elo)}</b><span>ELO</span></div><div><b>${winRate(p)??"—"}%</b><span>Win rate</span></div><div><b>${p.w}</b><span>Wins</span></div><div><b>${p.l}</b><span>Losses</span></div></div>${eloChart(p)}`:""}
+    <p class="small" style="margin:18px 0 6px">Titles (${p?p.titles.length:0})</p>
+    ${p&&p.titles.length?`<ul class="titles">${p.titles.map(t=>`<li><span>♛ ${esc(t.name)}</span><span>${esc(pretty(t.date))}</span></li>`).join("")}</ul>`:`<p style="margin:0;color:var(--cream2)">No title yet.</p>`}
+    ${recent.length?`<p class="small" style="margin:20px 0 6px">Recent matches</p><ul class="titles recent">${recent.map(m=>{const w=same(m.win,name);return `<li><span>${w?"<b>W</b>":"L"} vs ${esc(w?m.lose:m.win)} ${esc(m.score)}</span><span>${w?"+":"−"}${Math.round(m.d||0)}</span></li>`}).join("")}</ul>`:""}
+    <div class="dr-btns"><button class="btn" type="button" id="drDuel">Duel this player</button><button class="btn ghost" type="button" id="drMatches">All their matches</button></div>`;
+  d.classList.add("on");d.setAttribute("aria-hidden","false");$("#scrim").classList.add("on");
+  $("#drClose").onclick=closeDrawer;$("#drClose").focus();
+  $("#drDuel").onclick=()=>duelWith(p?p.name:name);
+  $("#drMatches").onclick=()=>{closeDrawer();show("matches");$("#mq").value=p?p.name:name;mShown=40;renderMatches();scrollTo(0,0)};
 }
 function closeDrawer(){$("#drawer").classList.remove("on");$("#drawer").setAttribute("aria-hidden","true");$("#scrim").classList.remove("on")}
-$("#scrim").onclick=closeDrawer;addEventListener("keydown",e=>{if(e.key==="Escape")closeDrawer()});
-document.addEventListener("click",e=>{const el=e.target.closest("[data-p]");if(el&&!e.target.closest("#drawer"))openPlayer(el.dataset.p)});
+$("#scrim").onclick=closeDrawer;
+addEventListener("keydown",e=>{if(e.key==="Escape"){closeDrawer();closeModal()}});
+document.addEventListener("click",e=>{const b=e.target.closest("[data-bracket]");if(b){openBracket(b.dataset.bracket);return}
+  const el=e.target.closest("[data-p]");if(el&&!e.target.closest("#drawer"))openPlayer(el.dataset.p)});
 document.addEventListener("keydown",e=>{const el=e.target.closest&&e.target.closest("[data-p][role=button]");if(el&&(e.key==="Enter"||e.key===" ")){e.preventDefault();openPlayer(el.dataset.p)}});
 
 /* ---------- tabs and cover ---------- */
-function show(tab){["rank","champs"].forEach(t=>{$("#p-"+t).hidden=t!==tab;$("#tab-"+t).setAttribute("aria-selected",t===tab)});}
+const PAGES=["rank","matches","champs","duel"];
+function show(tab){PAGES.forEach(t=>{$("#p-"+t).hidden=t!==tab;$("#tab-"+t).setAttribute("aria-selected",t===tab)});if(tab==="duel")renderDuel()}
 $$(".tab").forEach(b=>b.onclick=()=>{show(b.dataset.tab);scrollTo(0,0)});
 const cover=$("#cover"),root=document.documentElement;
 function enter(tab){show(tab);scrollTo(0,0);const done=()=>{cover.hidden=true;root.classList.remove("lock")};
   if(matchMedia("(prefers-reduced-motion: reduce)").matches||!cover.animate){done();return}
   cover.animate([{opacity:1},{opacity:0}],{duration:450,easing:"ease-out"}).onfinish=done}
-$("#goRank").onclick=()=>enter("rank");$("#goChamps").onclick=()=>enter("champs");
+$$("[data-go]").forEach(b=>b.onclick=()=>enter(b.dataset.go));
 $("#toCover").onclick=()=>{closeDrawer();cover.hidden=false;root.classList.add("lock");cover.animate&&cover.animate([{opacity:0},{opacity:1}],{duration:350})};
-function renderFacts(){const R=ranked(),last=TOURNEYS[0];
-  $("#facts").innerHTML=`<div class="fact"><b>${R.length}</b><span>Ranked players</span></div><div class="fact"><b>${TOURNEYS.length}</b><span>Tournaments played</span></div>${last?`<div class="fact champ"><b>${esc(last.win)}</b><span>Reigning champion</span></div>`:""}`}
+function renderFacts(){const T=tourResults(),last=T.find(t=>t.win),n=MATCHES.filter(inSeason).length;
+  $("#facts").innerHTML=`<div class="fact"><b>${LIST.length}</b><span>Ranked players${season!=="all"?` · ${esc(season)}`:""}</span></div><div class="fact"><b>${fmt(n)}</b><span>Matches played</span></div>${last?`<div class="fact champ"><b>${esc(last.win)}</b><span>Reigning champion</span></div>`:""}`}
 $$("[data-discord]").forEach(a=>{if(DISCORD_URL)a.href=DISCORD_URL;else a.hidden=true});
 
 /* ---------- Google Sheet ---------- */
@@ -367,19 +600,19 @@ async function readTab(tab){const m=/\/d\/([\w-]{20,})/.exec(SHEET_URL);if(!m)re
   const r=await fetch(`https://docs.google.com/spreadsheets/d/${m[1]}/gviz/tq?tqx=out:json&headers=1&sheet=${encodeURIComponent(tab)}&t=${Date.now()}`,{cache:"no-store"});
   const t=await r.text(),j=JSON.parse(t.slice(t.indexOf("{"),t.lastIndexOf("}")+1));if(j.status==="error")return null;
   const H=j.table.cols.map(c=>norm(c.label)),col=(...n)=>H.findIndex(h=>n.some(x=>h===x||h.startsWith(x)));
-  const val=c=>{if(!c||c.v==null)return "";const d=/^Date\((\d+),(\d+),(\d+)/.exec(String(c.v));return d?new Date(+d[1],+d[2],+d[3]).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}):String(c.f??c.v).trim()};
-  const num=c=>{if(!c||c.v==null)return 0;const n=typeof c.v==="number"?c.v:parseFloat(String(c.v).replace(/[^\d.-]/g,""));return isFinite(n)?n:0};
-  return {rows:(j.table.rows||[]).map(r=>r.c||[]),col,val,num}}
+  const val=c=>{if(!c||c.v==null)return "";const d=/^Date\((\d+),(\d+),(\d+)/.exec(String(c.v));return d?`${d[1]}-${String(+d[2]+1).padStart(2,"0")}-${String(d[3]).padStart(2,"0")}`:String(c.f??c.v).trim()};
+  return {rows:(j.table.rows||[]).map(r=>r.c||[]),col,val}}
 async function loadSheet(){if(!SHEET_URL)return;
-  try{const a=await readTab("Ranking");if(a){const c={n:a.col("player","name","joueur"),p:a.col("points","elo","score"),w:a.col("wins","win","victoires"),l:a.col("losses","loss","défaites","defaites"),t:a.col("tier","rank","rang")};
-      const P=a.rows.map(r=>({name:a.val(r[c.n]),pts:a.num(r[c.p]),w:a.num(r[c.w]),l:a.num(r[c.l]),tier:c.t>=0?a.val(r[c.t]):""})).filter(p=>p.name);if(P.length){PLAYERS=P;DEMO=false}}
-    const b=await readTab("Tournaments");if(b){const c={d:b.col("date"),n:b.col("tournament","name","tournoi"),w:b.col("winner","champion","vainqueur"),s:b.col("runner","second","2nd"),t:b.col("third","3rd","troisième"),p:b.col("prize","reward","prix")};
-      const T=b.rows.map(r=>({date:b.val(r[c.d]),name:b.val(r[c.n]),win:b.val(r[c.w]),second:c.s>=0?b.val(r[c.s]):"",third:c.t>=0?b.val(r[c.t]):"",prize:c.p>=0?b.val(r[c.p]):""})).filter(t=>t.win);
-      if(T.length){TOURNEYS=T.every(t=>Date.parse(t.date))?T.sort((x,y)=>Date.parse(y.date)-Date.parse(x.date)):T.reverse();DEMO=false}}
-    UPDATED=new Date().toLocaleDateString("en-US",{month:"short",day:"numeric"});renderAll()}catch(e){console.warn("Sheet unavailable, showing examples:",e.message)}}
+  try{const a=await readTab("Matches"),b=await readTab("Tournaments");if(!a)throw new Error("no Matches tab");
+    const c={d:a.col("date"),s:a.col("season","saison"),w:a.col("winner","gagnant","vainqueur"),l:a.col("loser","perdant"),sc:a.col("score"),t:a.col("tournament","tournoi"),r:a.col("round","phase","manche")};
+    const g=(r,i)=>i>=0?a.val(r[i]):"";
+    const M=a.rows.map(r=>[g(r,c.d),g(r,c.s),g(r,c.w),g(r,c.l),g(r,c.sc),g(r,c.t),g(r,c.r)]);
+    let T=[];if(b){const e={d:b.col("date"),n:b.col("tournament","name","tournoi"),s:b.col("season","saison"),p:b.col("prize","prix","reward"),w:b.col("winner","champion","vainqueur")};const h=(r,i)=>i>=0?b.val(r[i]):"";T=b.rows.map(r=>[h(r,e.d),h(r,e.n),h(r,e.s),h(r,e.p),h(r,e.w)])}
+    setData(M,T);DEMO=false;UPDATED=new Date().toLocaleDateString("en-US",{month:"short",day:"numeric"});season="";renderAll()}
+  catch(e){console.warn("Sheet unavailable, showing the example data:",e.message)}}
 
-function renderAll(){renderRank();renderChamps();renderFacts()}
-root.classList.add("lock");show("rank");renderAll();loadSheet();
+function renderAll(){buildSeasons();compute();$("#demo").hidden=!DEMO;renderRank();renderMatches();renderChamps();fillDuel();renderDuel();renderFacts()}
+setData(DEMO_DATA.m,DEMO_DATA.t);root.classList.add("lock");show("rank");renderAll();loadSheet();
 </script>
 </body>
 </html>
