@@ -711,9 +711,7 @@ let now = 0, dealT0 = -99, dealWait = .6, lightT0 = 0;
 function deal(waitMs = 650) {
   dealt = false; dealT0 = now; dealWait = REDUCE ? 0 : waitMs / 1000;
   cards.forEach(c => { c.hover = 0; c.picked = false; c.pick = 0; });
-  clearTimeout(deal.t);
-  if (REDUCE) { dealt = true; if (typeof say === 'function') say(...SAY0, true); return; }
-  deal.t = setTimeout(() => { dealt = true; if (typeof say === 'function') say(...SAY0); }, (dealWait + cards.length * .14 + 1.0) * 1000);
+  if (REDUCE) { dealt = true; if (typeof say === 'function') say(...SAY0, true); }
 }
 
 /* ---------- per-frame ---------- */
@@ -723,6 +721,7 @@ const camFwd = new THREE.Vector3(), tmp = new THREE.Vector3(), tmp2 = new THREE.
 let par = { x: 0, y: 0 };
 function updateCards(dt) {
   const st = REDUCE ? 9 : now - dealT0 - dealWait;
+  if (!dealt && st > cards.length * .14 + 1.0) { dealt = true; if (typeof say === 'function') say(...SAY0); }
   cards.forEach((c, k) => {
     const want = (c.picked ? 1 : (k === hovered || k === focused) && dealt ? 1 : 0);
     c.hover = REDUCE ? want : damp(c.hover, want, 12, dt);
