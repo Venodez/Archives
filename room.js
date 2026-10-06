@@ -289,7 +289,7 @@ const M = {
   wall: new THREE.MeshStandardMaterial({ color: 0xffffff, map: T.wood, roughness: .75, envMapIntensity: .15 }),
   trim: new THREE.MeshStandardMaterial({ color: 0x2a170b, roughness: .5, envMapIntensity: .3 }),
   brass: new THREE.MeshStandardMaterial({ color: 0xc9a24a, metalness: .9, roughness: .3 }),
-  steel: new THREE.MeshStandardMaterial({ color: 0x2b2f37, metalness: .88, roughness: .28 }),
+  steel: new THREE.MeshStandardMaterial({ color: 0x3a3f4a, metalness: .9, roughness: .26, envMapIntensity: 1.8 }),
   steelDark: new THREE.MeshStandardMaterial({ color: 0x15171b, metalness: .85, roughness: .38 }),
   grip: new THREE.MeshStandardMaterial({ color: 0x5c2c12, roughness: .45, metalness: .05 }),
   glass: new THREE.MeshPhysicalMaterial({ color: 0xd8e4dc, metalness: 0, roughness: .05, transparent: true, opacity: .32, clearcoat: 1, specularIntensity: 1, envMapIntensity: 2.2, depthWrite: false }),
@@ -500,7 +500,7 @@ const P = {};
   P.bottle = bottle(); props.add(P.bottle);
 }
 const SPOTS = {
-  wide: { chips: [-2.8, -.92, 0], cash: [2.5, -.82, 0], gun: [-1.55, -.58, -.38], glass: [3.05, .9, 0], bottle: [3.38, -.08, 0], deck: [0, -.98, .06] },
+  wide: { chips: [-2.95, -1.05, 0], cash: [2.5, -.82, 0], gun: [-3.05, .3, 1.0], glass: [3.05, .9, 0], bottle: [3.38, -.08, 0], deck: [0, -.98, .06] },
   narrow: { chips: [-1.9, -1.2, .3], cash: [1.62, -1.32, -.2], gun: [1.52, .95, -.85], glass: [-1.45, .95, 0], bottle: [-.62, -1.45, 0], deck: null }
 };
 function arrangeProps(narrow) {
@@ -662,7 +662,7 @@ function layout(st) {
     copyEl.style.transform = '';
     const left = copyEl.offsetLeft;
     const [armX] = proj(-2.05, 1.6, -2.62);
-    const [, chipY] = proj(-2.8, .55, -.92);
+    const [, chipY] = proj(-2.95, .55, -1.05);
     const cw = Math.round(Math.max(250, Math.min(470, armX - 30 - left)));
     copyEl.style.setProperty('--cw', cw + 'px'); copyEl.classList.toggle('tight', cw < 360);
     const lim = chipY - 14, T0 = copyEl.offsetTop, hh = copyEl.offsetHeight;
