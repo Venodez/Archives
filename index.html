@@ -47,21 +47,43 @@ html.lock,html.lock body{overflow:hidden}
 .btn.ghost:hover{border-color:var(--gold);color:var(--gold2)}
 .btn svg{width:18px;height:18px;fill:currentColor}
 
-/* ============ COVER ============ */
-.cv{position:fixed;inset:0;z-index:50;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);background:var(--ink);overflow:hidden}
-.cv-art{position:relative;order:2;margin:0;overflow:hidden}
-.cv-art img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:60% 50%;animation:lampon 2.4s var(--ease) both}
-@keyframes lampon{0%{opacity:0;filter:brightness(.2) saturate(.6)}35%{opacity:1;filter:brightness(.55)}45%{filter:brightness(.35)}100%{opacity:1;filter:none}}
-.cv-art::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,var(--ink) 0%,rgba(11,9,7,.35) 18%,transparent 40%),linear-gradient(0deg,rgba(11,9,7,.85),transparent 30%)}
-.cv-copy{position:relative;z-index:2;display:flex;flex-direction:column;justify-content:center;gap:26px;padding:max(28px,env(safe-area-inset-top)) clamp(24px,5vw,72px) max(28px,env(safe-area-inset-bottom))}
-.cv-top{position:absolute;top:max(22px,env(safe-area-inset-top));left:clamp(24px,5vw,72px);right:clamp(24px,5vw,72px);display:flex;justify-content:space-between;align-items:center;gap:16px}
+/* ============ COVER (same build as Akasen: top bar, copy + art, ticker) ============ */
+.cv{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;background:var(--ink);overflow:hidden}
+.cv-top{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:calc(14px + env(safe-area-inset-top,0px)) max(24px,env(safe-area-inset-right)) 14px max(24px,env(safe-area-inset-left));border-bottom:1px solid var(--line)}
+.cv-top .it{font-family:var(--f-disp);font-style:italic;font-size:15px;color:var(--muted);letter-spacing:.04em}
+.cv-top-r{display:flex;align-items:center;gap:12px}
 .mark{font-family:var(--f-disp);font-style:italic;font-weight:900;font-size:22px;letter-spacing:.02em;color:var(--cream)}
 .mark i{font-style:normal;color:var(--gold)}
-.cv h1{margin:0;font-size:clamp(64px,9vw,148px);font-style:italic;font-weight:900;color:var(--cream)}
-.cv h1 span{display:block;margin-top:1.7em;font-size:.2em;font-style:normal;font-weight:600;letter-spacing:.3em;text-transform:uppercase;color:var(--gold)}
-.lead{margin:0;max-width:40ch;font-size:16px;line-height:1.65;color:var(--cream2)}
+.cv-hero{position:relative;flex:1 1 auto;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:center;gap:clamp(16px,3vw,48px);padding:clamp(16px,2.6vw,36px) max(24px,env(safe-area-inset-right)) clamp(16px,2.4vw,30px) max(24px,env(safe-area-inset-left))}
+.cv-copy{position:relative;z-index:2;display:flex;flex-direction:column;gap:clamp(14px,1.9vw,22px);min-width:0}
+.kick{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px;margin:0;font-size:12.5px;color:var(--muted)}
+.kick b{font-family:var(--f-disp);font-style:italic;font-weight:800;font-size:22px;line-height:1;color:var(--gold)}
+.cv h1{margin:0;font-size:clamp(70px,min(10vw,17vh),160px);font-style:italic;font-weight:900;line-height:.9;color:var(--cream);animation:rise .9s var(--ease) both}
+.goldline{display:block;margin-top:clamp(6px,1.4vh,16px);height:3px;width:min(520px,100%);background:linear-gradient(90deg,var(--gold),rgba(212,166,76,0));transform-origin:left;animation:draw 1.1s .3s var(--ease) both}
+@keyframes draw{from{transform:scaleX(0)}}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}}
+.lead{margin:0;max-width:44ch;font-size:clamp(14.5px,1.2vw,16px);line-height:1.65;color:var(--cream2)}
 .cta{display:flex;flex-wrap:wrap;gap:12px}
-.cv-facts{display:flex;flex-wrap:wrap;gap:16px 40px;padding-top:22px;border-top:1px solid var(--line)}
+.cta2{display:flex;flex-wrap:wrap;gap:10px 22px}
+.link{background:none;border:0;padding:2px 0;font:700 13px var(--f-type);color:var(--cream2);border-bottom:1px solid var(--line2)}
+.link:hover{color:var(--gold2);border-color:var(--gold)}
+.cv-facts{display:flex;flex-wrap:wrap;gap:16px 40px;padding-top:18px;border-top:1px solid var(--line)}
+.cv-art{position:relative;margin:0;align-self:stretch;min-height:0;display:grid;place-items:center}
+.cv-art img{display:block;width:100%;height:100%;max-height:calc(100vh - 170px);object-fit:contain;-webkit-mask-image:radial-gradient(closest-side,#000 72%,transparent 100%);mask-image:radial-gradient(closest-side,#000 72%,transparent 100%);animation:lampon 2.4s var(--ease) both}
+@keyframes lampon{0%{opacity:0;filter:brightness(.2) saturate(.6)}35%{opacity:1;filter:brightness(.55)}45%{filter:brightness(.35)}100%{opacity:1;filter:none}}
+.cv-art figcaption{position:absolute;right:0;bottom:0;font-size:11.5px;color:var(--muted)}
+.cv-art figcaption b{font-family:var(--f-disp);font-style:italic;color:var(--gold);margin-right:6px}
+.tick{flex:none;background:#070605;border-top:1px solid var(--line2);overflow:hidden;white-space:nowrap;padding-bottom:env(safe-area-inset-bottom,0px)}
+.tick-track{display:inline-flex;animation:tick 120s linear infinite}
+.tick:hover .tick-track{animation-play-state:paused}
+@keyframes tick{to{transform:translateX(-50%)}}
+.ti{display:inline-flex;align-items:baseline;gap:10px;padding:11px 22px;font-size:12.5px;border-right:1px solid var(--line)}
+.ti b{font-family:var(--f-disp);font-weight:800;font-size:17px;color:var(--cream)}
+.ti .n{color:var(--muted)}
+.ti .e{font-weight:700;color:var(--cream2)}
+.ti .up{color:var(--gold2)}.ti .down{color:var(--muted)}
+.ti.it b{font-style:italic;color:var(--gold)}
+.report{margin:-6px 0 0;font-size:12px;color:var(--muted)}
 .fact b{display:block;font-family:var(--f-disp);font-weight:800;font-size:34px;line-height:1;color:var(--cream)}
 .fact span{font-size:12.5px;color:var(--muted)}
 .fact.champ b{font-style:italic;color:var(--gold2)}
@@ -167,13 +189,13 @@ html.lock,html.lock body{overflow:hidden}
 footer{margin-top:64px;padding-top:18px;border-top:1px solid var(--line);display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px 24px;font-size:12.5px;color:var(--muted)}
 
 @media (max-width:900px){
-  .cv{grid-template-columns:1fr;grid-template-rows:42vh 1fr;overflow-y:auto}
-  .cv-art{order:0}
-  .cv-art::after{background:linear-gradient(0deg,var(--ink) 0%,transparent 55%)}
-  .cv-copy{justify-content:flex-start;gap:20px;padding-top:6px}
-  .cv-top{position:fixed;z-index:3}
-  .cv h1{font-size:0;line-height:0}
-  .cv h1 span{margin:0;font-size:15px;line-height:1.2}
+  .cv{overflow-y:auto}
+  .cv-hero{flex:none}
+  .cv-hero{grid-template-columns:1fr;align-items:start;gap:10px}
+  .cv-art{order:-1}
+  .cv-art img{height:34vh;height:34dvh;max-height:none}
+  .cv-top .it{display:none}
+  .cv h1{font-size:clamp(56px,16vw,96px)}
   .ph{grid-template-columns:1fr}
 }
 @media (max-width:720px){
@@ -303,24 +325,71 @@ select option{background:var(--paper);color:var(--cream)}
   .h2h{padding:20px 10px;gap:8px}
   .cmp td{font-size:13.5px}
 }
+
+/* ---------- Akasen-style kickers, watermark, news, info, motto ---------- */
+.ph{position:relative;overflow:hidden}
+.ph>*{position:relative;z-index:1}
+.ph .wm{position:absolute;z-index:0;right:-.02em;bottom:-.24em;font-family:var(--f-disp);font-style:italic;font-weight:900;font-size:clamp(110px,18vw,250px);line-height:1;color:transparent;-webkit-text-stroke:1px var(--line);pointer-events:none;user-select:none;white-space:nowrap}
+.ph .kick{margin-bottom:10px}
+.news-btn{position:relative}
+.news-btn svg{fill:none!important;stroke:currentColor}
+.news-btn .dot{position:absolute;top:7px;right:7px;width:8px;height:8px;border-radius:50%;background:var(--neon)}
+.news-line{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px;max-width:100%;padding:8px 12px;border:1px solid var(--line2);background:transparent;color:var(--cream);text-align:left;font-size:13px;cursor:pointer}
+.news-line:hover{border-color:var(--gold)}
+.news-line b{font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#1a1206;background:var(--gold);padding:2px 7px}
+.news-line em{font-style:normal;font-size:11.5px;color:var(--muted)}
+.upd{padding:18px 0;border-top:1px dashed var(--line)}
+.upd:first-of-type{border-top:0}
+.upd .small{display:block;margin-bottom:6px}
+.upd h4{margin:0 0 6px;font-family:var(--f-disp);font-style:italic;font-weight:800;font-size:26px;line-height:1.05;color:var(--cream)}
+.upd p{margin:0;color:var(--cream2);line-height:1.6;white-space:pre-line;font-size:14px}
+.gl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 48px;margin-top:6px}
+.gl-g{padding-top:30px}
+.gl-g h3{display:flex;align-items:baseline;gap:12px;margin:0 0 4px;padding-bottom:10px;border-bottom:1px solid var(--line2);font:700 13px var(--f-type);letter-spacing:.06em;color:var(--cream2)}
+.gl-g h3 b{font-family:var(--f-disp);font-style:italic;font-size:22px;letter-spacing:0;color:var(--gold)}
+.gl-l{margin:0}
+.gl-l>div{display:grid;grid-template-columns:140px minmax(0,1fr);gap:14px;padding:13px 0;border-bottom:1px dashed var(--line)}
+.gl-l dt{margin:0;font-family:var(--f-disp);font-weight:800;font-size:19px;line-height:1.1;color:var(--cream)}
+.gl-l dd{margin:0;color:var(--cream2);font-size:14px;line-height:1.6}
+.gl-l dd b{color:var(--gold2)}
+.motto{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 18px;width:100%;padding-bottom:14px;margin-bottom:6px;border-bottom:1px solid var(--line)}
+.motto b{font-family:var(--f-disp);font-style:italic;font-weight:900;font-size:clamp(32px,4.4vw,52px);color:var(--cream)}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));z-index:90;transform:translateX(-50%);background:var(--gold);color:#1a1206;padding:11px 16px;font:700 13px var(--f-type);white-space:nowrap;animation:toastIn .25s var(--ease)}
+@keyframes toastIn{from{opacity:0;transform:translate(-50%,10px)}}
+.tab .t-sm{display:none}
+@media (max-width:720px){.ph .wm{display:none}}
+@media (max-width:820px){.gl{grid-template-columns:1fr}.gl-l>div{grid-template-columns:1fr;gap:4px}.news-line{display:none!important}}
+@media (max-width:720px){.tab .t-lg{display:none}.tab .t-sm{display:inline}.nav .news-btn{display:grid}}
 </style>
 </head>
 <body>
 
 <!-- ============ COVER ============ -->
 <section class="cv" id="cover" aria-label="Aphrite welcome screen">
-  <figure class="cv-art"><img src="art/hero.webp" alt="Aphrite artwork: a Roblox mobster at a poker table in a smoky New York bar" width="1254" height="1254" fetchpriority="high"></figure>
-  <div class="cv-top"><span class="mark">Aphrite<i>.</i></span><a class="iconbtn" href="#" data-discord target="_blank" rel="noopener" aria-label="Join the Aphrite Discord" title="Join the Aphrite Discord"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z"/></svg></a></div>
-  <div class="cv-copy">
-    <h1 class="disp">Aphrite<span>Ranked Redliner</span></h1>
-    <p class="lead">Every match counts, every name is written down. The ranking of the family, every result, and every champion who ever took the table.</p>
-    <div class="cta">
-      <button class="btn" type="button" data-go="rank">See the ranking</button>
-      <button class="btn ghost" type="button" data-go="champs">Hall of champions</button>
+  <header class="cv-top">
+    <span class="mark">Aphrite<i>.</i></span>
+    <span class="it" aria-hidden="true">La Famiglia</span>
+    <div class="cv-top-r"><span class="small" data-updated></span><a class="iconbtn" href="#" data-discord target="_blank" rel="noopener" aria-label="Join the Aphrite Discord" title="Join the Aphrite Discord"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z"/></svg></a><button class="iconbtn news-btn" type="button" data-news aria-label="News" title="News"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true" style="fill:none"><path d="M3 11v2a1 1 0 0 0 1 1h2l5 4V6L6 10H4a1 1 0 0 0-1 1z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg><i class="dot" hidden></i></button></div>
+  </header>
+  <div class="cv-hero">
+    <div class="cv-copy">
+      <p class="kick"><b>Cosa Nostra</b>Ranked Redliner</p>
+      <h1 class="disp">Aphrite</h1>
+      <span class="goldline" aria-hidden="true"></span>
+      <p class="lead">Every match counts, every name is written down. The ranking of the family, every result, and every champion who ever took the table.</p>
+      <div class="cta">
+        <button class="btn" type="button" data-go="rank">See the ranking</button>
+        <button class="btn ghost" type="button" data-go="champs">Hall of champions</button>
+      </div>
+      <div class="cta2"><button class="link" type="button" data-go="matches">Match history</button><button class="link" type="button" data-go="duel">Duel</button><button class="link" type="button" data-go="info">How it works</button></div>
+      <button class="news-line" type="button" data-news hidden><b>New</b><span id="newsLine"></span><em>See all news</em></button>
+      <div class="cv-facts" id="facts"></div>
+      <p class="credit">Made by <b>@venodez</b> for the Aphrite community</p>
+      <p class="report">© 2026 Aphrite. All rights reserved.</p>
     </div>
-    <div class="cv-facts" id="facts"></div>
-    <p class="credit">Made by <b>@venodez</b> for the Aphrite community</p>
+    <figure class="cv-art" aria-hidden="true"><img src="art/hero.webp" alt="" width="1254" height="1254" fetchpriority="high"><figcaption><b>Il tavolo</b>the table</figcaption></figure>
   </div>
+  <div class="tick" aria-label="Top of the ranking"><div class="tick-track" id="tick"></div></div>
 </section>
 
 <!-- ============ SITE ============ -->
@@ -328,12 +397,13 @@ select option{background:var(--paper);color:var(--cream)}
   <div class="nav-in">
     <button class="mark" type="button" id="toCover" aria-label="Back to the welcome screen">Aphrite<i>.</i></button>
     <nav class="tabs" role="tablist" aria-label="Sections">
-      <button class="tab" role="tab" type="button" id="tab-rank" data-tab="rank" aria-selected="true">Ranking</button>
+      <button class="tab" role="tab" type="button" id="tab-rank" data-tab="rank" aria-selected="true"><span class="t-lg">Ranking</span><span class="t-sm">Rank</span></button>
       <button class="tab" role="tab" type="button" id="tab-matches" data-tab="matches" aria-selected="false">Matches</button>
-      <button class="tab" role="tab" type="button" id="tab-champs" data-tab="champs" aria-selected="false">Champions</button>
+      <button class="tab" role="tab" type="button" id="tab-champs" data-tab="champs" aria-selected="false"><span class="t-lg">Champions</span><span class="t-sm">Champs</span></button>
       <button class="tab" role="tab" type="button" id="tab-duel" data-tab="duel" aria-selected="false">Duel</button>
+      <button class="tab" role="tab" type="button" id="tab-info" data-tab="info" aria-selected="false">Info</button>
     </nav>
-    <a class="iconbtn" href="#" data-discord target="_blank" rel="noopener" aria-label="Join the Aphrite Discord" title="Join the Aphrite Discord"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z"/></svg></a>
+    <a class="iconbtn" href="#" data-discord target="_blank" rel="noopener" aria-label="Join the Aphrite Discord" title="Join the Aphrite Discord"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z"/></svg></a><button class="iconbtn news-btn" type="button" data-news aria-label="News" title="News"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true" style="fill:none"><path d="M3 11v2a1 1 0 0 0 1 1h2l5 4V6L6 10H4a1 1 0 0 0-1 1z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg><i class="dot" hidden></i></button>
   </div>
 </header>
 
@@ -342,8 +412,9 @@ select option{background:var(--paper);color:var(--cream)}
 
   <section id="p-rank" aria-labelledby="h-rank">
     <div class="ph">
-      <div><h2 class="disp" id="h-rank">The Ranking</h2><p>Every ranked player, ordered by ELO. Win and you climb, lose and you drop, and beating someone above you is worth more. Click a name to open their record.</p></div>
-      <div class="ph-r"><select class="seasonsel" aria-label="Season"></select><span class="small" id="updated"></span></div>
+      <span class="wm" aria-hidden="true">Classifica</span>
+      <div><p class="kick"><b>Classifica</b>the ranking</p><h2 class="disp" id="h-rank">The Ranking</h2><p>Every ranked player, ordered by ELO. Win and you climb, lose and you drop, and beating someone above you is worth more. Click a name to open their record.</p></div>
+      <div class="ph-r"><select class="seasonsel" aria-label="Season"></select><button class="btn ghost" type="button" id="topImg" style="min-height:38px;font-size:12.5px">Copy top 10 image</button><span class="small" id="updated"></span></div>
     </div>
     <div class="podium" id="podium"></div>
     <div class="filters">
@@ -359,7 +430,8 @@ select option{background:var(--paper);color:var(--cream)}
 
   <section id="p-matches" hidden aria-labelledby="h-matches">
     <div class="ph">
-      <div><h2 class="disp" id="h-matches">Match History</h2><p>Every ranked match, newest first, with the ELO each player won or lost.</p></div>
+      <span class="wm" aria-hidden="true">Partite</span>
+      <div><p class="kick"><b>Partite</b>the matches</p><h2 class="disp" id="h-matches">Match History</h2><p>Every ranked match, newest first, with the ELO each player won or lost.</p></div>
       <div class="ph-r"><select class="seasonsel" aria-label="Season"></select></div>
     </div>
     <div class="filters">
@@ -373,7 +445,8 @@ select option{background:var(--paper);color:var(--cream)}
 
   <section id="p-champs" hidden aria-labelledby="h-champs">
     <div class="ph">
-      <div><h2 class="disp" id="h-champs">Hall of Champions</h2><p>Every Aphrite tournament and the player who walked away with it. Open a bracket to see how it went down.</p></div>
+      <span class="wm" aria-hidden="true">Campioni</span>
+      <div><p class="kick"><b>Campioni</b>the champions</p><h2 class="disp" id="h-champs">Hall of Champions</h2><p>Every Aphrite tournament and the player who walked away with it. Open a bracket to see how it went down.</p></div>
     </div>
     <div class="most" id="most"></div>
     <div id="wall"></div>
@@ -381,21 +454,38 @@ select option{background:var(--paper);color:var(--cream)}
 
   <section id="p-duel" hidden aria-labelledby="h-duel">
     <div class="ph">
-      <div><h2 class="disp" id="h-duel">The Duel</h2><p>Pick two players and settle it: their record against each other, who the numbers favour, and every time they met.</p></div>
+      <span class="wm" aria-hidden="true">Duello</span>
+      <div><p class="kick"><b>Duello</b>the duel</p><h2 class="disp" id="h-duel">The Duel</h2><p>Pick two players and settle it: their record against each other, who the numbers favour, and every time they met.</p></div>
       <div class="ph-r"><select class="seasonsel" aria-label="Season"></select></div>
     </div>
     <div class="duel-pick"><select id="dA" aria-label="First player"></select><span class="vs" aria-hidden="true">vs</span><select id="dB" aria-label="Second player"></select></div>
     <div id="duel"></div>
   </section>
 
+  <section id="p-info" hidden aria-labelledby="h-info">
+    <div class="ph">
+      <span class="wm" aria-hidden="true">Le Regole</span>
+      <div><p class="kick"><b>Le Regole</b>the rules</p><h2 class="disp" id="h-info">How it works</h2><p>What every number on the site means, and how the ranking is worked out.</p></div>
+    </div>
+    <div class="gl"><section class="gl-g"><h3><b>Classifica</b>Ranking</h3><dl class="gl-l"><div><dt>ELO</dt><dd>Your score. Everyone starts a season at <b>1000</b>. Win and you gain points, lose and you drop. Beating someone ranked above you is worth more, losing to someone below you costs more. An even match moves about <b>16</b> points.</dd></div><div><dt>▲ / ▼</dt><dd>How many points the player won or lost in their last match.</dd></div><div><dt>Wins – Losses</dt><dd>Every ranked and tournament match counts.</dd></div><div><dt>Win rate</dt><dd>The share of matches won.</dd></div><div><dt>Last 5</dt><dd>The last five results: a gold dot is a win, an empty dot a loss.</dd></div><div><dt>Streak</dt><dd>Shown when someone wins 3 matches or more in a row.</dd></div></dl></section>
+    <section class="gl-g"><h3><b>La Famiglia</b>Ranks</h3><dl class="gl-l"><div><dt>Boss</dt><dd>Number 1 of the ranking.</dd></div><div><dt>Underboss</dt><dd>2nd and 3rd.</dd></div><div><dt>Capo</dt><dd>4th to 10th.</dd></div><div><dt>Soldier</dt><dd>11th to 25th.</dd></div><div><dt>Associate</dt><dd>Everyone after that.</dd></div></dl></section>
+    <section class="gl-g"><h3><b>Stagioni</b>Seasons</h3><dl class="gl-l"><div><dt>Season</dt><dd>Each season starts from zero: everyone back to 1000 ELO. Pick an older season in the menu to see its final ranking.</dd></div><div><dt>All time</dt><dd>Every match from every season in one ranking.</dd></div></dl></section>
+    <section class="gl-g"><h3><b>Campioni</b>Tournaments</h3><dl class="gl-l"><div><dt>Champion</dt><dd>The winner of the final. The runner-up and third place come from the final and the match for third.</dd></div><div><dt>Bracket</dt><dd>Open a tournament to see every round, from the first match to the final.</dd></div><div><dt>Titles ♛</dt><dd>How many tournaments a player has won.</dd></div></dl></section>
+    <section class="gl-g"><h3><b>Duello</b>Duel</h3><dl class="gl-l"><div><dt>Head to head</dt><dd>How many times each player beat the other, across all seasons.</dd></div><div><dt>Chance to win</dt><dd>Who the ELO favours in the next match between them. It's a prediction, not a promise.</dd></div></dl></section>
+    <section class="gl-g"><h3><b>Partite</b>Matches</h3><dl class="gl-l"><div><dt>+ / −</dt><dd>The ELO the winner gained and the loser lost in that match.</dd></div><div><dt>Ranked / Tournament</dt><dd>A ranked match is a normal match, a tournament match is part of a bracket. Both count for ELO.</dd></div></dl></section></div>
+  </section>
+
   <footer>
+    <div class="motto"><b>Omertà</b><span class="small">What happens at the table stays at the table.</span></div>
     <span>Aphrite is a community project, not affiliated with Redliner or Roblox.</span>
     <span>Made by @venodez</span>
+    <span>© 2026 Aphrite. All rights reserved.</span>
   </footer>
 </main>
 
 <div class="scrim" id="scrim"></div>
 <aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-label="Player record" aria-hidden="true"></aside>
+<div id="toastHost" aria-live="polite"></div>
 <div class="modal" id="modal" role="dialog" aria-modal="true" aria-label="Tournament bracket" aria-hidden="true"></div>
 
 <script>
@@ -568,10 +658,11 @@ function openPlayer(name){
     <p class="small" style="margin:18px 0 6px">Titles (${p?p.titles.length:0})</p>
     ${p&&p.titles.length?`<ul class="titles">${p.titles.map(t=>`<li><span>♛ ${esc(t.name)}</span><span>${esc(pretty(t.date))}</span></li>`).join("")}</ul>`:`<p style="margin:0;color:var(--cream2)">No title yet.</p>`}
     ${recent.length?`<p class="small" style="margin:20px 0 6px">Recent matches</p><ul class="titles recent">${recent.map(m=>{const w=same(m.win,name);return `<li><span>${w?"<b>W</b>":"L"} vs ${esc(w?m.lose:m.win)} ${esc(m.score)}</span><span>${w?"+":"−"}${Math.round(m.d||0)}</span></li>`}).join("")}</ul>`:""}
-    <div class="dr-btns"><button class="btn" type="button" id="drDuel">Duel this player</button><button class="btn ghost" type="button" id="drMatches">All their matches</button></div>`;
+    <div class="dr-btns"><button class="btn" type="button" id="drDuel">Duel this player</button><button class="btn ghost" type="button" id="drMatches">All their matches</button></div><div class="dr-btns" style="margin-top:8px"><button class="btn ghost" type="button" id="drImg">Copy player card</button></div>`;
   d.classList.add("on");d.setAttribute("aria-hidden","false");$("#scrim").classList.add("on");
   $("#drClose").onclick=closeDrawer;$("#drClose").focus();
   $("#drDuel").onclick=()=>duelWith(p?p.name:name);
+  $("#drImg").onclick=e=>p?shareImage(()=>buildCard(p),`aphrite-${norm(p.name).replace(/\W+/g,"-")}.png`,e.currentTarget):toast("No record this season");
   $("#drMatches").onclick=()=>{closeDrawer();show("matches");$("#mq").value=p?p.name:name;mShown=40;renderMatches();scrollTo(0,0)};
 }
 function closeDrawer(){$("#drawer").classList.remove("on");$("#drawer").setAttribute("aria-hidden","true");$("#scrim").classList.remove("on")}
@@ -582,7 +673,7 @@ document.addEventListener("click",e=>{const b=e.target.closest("[data-bracket]")
 document.addEventListener("keydown",e=>{const el=e.target.closest&&e.target.closest("[data-p][role=button]");if(el&&(e.key==="Enter"||e.key===" ")){e.preventDefault();openPlayer(el.dataset.p)}});
 
 /* ---------- tabs and cover ---------- */
-const PAGES=["rank","matches","champs","duel"];
+const PAGES=["rank","matches","champs","duel","info"];
 function show(tab){PAGES.forEach(t=>{$("#p-"+t).hidden=t!==tab;$("#tab-"+t).setAttribute("aria-selected",t===tab)});if(tab==="duel")renderDuel()}
 $$(".tab").forEach(b=>b.onclick=()=>{show(b.dataset.tab);scrollTo(0,0)});
 const cover=$("#cover"),root=document.documentElement;
@@ -590,10 +681,68 @@ function enter(tab){show(tab);scrollTo(0,0);const done=()=>{cover.hidden=true;ro
   if(matchMedia("(prefers-reduced-motion: reduce)").matches||!cover.animate){done();return}
   cover.animate([{opacity:1},{opacity:0}],{duration:450,easing:"ease-out"}).onfinish=done}
 $$("[data-go]").forEach(b=>b.onclick=()=>enter(b.dataset.go));
-$("#toCover").onclick=()=>{closeDrawer();cover.hidden=false;root.classList.add("lock");cover.animate&&cover.animate([{opacity:0},{opacity:1}],{duration:350})};
+$("#toCover").onclick=()=>{closeDrawer();cover.hidden=false;root.classList.add("lock");fitCover();cover.animate&&cover.animate([{opacity:0},{opacity:1}],{duration:350})};
 function renderFacts(){const T=tourResults(),last=T.find(t=>t.win),n=MATCHES.filter(inSeason).length;
   $("#facts").innerHTML=`<div class="fact"><b>${LIST.length}</b><span>Ranked players${season!=="all"?` · ${esc(season)}`:""}</span></div><div class="fact"><b>${fmt(n)}</b><span>Matches played</span></div>${last?`<div class="fact champ"><b>${esc(last.win)}</b><span>Reigning champion</span></div>`:""}`}
 $$("[data-discord]").forEach(a=>{if(DISCORD_URL)a.href=DISCORD_URL;else a.hidden=true});
+
+
+/* ---------- ticker (top of the ranking) ---------- */
+function renderTicker(){const top=LIST.slice(0,14);if(!top.length){$("#tick").innerHTML="";return}
+  const it=(w,t)=>`<span class="ti it"><b>${w}</b><span class="n">${t}</span></span>`;
+  const item=p=>`<span class="ti"><span class="n">#${p.rank}</span><b>${esc(p.name)}</b><span class="e">${fmt(p.elo)}</span>${p.last?`<span class="${p.last>0?"up":"down"}">${p.last>0?"▲":"▼"} ${Math.abs(Math.round(p.last))}</span>`:""}</span>`;
+  const one=it("La Famiglia","the family")+top.slice(0,7).map(item).join("")+it("Omertà","the table keeps quiet")+top.slice(7).map(item).join("");
+  $("#tick").innerHTML=one+one}
+
+/* ---------- news (tab "News" in the Google Sheet: Date | Title | Text) ---------- */
+let NEWS=[
+ ["Oct 6, 2026","The family has a website","Aphrite now has its own site: the full ranking, every match, every champion and their brackets, and a duel page to settle who's better.\n\nResults are added after every match, so check back often."]
+];
+const newsSig=()=>NEWS.length?NEWS[0].join("|"):"";
+const store={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+function renderNews(){const u=NEWS[0],unseen=u&&store.get("aph_news","")!==newsSig();
+  $$(".news-btn .dot").forEach(d=>d.hidden=!unseen);
+  const line=$(".news-line");if(u){line.hidden=false;$("#newsLine").textContent=u[1]+(u[0]?`, ${u[0]}`:"")}else line.hidden=true}
+function openNews(){store.set("aph_news",newsSig());const d=$("#drawer");
+  d.innerHTML=`<div class="dr-top"><span class="small">What's new</span><button class="iconbtn" type="button" id="drClose" aria-label="Close">${X_ICON}</button></div><h3>News</h3>${NEWS.map(u=>`<article class="upd"><span class="small">${esc(u[0])}</span><h4>${esc(u[1])}</h4><p>${esc(u[2])}</p></article>`).join("")||`<p class="small">Nothing yet.</p>`}`;
+  d.classList.add("on");d.setAttribute("aria-hidden","false");$("#scrim").classList.add("on");$("#drClose").onclick=closeDrawer;$("#drClose").focus();renderNews()}
+document.addEventListener("click",e=>{if(e.target.closest("[data-news]"))openNews()});
+
+/* ---------- toast + share as image ---------- */
+function toast(msg){const h=$("#toastHost");h.innerHTML="";const t=document.createElement("div");t.className="toast";t.innerHTML=msg;h.appendChild(t);clearTimeout(toast.t);toast.t=setTimeout(()=>t.remove(),2200)}
+const C={ink:"#0b0907",paper:"#1a1511",line:"#342a20",cream:"#ede2c8",cream2:"#c9bb9c",muted:"#8f8269",gold:"#d4a64c",gold2:"#f1d48c",silver:"#c8c3b8",bronze:"#b97a48"};
+const FD=(w,sz,it)=>`${it?"italic ":""}${w} ${sz}px "Bodoni Moda",Didot,Georgia,serif`,FT=(w,sz)=>`${w} ${sz}px "Courier Prime","Courier New",monospace`;
+let heroImg=null;function loadHero(){return heroImg||(heroImg=new Promise(r=>{const i=new Image();i.onload=()=>r(i);i.onerror=()=>r(null);i.src="art/hero.webp"}))}
+async function frame(ctx,W,H,label){ctx.fillStyle=C.ink;ctx.fillRect(0,0,W,H);
+  const im=await loadHero();if(im){ctx.save();ctx.globalAlpha=.28;const s=H/im.height*1.15;ctx.drawImage(im,W-im.width*s+120,-60,im.width*s,im.height*s);ctx.restore();
+    const g=ctx.createLinearGradient(0,0,W,0);g.addColorStop(0,C.ink);g.addColorStop(.55,"rgba(11,9,7,.92)");g.addColorStop(1,"rgba(11,9,7,.35)");ctx.fillStyle=g;ctx.fillRect(0,0,W,H)}
+  ctx.fillStyle=C.cream;ctx.font=FD(900,34,1);ctx.fillText("Aphrite",56,74);const w=ctx.measureText("Aphrite").width;ctx.fillStyle=C.gold;ctx.fillText(".",56+w,74);
+  ctx.textAlign="right";ctx.font=FT(700,17);ctx.fillStyle=C.muted;ctx.fillText(label,W-56,70);ctx.textAlign="left";
+  const g2=ctx.createLinearGradient(56,0,W-56,0);g2.addColorStop(0,C.gold);g2.addColorStop(1,"rgba(212,166,76,0)");ctx.fillStyle=g2;ctx.fillRect(56,100,W-112,3);
+  ctx.font=FT(400,15);ctx.fillStyle=C.muted;ctx.fillText(`${location.host}`,56,H-36);ctx.textAlign="right";ctx.fillText(season==="all"?"All time":season,W-56,H-36);ctx.textAlign="left"}
+async function buildTop(){const top=LIST.slice(0,10);if(!top.length)return null;const W=1200,H=180+top.length*58+90,cv=document.createElement("canvas");cv.width=W;cv.height=H;const ctx=cv.getContext("2d");
+  await frame(ctx,W,H,"THE RANKING · TOP 10");
+  top.forEach((p,i)=>{const y=168+i*58;ctx.fillStyle=i<3?[C.gold,C.silver,C.bronze][i]:C.muted;ctx.font=FT(700,26);ctx.fillText(String(i+1).padStart(2,"0"),56,y);
+    ctx.fillStyle=i===0?C.gold2:C.cream;ctx.font=FD(800,i===0?36:30,i===0);ctx.fillText(p.name,130,y);
+    ctx.textAlign="right";ctx.font=FT(700,26);ctx.fillStyle=C.cream;ctx.fillText(fmt(p.elo),860,y);ctx.font=FT(400,20);ctx.fillStyle=C.cream2;ctx.fillText(`${p.w}–${p.l}`,1010,y);ctx.fillStyle=C.gold2;ctx.fillText(p.titles.length?"♛ "+p.titles.length:"",W-56,y);ctx.textAlign="left";
+    ctx.fillStyle=C.line;ctx.fillRect(56,y+20,W-112,1)});
+  return cv}
+async function buildCard(p){const W=1200,H=630,cv=document.createElement("canvas");cv.width=W;cv.height=H;const ctx=cv.getContext("2d");
+  await frame(ctx,W,H,"PLAYER RECORD");
+  ctx.fillStyle=C.gold;ctx.font=FT(700,22);ctx.fillText(`#${p.rank} · ${p.tier.toUpperCase()}`,56,170);
+  ctx.fillStyle=C.cream;let sz=118;ctx.font=FD(900,sz,1);while(ctx.measureText(p.name).width>W-112&&sz>50){sz-=6;ctx.font=FD(900,sz,1)}ctx.fillText(p.name,52,170+sz);
+  const stats=[["ELO",fmt(p.elo)],["WINS – LOSSES",`${p.w} – ${p.l}`],["WIN RATE",(winRate(p)??0)+"%"],["TITLES",p.titles.length?"♛ "+p.titles.length:"0"]];
+  stats.forEach(([k,v],i)=>{const x=56+i*272,y=430;ctx.fillStyle=C.paper;ctx.fillRect(x,y,252,104);ctx.strokeStyle=C.line;ctx.strokeRect(x+.5,y+.5,251,103);
+    ctx.fillStyle=C.muted;ctx.font=FT(700,14);ctx.fillText(k,x+18,y+32);ctx.fillStyle=k==="TITLES"&&p.titles.length?C.gold2:C.cream;ctx.font=FT(700,38);ctx.fillText(v,x+18,y+80)});
+  return cv}
+async function shareImage(build,name,btn){const old=btn.textContent;btn.disabled=true;btn.textContent="Making image…";
+  try{if(document.fonts&&document.fonts.ready)await document.fonts.ready;const cv=await build();if(!cv){toast("Nothing to show yet");return}
+    const blob=await new Promise(r=>cv.toBlob(r,"image/png"));let ok=false;
+    try{if(navigator.clipboard&&window.ClipboardItem){await navigator.clipboard.write([new ClipboardItem({"image/png":blob})]);ok=true}}catch(e){}
+    if(ok)toast("Image copied, paste it in Discord with Ctrl+V");
+    else{const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4e3);toast("Image downloaded, send it on Discord")}
+  }catch(e){toast("Couldn't make the image")}finally{btn.disabled=false;btn.textContent=old}}
+$("#topImg").onclick=e=>shareImage(buildTop,"aphrite-top10.png",e.currentTarget);
 
 /* ---------- Google Sheet ---------- */
 async function readTab(tab){const m=/\/d\/([\w-]{20,})/.exec(SHEET_URL);if(!m)return null;
@@ -608,10 +757,16 @@ async function loadSheet(){if(!SHEET_URL)return;
     const g=(r,i)=>i>=0?a.val(r[i]):"";
     const M=a.rows.map(r=>[g(r,c.d),g(r,c.s),g(r,c.w),g(r,c.l),g(r,c.sc),g(r,c.t),g(r,c.r)]);
     let T=[];if(b){const e={d:b.col("date"),n:b.col("tournament","name","tournoi"),s:b.col("season","saison"),p:b.col("prize","prix","reward"),w:b.col("winner","champion","vainqueur")};const h=(r,i)=>i>=0?b.val(r[i]):"";T=b.rows.map(r=>[h(r,e.d),h(r,e.n),h(r,e.s),h(r,e.p),h(r,e.w)])}
+    try{const n=await readTab("News");if(n){const e={d:n.col("date"),t:n.col("title","titre"),x:n.col("text","texte","message")};const L=n.rows.map(r=>[e.d>=0?n.val(r[e.d]):"",e.t>=0?n.val(r[e.t]):"",e.x>=0?n.val(r[e.x]):""]).filter(u=>u[1]);if(L.length){NEWS=L.map(u=>[pretty(u[0]),u[1],u[2]]).reverse()}}}catch(e){}
     setData(M,T);DEMO=false;UPDATED=new Date().toLocaleDateString("en-US",{month:"short",day:"numeric"});season="";renderAll()}
   catch(e){console.warn("Sheet unavailable, showing the example data:",e.message)}}
 
-function renderAll(){buildSeasons();compute();$("#demo").hidden=!DEMO;renderRank();renderMatches();renderChamps();fillDuel();renderDuel();renderFacts()}
+/* the welcome screen always fits the window (same as Akasen) */
+function fitCover(){const c=$("#cover"),h=$(".cv-hero"),k=$(".tick");if(!c||c.hidden||innerWidth<=900){if(h)h.style.zoom="";return}h.style.zoom="";
+  const bottom=()=>Math.max(...[...h.querySelectorAll(".cv-copy>*")].map(e=>e.getBoundingClientRect().bottom));
+  for(let i=0;i<5;i++){const top=h.getBoundingClientRect().top,lim=c.getBoundingClientRect().bottom-k.offsetHeight-10,b=bottom();if(b<=lim+1)break;h.style.zoom=Math.max(.55,(parseFloat(h.style.zoom)||1)*(lim-top)/(b-top)*.995).toFixed(3)}}
+addEventListener("resize",fitCover);if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fitCover);
+function renderAll(){buildSeasons();compute();$("#demo").hidden=!DEMO;renderRank();renderMatches();renderChamps();fillDuel();renderDuel();renderFacts();renderTicker();renderNews();fitCover();$$("[data-updated]").forEach(e=>e.textContent=UPDATED?`Updated ${UPDATED}`:"")}
 setData(DEMO_DATA.m,DEMO_DATA.t);root.classList.add("lock");show("rank");renderAll();loadSheet();
 </script>
 </body>
