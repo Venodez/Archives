@@ -755,11 +755,21 @@ let busy = false, anim = null, cig = 1, nextDrink = 1e9;
 canvas.addEventListener('click', ev => { if (busy || !dealt) return; const k = pick(ev); if (k >= 0) choose(k); });
 function choose(k) {
   if (busy || !cards[k]) return;
-  if (REDUCE || !dealt || typeof openPage !== 'function') { busy = true; enter(cards[k].d.go); setTimeout(resetRoom, 900); return; }
+  const go = cards[k].d.go, plain = () => { busy = true; enter(go); setTimeout(resetRoom, 900); };
+  if (REDUCE || !dealt || typeof openPage !== 'function') return plain();
+  try { drawContract(cards[k].d); conTex.needsUpdate = true; } catch (e) { return plain(); }
   busy = true; hovered = k; cards[k].picked = true;
-  drawContract(cards[k].d); conTex.needsUpdate = true;
   if (typeof say === 'function') say('Ecco.', 'Your contract.');
-  anim = { kind: 'contract', t0: now, card: k, shown: false };
+  const c = anim = { kind: 'contract', t0: now, card: k, go, shown: false };
+  // if the room stops drawing (tab in the background, scrolled away, a very slow device) the page still opens
+  setTimeout(() => { if (anim === c && !c.shown) endContract(c); }, 5000 * (window.__conSlow || 1));
+}
+// the one way out of a contract: the page is open, the sheet is gone, the room is back at rest
+function endContract(c) {
+  if (!c || c.done) return; c.done = c.shown = true;
+  if (c.ov) { c.ov.remove(); c.ov = null; }
+  if (!c.open) { c.open = true; try { openPage(c.go); } catch (e) { } }
+  if (anim === c) resetRoom();
 }
 function resetRoom() {
   busy = false; anim = null; contract.visible = false; contract.scale.setScalar(1); lighter.visible = false;
@@ -875,7 +885,7 @@ function updateMoves(dt) {
       const fly = easeInOut(seg(t, .9, 1.45));
       if (fly > 0) { if (!anim.pose) anim.pose = presentPose(); _cp.lerp(anim.pose.p, fly); _cq.slerp(anim.pose.q, fly); }
       contract.position.copy(_cp); contract.quaternion.copy(_cq);
-      if (t > 1.47 && !anim.shown) { anim.shown = true; contract.scale.setScalar(1); presentContract(cards[anim.card].d.go); }
+      if (t > 1.47 && !anim.shown) { anim.shown = true; contract.scale.setScalar(1); presentContract(anim); }
     }
   }
   // glass follows the right hand
@@ -895,24 +905,32 @@ function presentPose() {
   const d = Math.max(CON_H / (.78 * 2 * th), CON_W / (.86 * 2 * th * (W / H)));
   return { p: camera.position.clone().addScaledVector(dir, d / dir.dot(fwd)), q: camera.quaternion.clone() };
 }
-function presentContract(go) {
-  contract.updateMatrixWorld();
-  const r = canvas.getBoundingClientRect(), pts = [[-1, 1], [1, 1], [1, -1], [-1, -1]].map(([a, b]) => { const v = new THREE.Vector3(a * CON_W / 2, b * CON_H / 2, 0).applyMatrix4(contract.matrixWorld); const [x, y] = proj(v.x, v.y, v.z); return [r.left + x, r.top + y]; });
-  const L = Math.min(...pts.map(p => p[0])), R = Math.max(...pts.map(p => p[0])), T = Math.min(...pts.map(p => p[1])), B = Math.max(...pts.map(p => p[1]));
-  const ov = document.createElement('div'); ov.className = 'contract-ov'; ov.setAttribute('aria-hidden', 'true');
-  ov.innerHTML = '<div class="c-bg"></div><div class="c-paper"><canvas class="c-top"></canvas><canvas class="c-bot"></canvas></div>';
-  const paper = ov.querySelector('.c-paper'); Object.assign(paper.style, { left: L + 'px', top: T + 'px', width: (R - L) + 'px', height: (B - T) + 'px' });
-  const [src] = conCanvas, hw = src.width, hh = src.height / 2;
-  ov.querySelectorAll('canvas').forEach((cv, i) => { cv.width = hw; cv.height = hh; cv.getContext('2d').drawImage(src, 0, i * hh, hw, hh, 0, 0, hw, hh); });
-  document.body.appendChild(ov);
+function presentContract(c) {
   const E = 'cubic-bezier(.55,0,.35,1)', SL = window.__conSlow || 1;
-  ov.querySelector('.c-bg').animate([{ opacity: 0 }, { opacity: 1 }], { duration: 240 * SL, fill: 'forwards' });
+  let bg, top, bot;
+  try {
+    contract.updateMatrixWorld();
+    const r = canvas.getBoundingClientRect(), pts = [[-1, 1], [1, 1], [1, -1], [-1, -1]].map(([a, b]) => { const v = new THREE.Vector3(a * CON_W / 2, b * CON_H / 2, 0).applyMatrix4(contract.matrixWorld); const [x, y] = proj(v.x, v.y, v.z); return [r.left + x, r.top + y]; });
+    const L = Math.min(...pts.map(p => p[0])), R = Math.max(...pts.map(p => p[0])), T = Math.min(...pts.map(p => p[1])), B = Math.max(...pts.map(p => p[1]));
+    const ov = c.ov = document.createElement('div'); ov.className = 'contract-ov'; ov.setAttribute('aria-hidden', 'true');
+    ov.innerHTML = '<div class="c-bg"></div><div class="c-paper"><canvas class="c-top"></canvas><canvas class="c-bot"></canvas></div>';
+    const paper = ov.querySelector('.c-paper'); Object.assign(paper.style, { left: L + 'px', top: T + 'px', width: (R - L) + 'px', height: (B - T) + 'px' });
+    const [src] = conCanvas, hw = src.width, hh = src.height / 2;
+    ov.querySelectorAll('canvas').forEach((cv, i) => { cv.width = hw; cv.height = hh; cv.getContext('2d').drawImage(src, 0, i * hh, hw, hh, 0, 0, hw, hh); });
+    document.body.appendChild(ov);
+    [bg, top, bot] = ['.c-bg', '.c-top', '.c-bot'].map(q => ov.querySelector(q));
+    bg.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 240 * SL, fill: 'forwards' });
+  } catch (e) { endContract(c); return; }
   setTimeout(() => {
-    openPage(go);
-    const top = ov.querySelector('.c-top'), bot = ov.querySelector('.c-bot');
-    top.animate([{ transform: 'rotateX(0deg)', opacity: 1 }, { opacity: 1, offset: .55 }, { transform: 'rotateX(-104deg)', opacity: 0 }], { duration: 760 * SL, easing: E, fill: 'forwards' });
-    bot.animate([{ transform: 'rotateX(0deg)', opacity: 1 }, { opacity: 1, offset: .55 }, { transform: 'rotateX(104deg)', opacity: 0 }], { duration: 760 * SL, easing: E, fill: 'forwards' });
-    ov.querySelector('.c-bg').animate([{ opacity: 1 }, { opacity: 0 }], { duration: 640 * SL, delay: 160 * SL, easing: 'ease-out', fill: 'forwards' }).finished.then(() => { ov.remove(); resetRoom(); }).catch(() => { ov.remove(); resetRoom(); });
+    if (c.done) return;
+    c.open = true; try { openPage(c.go); } catch (e) { }
+    try {
+      top.animate([{ transform: 'rotateX(0deg)', opacity: 1 }, { opacity: 1, offset: .55 }, { transform: 'rotateX(-104deg)', opacity: 0 }], { duration: 760 * SL, easing: E, fill: 'forwards' });
+      bot.animate([{ transform: 'rotateX(0deg)', opacity: 1 }, { opacity: 1, offset: .55 }, { transform: 'rotateX(104deg)', opacity: 0 }], { duration: 760 * SL, easing: E, fill: 'forwards' });
+      bg.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 640 * SL, delay: 160 * SL, easing: 'ease-out', fill: 'forwards' }).finished.then(() => endContract(c), () => endContract(c));
+    } catch (e) { endContract(c); }
+    // the sheet never stays over the page, even when the browser holds the animation back
+    setTimeout(() => endContract(c), 1000 * SL);
   }, 560 * SL);
 }
 let last = performance.now(), running = false, frames = 0, slow = 0;
@@ -981,7 +999,7 @@ let kicked = false;
 function kick() { if (!REDUCE || kicked) return; kicked = true; requestAnimationFrame(() => { kicked = false; render(0); }); }
 function stop() { running = false; }
 new MutationObserver(() => { if (coverEl.hidden) stop(); else start(); }).observe(coverEl, { attributes: true, attributeFilter: ['hidden'] });
-document.addEventListener('visibilitychange', () => { if (document.hidden) stop(); else start(); });
+document.addEventListener('visibilitychange', () => { if (document.hidden) { stop(); if (anim && anim.kind === 'contract') endContract(anim); } else start(); });
 canvas.addEventListener('webglcontextlost', e => { e.preventDefault(); stop(); frozen = true; coverEl.classList.remove('r3d'); root.classList.remove('try3d'); if (typeof layoutScene === 'function') layoutScene(); if (typeof dealCards === 'function') dealCards(200); });
 if ('IntersectionObserver' in window) new IntersectionObserver(es => { onScreen = es[es.length - 1].isIntersecting; if (onScreen) start(); else stop(); }).observe(canvas);
 
