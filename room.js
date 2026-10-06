@@ -355,6 +355,8 @@ const boss = new THREE.Group(); boss.position.set(0, 0, -2.62); scene.add(boss);
 const body = new THREE.Group(); boss.add(body);
 const headPivot = new THREE.Group(); headPivot.position.set(0, 1.86, 0); body.add(headPivot);
 const cigarTip = new THREE.Object3D();
+let cigarG;
+const cigRestP = new THREE.Vector3(.17, .36, .6), cigRestQ = new THREE.Quaternion().setFromEuler(new THREE.Euler(.18, .55, 0));
 const ARMS = {};
 {
   mesh(new RoundedBox(2, 2, 1, 4, .07), M.suit, 0, .82, 0, body);
@@ -388,7 +390,7 @@ const ARMS = {};
   const bm = mesh(brim, M.hat, 0, 0, 0, hat); bm.scale.set(1, 1, .92);
   const band = mesh(new THREE.CylinderGeometry(.668, .684, .16, 48, 1, true), M.band, 0, .085, 0, hat);
   // cigar from the right side of the mouth, with ash, ember and its own warm light
-  const cg = new THREE.Group(); cg.position.set(.17, .36, .6); cg.rotation.set(.18, .55, 0); headPivot.add(cg);
+  const cg = cigarG = new THREE.Group(); cg.position.copy(cigRestP); cg.quaternion.copy(cigRestQ); headPivot.add(cg);
   mesh(new THREE.CylinderGeometry(.065, .075, .78, 16), M.cigar, 0, 0, .39, cg).rotation.x = PI / 2;
   mesh(new THREE.CylinderGeometry(.079, .079, .09, 16), M.brass, 0, 0, .14, cg).rotation.x = PI / 2;
   mesh(new THREE.CylinderGeometry(.06, .066, .07, 16), M.ash, 0, 0, .8, cg).rotation.x = PI / 2;
@@ -403,6 +405,8 @@ const ARMS = {};
   });
 }
 shadowy(boss);
+const DOWN = new THREE.Vector3(0, -1, 0);
+Object.values(ARMS).forEach(a => { a.base = a.pv.position.clone(); const d = DOWN.clone().applyQuaternion(a.rest); a.rest.setFromUnitVectors(DOWN, d); a.pv.quaternion.copy(a.rest); a.restEnd = d.multiplyScalar(1.5).add(a.base); });
 
 /* ---------- things on the table ---------- */
 const props = new THREE.Group(); scene.add(props);
@@ -534,14 +538,20 @@ const glowTex = (() => { const [c, x] = makeCanvas(128, 128); const g = x.create
 function glowSprite(color, size, op) { const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: op })); s.scale.set(size, size, 1); return s; }
 const bulbGlow = glowSprite(0xffd9a0, 1.6, .55); bulbGlow.position.set(0, -.05, 0); lamp.add(bulbGlow);
 const emberGlow = glowSprite(0xff6a1a, .32, .8); scene.add(emberGlow);
-/* ---------- what he holds: a glass of whisky (right hand) and a lighter (left hand) ---------- */
+/* ---------- what he holds: a glass of whisky (right hand), the cigar (mouth or left hand), a lighter ---------- */
+renderer.localClippingEnabled = true;
 const glassG = tumbler(); body.add(glassG); shadowy(glassG);
-const whiskyMesh = glassG.children[1];
-let whiskyLevel = 1;
-const _hand = new THREE.Vector3(), _rel = new THREE.Quaternion(), _off = new THREE.Vector3(), _qi = new THREE.Quaternion();
+// the whisky is a full cylinder cut flat at the liquid line, so it stays level when he tips the glass
+const liquidPlane = new THREE.Plane(new THREE.Vector3(0, -1, 0), 0);
+{
+  glassG.remove(glassG.children[1]);
+  const lg = new THREE.CylinderGeometry(.246, .233, .318, 32); lg.translate(0, .231, 0);
+  const side = new THREE.MeshPhysicalMaterial({ color: 0xc0651c, roughness: .1, transparent: true, opacity: .88, emissive: 0x3a1402, envMapIntensity: 1, clippingPlanes: [liquidPlane] });
+  const top = new THREE.MeshStandardMaterial({ color: 0xc9772a, emissive: 0x3d1704, roughness: .15, side: THREE.BackSide, clippingPlanes: [liquidPlane] });
+  const a = new THREE.Mesh(lg, side), b = new THREE.Mesh(lg, top); a.renderOrder = b.renderOrder = 1; glassG.add(a, b);
+}
+let whiskyFill = .5;
 const handEnd = (arm, out) => out.set(0, -1.5, 0).applyQuaternion(arm.pv.quaternion).add(arm.pv.position);
-const GLASS_OFF = (() => { handEnd(ARMS.R, _hand); return new THREE.Vector3(0, -_hand.y, .3); })();
-const glassTilt = new THREE.Quaternion();
 M.chrome = new THREE.MeshStandardMaterial({ color: 0xcfcfd6, metalness: .95, roughness: .22 });
 M.flame = new THREE.MeshBasicMaterial({ color: new THREE.Color(1, .72, .32).multiplyScalar(4), transparent: true, opacity: .95, depthWrite: false });
 const lighter = new THREE.Group(); lighter.visible = false; ARMS.L.pv.add(lighter);
@@ -573,64 +583,192 @@ function puff() {
   s.userData.life = 0; s.userData.max = 3.6 + Math.random() * 1.6; s.userData.vx = (Math.random() - .3) * .1; s.userData.vz = (Math.random() - .5) * .06; s.material.rotation = Math.random() * PI * 2; s.userData.rot = (Math.random() - .5) * .4;
   s.visible = true;
 }
+const _mw = new THREE.Vector3();
+function exhale() {
+  _mw.set(-.04, .36, .7).applyMatrix4(headPivot.matrixWorld);
+  for (let i = 0; i < 6; i++) { const s = smoke.find(p => !p.visible); if (!s) return;
+    s.position.copy(_mw); const u = s.userData; u.life = -i * .08; u.max = 2.2 + Math.random() * .8; u.vx = (Math.random() - .5) * .16; u.vz = .3 + Math.random() * .22; u.rot = (Math.random() - .5) * .5;
+    s.material.rotation = Math.random() * PI * 2; s.material.opacity = 0; s.scale.set(.1, .1, 1); s.visible = true; }
+}
 const DUST = 140;
 const dustGeo = new THREE.BufferGeometry();
 { const a = new Float32Array(DUST * 3); for (let i = 0; i < DUST; i++) { const t = Math.random(), ang = Math.random() * PI * 2, rr = Math.sqrt(Math.random()) * 2.6 * (1 - t * .8); a[i * 3] = Math.cos(ang) * rr; a[i * 3 + 1] = .3 + t * 3.2; a[i * 3 + 2] = -.9 + Math.sin(ang) * rr; } dustGeo.setAttribute('position', new THREE.BufferAttribute(a, 3)); }
 const dust = new THREE.Points(dustGeo, new THREE.PointsMaterial({ map: T.dot, color: 0xffe2a8, size: .03, transparent: true, opacity: .55, depthWrite: false, blending: THREE.AdditiveBlending }));
 scene.add(dust);
 
-/* ---------- the contract: a sheet he slides across, which opens into the page ---------- */
-const CON_W = 1.12, CON_H = 1.5;
-const conCanvas = makeCanvas(1024, 1372);
+/* ---------- the contract: drawn in the shape of your screen, it comes folded from under the table ---------- */
+const conCanvas = makeCanvas(2048, 1280);
 const conTex = tex(conCanvas[0], { aniso: 16 });
-const conGeo = new THREE.PlaneGeometry(CON_W, CON_H, 1, 12);
-{ const p = conGeo.attributes.position; for (let i = 0; i < p.count; i++) { const y = p.getY(i) / CON_H; p.setZ(i, Math.sin((y + .5) * PI) * .018 - Math.abs(y) * .01); } conGeo.computeVertexNormals(); }
-const contract = new THREE.Mesh(conGeo, new THREE.MeshStandardMaterial({ map: conTex, roughness: .86, envMapIntensity: .15 }));
-const conBack = new THREE.Mesh(conGeo, new THREE.MeshStandardMaterial({ color: 0xd8caa6, roughness: .9 })); conBack.rotation.y = PI; contract.add(conBack);
-contract.visible = false; contract.castShadow = conBack.castShadow = true; scene.add(contract);
-const safe = (n, d = '') => { try { return n(); } catch (e) { return d; } };
-function drawContract(d) {
-  const [c, x] = conCanvas, w = c.width, h = c.height;
-  let gr = x.createRadialGradient(w * .5, h * .45, h * .1, w * .5, h * .5, h * .75);
-  gr.addColorStop(0, '#f3ead3'); gr.addColorStop(.7, '#e8dbb8'); gr.addColorStop(1, '#cdb88c');
-  x.fillStyle = gr; x.fillRect(0, 0, w, h);
-  noise(x, w, h, 9000, '#fffaf0', '#9c8456', .14);
-  x.strokeStyle = 'rgba(120,90,40,.18)'; x.lineWidth = 6; x.beginPath(); x.arc(w * .78, h * .3, 70, .3, 5.6); x.stroke();
-  gr = x.createLinearGradient(0, h * .5 - 14, 0, h * .5 + 14); gr.addColorStop(0, 'rgba(0,0,0,0)'); gr.addColorStop(.5, 'rgba(90,60,20,.22)'); gr.addColorStop(.52, 'rgba(255,255,255,.35)'); gr.addColorStop(1, 'rgba(0,0,0,0)');
-  x.fillStyle = gr; x.fillRect(0, h * .5 - 14, w, 28);
-  x.strokeStyle = 'rgba(42,26,12,.75)'; x.lineWidth = 3; x.strokeRect(46, 46, w - 92, h - 92); x.lineWidth = 1.2; x.strokeRect(58, 58, w - 116, h - 116);
-  x.fillStyle = '#2a1a0c'; x.textAlign = 'center'; x.textBaseline = 'alphabetic';
-  x.font = '400 104px Limelight, Georgia, serif'; x.fillText('CONTRATTO', w / 2, 190);
-  x.font = '700 30px "Barlow Condensed", Arial, sans-serif'; x.fillStyle = '#6b4a1a';
-  const no = String(d.order || 1).padStart(3, '0');
-  x.fillText(`LA FAMIGLIA APHRITE  ·  N° ${no}`, w / 2, 240);
-  x.fillStyle = '#2a1a0c'; x.fillRect(w / 2 - 260, 268, 520, 3);
-  x.font = '400 78px Limelight, Georgia, serif'; x.fillText(d.en, w / 2, 372);
-  x.font = 'italic 500 38px Barlow, Arial, sans-serif'; x.fillStyle = '#6b4a1a'; x.fillText(d.it, w / 2, 424);
-  const lines = contractLines(d.go);
-  x.textAlign = 'left'; x.fillStyle = '#2a1a0c';
-  let y = 520;
-  lines.forEach(([a, b]) => {
-    x.font = '600 40px "Barlow Condensed", Arial, sans-serif'; x.fillText(a, 130, y);
-    if (b) { x.textAlign = 'right'; x.fillText(b, w - 130, y); x.textAlign = 'left'; }
-    x.strokeStyle = 'rgba(42,26,12,.25)'; x.lineWidth = 1.5; x.setLineDash([3, 7]); x.beginPath(); x.moveTo(130, y + 16); x.lineTo(w - 130, y + 16); x.stroke(); x.setLineDash([]);
-    y += 72;
-  });
-  // signature, wax seal and the stamp
-  x.strokeStyle = '#2a1a0c'; x.lineWidth = 2; x.beginPath(); x.moveTo(130, h - 200); x.lineTo(560, h - 200); x.stroke();
-  x.font = '600 28px "Barlow Condensed", Arial, sans-serif'; x.fillStyle = '#6b4a1a'; x.fillText('FIRMA  ·  IL CAPO', 130, h - 164);
-  x.strokeStyle = '#1d1208'; x.lineWidth = 4; x.lineCap = 'round'; x.beginPath(); x.moveTo(150, h - 214);
-  x.bezierCurveTo(200, h - 300, 250, h - 160, 300, h - 236); x.bezierCurveTo(330, h - 280, 360, h - 190, 410, h - 230); x.bezierCurveTo(440, h - 250, 480, h - 215, 540, h - 240); x.stroke();
-  x.save(); x.translate(w - 230, h - 230);
-  gr = x.createRadialGradient(-20, -20, 10, 0, 0, 92); gr.addColorStop(0, '#c4302a'); gr.addColorStop(1, '#6e0f0c');
-  x.fillStyle = gr; x.beginPath(); for (let i = 0; i < 28; i++) { const a = i / 28 * PI * 2, r = 86 + (i % 2 ? 6 : -4) + Math.sin(i * 1.7) * 4; x.lineTo(Math.cos(a) * r, Math.sin(a) * r); } x.closePath(); x.fill();
-  x.strokeStyle = 'rgba(40,0,0,.5)'; x.lineWidth = 4; x.beginPath(); x.arc(0, 0, 58, 0, PI * 2); x.stroke();
-  x.fillStyle = '#f1c9b4'; x.globalAlpha = .9; x.font = '400 76px Limelight, Georgia, serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText('A', 0, 6); x.globalAlpha = 1;
-  x.restore();
-  x.save(); x.translate(w / 2 + 10, h - 236); x.rotate(-.16); x.globalAlpha = .5; x.strokeStyle = '#9c1f18'; x.lineWidth = 6; x.strokeRect(-150, -42, 300, 84);
-  x.fillStyle = '#9c1f18'; x.font = '700 52px "Barlow Condensed", Arial, sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText('APPROVATO', 0, 4); x.restore();
-  x.textBaseline = 'alphabetic'; x.textAlign = 'left'; x.lineCap = 'butt';
+const conBackCanvas = makeCanvas(512, 512), conBack = tex(conBackCanvas[0]);
+function drawSealBack() {   // the outside of the folded sheet: plain paper and a wax seal keeping it shut
+  const [c, x] = conBackCanvas; const g = x.createRadialGradient(256, 256, 40, 256, 256, 380); g.addColorStop(0, '#f8f1e2'); g.addColorStop(1, '#e2d3b0'); x.fillStyle = g; x.fillRect(0, 0, 512, 512); noise(x, 512, 512, 5000, '#fffaf0', '#a58c5c', .1);
+  x.strokeStyle = 'rgba(60,40,20,.25)'; x.lineWidth = 3; x.strokeRect(24, 24, 464, 464); x.lineWidth = 1; x.strokeRect(34, 34, 444, 444);
+  waxSeal(x, 256, 236, 62, .62); conBack.needsUpdate = true;
 }
+const M_paper = new THREE.MeshStandardMaterial({ map: conTex, roughness: .85, envMapIntensity: .15 });
+const M_paperBack = new THREE.MeshStandardMaterial({ map: conBack, roughness: .9, envMapIntensity: .15 });
+const M_paperFlat = new THREE.MeshBasicMaterial({ map: conTex, toneMapped: false, fog: false, transparent: true, opacity: 0, depthWrite: false });
+const paper = new THREE.Group(); paper.visible = false; scene.add(paper);
+const paperBase = new THREE.Group(), flapPivot = new THREE.Group(), paperFlap = new THREE.Group();
+paper.add(paperBase, flapPivot); flapPivot.add(paperFlap); flapPivot.position.y = .003;
+function paperSide(group) {   // printed side up, blank side down
+  const f = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), M_paper); f.rotation.x = -PI / 2;
+  const b = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), M_paperBack); b.rotation.x = PI / 2; b.position.y = -.0012;
+  f.castShadow = b.castShadow = f.receiveShadow = b.receiveShadow = true; group.add(f, b); return [f, b];
+}
+const sideA = paperSide(paperBase), sideB = paperSide(paperFlap);
+const paperFlat = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), M_paperFlat); paperFlat.rotation.x = -PI / 2; paperFlat.position.y = .006; paperFlat.renderOrder = 6; paperFlat.visible = false; paper.add(paperFlat);
+const PAPER = { a: 1.6, w: 2, h: 1.25, land: true, sig: null, sigPts: [], packet: new THREE.Vector3() };
+function mapUV(m, u0, u1, v0, v1) { const uv = m.geometry.attributes.uv, p = m.geometry.attributes.position; for (let i = 0; i < uv.count; i++) uv.setXY(i, u0 + (p.getX(i) + .5) * (u1 - u0), v0 + (p.getY(i) + .5) * (v1 - v0)); uv.needsUpdate = true; }
+function shapePaper() {   // the sheet has the shape of your screen and folds across its long side
+  const a = PAPER.a, land = PAPER.land = a >= 1, hp = Math.min(2.3, 1.05 / a);
+  const w = PAPER.w = land ? 2 : hp * a, h = PAPER.h = land ? 2 / a : hp;
+  const [fa, ba] = sideA, [fb, bb] = sideB;
+  if (land) {   // like a book: the right half closes over the left
+    paperBase.position.set(-w / 4, 0, 0); paperFlap.position.set(w / 4, 0, 0);
+    [fa, ba, fb, bb].forEach(m => m.scale.set(w / 2, h, 1)); mapUV(fa, 0, .5, 0, 1); mapUV(fb, .5, 1, 0, 1);
+    PAPER.packet.set(-w / 4, 0, 0);
+  } else {      // the bottom half closes over the top
+    paperBase.position.set(0, 0, -h / 4); paperFlap.position.set(0, 0, h / 4);
+    [fa, ba, fb, bb].forEach(m => m.scale.set(w, h / 2, 1)); mapUV(fa, 0, 1, .5, 1); mapUV(fb, 0, 1, 0, .5);
+    PAPER.packet.set(0, 0, -h / 4);
+  }
+  paperFlat.scale.set(w, h, 1);
+}
+function setFold(k) { if (PAPER.land) flapPivot.rotation.set(0, 0, PI * k); else flapPivot.rotation.set(-PI * k, 0, 0); }   // 1 folded, 0 open
+// an engraver's few tools
+function spacedText(x, str, cx, y, sp) { const ch = [...str], ws = ch.map(c => x.measureText(c).width), tw = ws.reduce((a, b) => a + b, 0) + sp * (ch.length - 1); let px = cx - tw / 2; const al = x.textAlign; x.textAlign = 'left'; ch.forEach((c, i) => { x.fillText(c, px, y); px += ws[i] + sp; }); x.textAlign = al; return tw; }
+function fitFont(x, str, style, size, maxW) { let f = size; x.font = style.replace('#', f.toFixed(1)); while (x.measureText(str).width > maxW && f > size * .4) { f *= .95; x.font = style.replace('#', f.toFixed(1)); } return f; }
+function guilloche(x, x0, y0, w, h, bw, U) {   // the engraved rope border of an old bond
+  const sides = [[x0, y0, w, 0], [x0 + w, y0, 0, h], [x0 + w, y0 + h, -w, 0], [x0, y0 + h, 0, -h]], per = 15 * U, A = bw * .42;
+  x.lineWidth = Math.max(.8, .95 * U);
+  for (let j = 0; j < 4; j++) {
+    x.strokeStyle = j % 2 ? 'rgba(78,96,70,.62)' : 'rgba(124,88,42,.62)';
+    sides.forEach(([sx, sy, dx, dy]) => { const len = Math.hypot(dx, dy), ux = dx / len, uy = dy / len, nx = -uy, ny = ux; x.beginPath();
+      for (let q = bw; q <= len - bw; q += 2) { const o = bw / 2 + A * Math.sin(q / per * PI * 2 + j * PI / 2) * (.75 + .25 * Math.cos(q / (per * 3.1) + j)); const px = sx + ux * q + nx * o, py = sy + uy * q + ny * o; q === bw ? x.moveTo(px, py) : x.lineTo(px, py); }
+      x.stroke(); });
+  }
+}
+function rosette(x, cx, cy, r, U) { x.save(); x.translate(cx, cy); x.strokeStyle = 'rgba(78,56,28,.85)'; x.lineWidth = Math.max(.8, 1.1 * U); for (let i = 0; i < 12; i++) { x.rotate(PI / 6); x.beginPath(); x.ellipse(r * .5, 0, r * .5, r * .17, 0, 0, PI * 2); x.stroke(); } x.beginPath(); x.arc(0, 0, r, 0, PI * 2); x.stroke(); x.fillStyle = '#7a5a2c'; x.beginPath(); x.arc(0, 0, r * .2, 0, PI * 2); x.fill(); x.restore(); }
+function flourish(x, cx, y, w, U) { x.save(); x.strokeStyle = 'rgba(60,40,18,.7)'; x.lineWidth = 1.6 * U; x.beginPath(); x.moveTo(cx - w / 2, y); x.bezierCurveTo(cx - w / 4, y - 10 * U, cx - w / 8, y + 10 * U, cx, y); x.bezierCurveTo(cx + w / 8, y - 10 * U, cx + w / 4, y + 10 * U, cx + w / 2, y); x.stroke(); x.restore(); }
+function ornament(x, cx, y, w, U) { x.save(); x.strokeStyle = 'rgba(59,42,23,.8)'; x.fillStyle = '#3b2a17'; x.lineWidth = 1.4 * U; x.beginPath(); x.moveTo(cx - w / 2, y); x.lineTo(cx - 16 * U, y); x.moveTo(cx + 16 * U, y); x.lineTo(cx + w / 2, y); x.stroke();
+  x.beginPath(); x.moveTo(cx, y - 9 * U); x.lineTo(cx + 9 * U, y); x.lineTo(cx, y + 9 * U); x.lineTo(cx - 9 * U, y); x.closePath(); x.fill(); [-1, 1].forEach(q => { x.beginPath(); x.arc(cx + q * (w / 2 + 7 * U), y, 3 * U, 0, PI * 2); x.fill(); }); x.restore(); }
+function clauseRows(x, x0, x1, y, gap, U, rows, fs) {   // the terms, with dotted leaders
+  rows.forEach(([l, r]) => {
+    x.fillStyle = '#24170b'; x.textAlign = 'left';
+    const f = fitFont(x, l, '600 #px "Barlow Condensed", Arial, sans-serif', fs, (x1 - x0) * (r ? .64 : 1)); x.fillText(l, x0, y);
+    const lw = x.measureText(l).width; let rw = 0;
+    if (r) { x.textAlign = 'right'; x.font = `600 ${f.toFixed(1)}px "Barlow Condensed", Arial, sans-serif`; x.fillText(r, x1, y); rw = x.measureText(r).width; }
+    x.fillStyle = 'rgba(36,23,11,.42)'; for (let px = x0 + lw + 14 * U; px < x1 - rw - 12 * U; px += 11 * U) { x.beginPath(); x.arc(px, y - 6 * U, 1.7 * U, 0, PI * 2); x.fill(); }
+    y += gap;
+  });
+  x.textAlign = 'left'; return y;
+}
+function sigLine(x, x0, x1, y, label, U) { x.strokeStyle = '#2a1a0c'; x.lineWidth = 2 * U; x.beginPath(); x.moveTo(x0, y); x.lineTo(x1, y); x.stroke(); x.fillStyle = '#6b4a1a'; x.font = `700 ${19 * U}px "Barlow Condensed", Arial, sans-serif`; spacedText(x, label, (x0 + x1) / 2, y + 34 * U, 4 * U); }
+function sigPath(x0, x1, y, hh, v = 0) {   // a quick cursive name: a tall first letter, a run of loops, a last stroke
+  const P = [], w = x1 - x0, n = v ? 4 : 6, lh = v ? .5 : .4, cap = v ? .7 : .55, sl = v ? .035 : .022;
+  for (let i = 0; i <= 34; i++) { const t = i / 34, a = PI * .5 + t * PI * (v ? 2.4 : 2.1); P.push([x0 + w * (v ? .05 : .07) + Math.cos(a) * w * (v ? .04 : .05), y - hh * cap - Math.sin(a) * hh * cap + t * hh * (v ? .7 : .5)]); }
+  for (let i = 1; i <= n * 14; i++) { const t = i / (n * 14), a = t * n * PI * 2; P.push([x0 + w * (.1 + (v ? .55 : .64) * t) + Math.sin(a) * w * sl, y - hh * (.06 + lh * (.5 - .5 * Math.cos(a)) * (1 - .4 * t))]); }
+  if (v) for (let i = 1; i <= 22; i++) { const t = i / 22; P.push([x0 + w * (.65 + .3 * t), y - hh * (.1 + .5 * t * t) + hh * .15 * Math.sin(t * PI)]); }
+  else for (let i = 1; i <= 24; i++) { const t = i / 24; P.push([x0 + w * (.74 + .1 * Math.sin(t * PI) - .7 * t * t), y + hh * (.04 + .14 * Math.sin(t * PI * .9))]); }
+  return P;
+}
+function inkPath(x, pts, lw) { x.save(); x.strokeStyle = '#1b1209'; x.lineCap = x.lineJoin = 'round'; for (let i = 1; i < pts.length; i++) { x.lineWidth = lw * (.75 + .45 * Math.abs(Math.sin(i * .21))); x.beginPath(); x.moveTo(pts[i - 1][0], pts[i - 1][1]); x.lineTo(pts[i][0], pts[i][1]); x.stroke(); } x.restore(); }
+function waxSeal(x, cx, cy, r, U) {
+  x.save(); x.translate(cx, cy);
+  [[-1, .4], [1, -.3]].forEach(([q, tw]) => { x.save(); x.rotate(q * .4 + tw * .1); const g = x.createLinearGradient(-r * .3, 0, r * .3, 0); g.addColorStop(0, '#5a0e0b'); g.addColorStop(.5, '#a1281f'); g.addColorStop(1, '#5a0e0b'); x.fillStyle = g;
+    x.beginPath(); x.moveTo(-r * .27, 0); x.lineTo(r * .27, 0); x.lineTo(r * .29, r * 1.85); x.lineTo(0, r * 1.6); x.lineTo(-r * .29, r * 1.85); x.closePath(); x.fill(); x.restore(); });
+  const pts = []; for (let i = 0; i < 44; i++) { const a = i / 44 * PI * 2, rr = r * (1 + .05 * Math.sin(a * 5 + 1) + .035 * Math.sin(a * 9 + 2) + rnd(-.02, .02)); pts.push([Math.cos(a) * rr, Math.sin(a) * rr]); }
+  x.shadowColor = 'rgba(40,10,5,.45)'; x.shadowBlur = 10 * U; x.shadowOffsetY = 4 * U;
+  let g = x.createRadialGradient(-r * .35, -r * .4, r * .1, 0, 0, r * 1.05); g.addColorStop(0, '#d9473a'); g.addColorStop(.55, '#a3221b'); g.addColorStop(1, '#650d0a');
+  x.fillStyle = g; x.beginPath(); pts.forEach(([px, py], i) => i ? x.lineTo(px, py) : x.moveTo(px, py)); x.closePath(); x.fill(); x.shadowColor = 'transparent';
+  x.lineWidth = 5 * U; x.strokeStyle = 'rgba(60,8,6,.55)'; x.beginPath(); x.arc(0, 0, r * .7, 0, PI * 2); x.stroke();
+  x.lineWidth = 2 * U; x.strokeStyle = 'rgba(255,170,150,.35)'; x.beginPath(); x.arc(0, 1.5 * U, r * .7 + 2.5 * U, PI * .1, PI * .9); x.stroke();
+  x.font = `400 ${(r * .92).toFixed(1)}px Limelight, Georgia, serif`; x.textAlign = 'center'; x.textBaseline = 'middle';
+  x.fillStyle = 'rgba(255,190,170,.45)'; x.fillText('A', -1.5 * U, r * .06 - 1.5 * U); x.fillStyle = 'rgba(70,6,4,.7)'; x.fillText('A', 2 * U, r * .06 + 2 * U); x.fillStyle = '#a3221b'; x.fillText('A', 0, r * .06);
+  g = x.createRadialGradient(-r * .45, -r * .5, 0, -r * .45, -r * .5, r * .55); g.addColorStop(0, 'rgba(255,225,205,.45)'); g.addColorStop(1, 'rgba(255,225,205,0)'); x.fillStyle = g; x.beginPath(); x.arc(-r * .45, -r * .5, r * .55, 0, PI * 2); x.fill();
+  x.restore(); x.textBaseline = 'alphabetic';
+}
+function stamp(x, cx, cy, U, text) { x.save(); x.translate(cx, cy); x.rotate(-.14); x.globalAlpha = .5; x.strokeStyle = '#9c1f18'; x.lineWidth = 5 * U; const w = 290 * U, h = 80 * U; x.strokeRect(-w / 2, -h / 2, w, h); x.lineWidth = 1.6 * U; x.strokeRect(-w / 2 + 8 * U, -h / 2 + 8 * U, w - 16 * U, h - 16 * U);
+  x.fillStyle = '#9c1f18'; x.font = `700 ${44 * U}px "Barlow Condensed", Arial, sans-serif`; x.textBaseline = 'middle'; spacedText(x, text, 0, 2 * U, 6 * U); x.restore(); x.textBaseline = 'alphabetic'; }
+function titleBlock(x, cx, y, maxW, U, d, no) {
+  x.textAlign = 'center'; x.fillStyle = '#6b4a1a'; x.font = `700 ${22 * U}px "Barlow Condensed", Arial, sans-serif`; spacedText(x, 'LA FAMIGLIA APHRITE', cx, y, 7 * U);
+  y += 28 * U; flourish(x, cx, y, Math.min(maxW * .7, 300 * U), U);
+  y += 132 * U; x.fillStyle = '#22160b'; fitFont(x, 'Contratto', '400 #px Limelight, Georgia, serif', 134 * U, maxW); x.fillText('Contratto', cx, y);
+  y += 52 * U; x.fillStyle = '#6b4a1a'; x.font = `700 ${20 * U}px "Barlow Condensed", Arial, sans-serif`; spacedText(x, `N° ${no}  ·  ANNO MMXXVI`, cx, y, 5 * U);
+  y += 42 * U; ornament(x, cx, y, Math.min(maxW * .8, 420 * U), U);
+  y += 112 * U; x.fillStyle = '#22160b'; fitFont(x, d.en, '400 #px Limelight, Georgia, serif', 86 * U, maxW); x.fillText(d.en, cx, y);
+  y += 54 * U; x.fillStyle = '#6b4a1a'; x.font = `italic 500 ${36 * U}px Barlow, Arial, sans-serif`; x.fillText(d.it, cx, y);
+  return y;
+}
+function drawContract(d) {
+  const a = PAPER.a = clamp(innerWidth / Math.max(1, innerHeight), .42, 2.4), land = a >= 1;
+  const LS = 2048, cw = land ? LS : Math.round(LS * a), ch = land ? Math.round(LS / a) : LS;
+  const [c, x] = conCanvas; c.width = cw; c.height = ch;
+  const U = land ? Math.min(ch / 1000, cw / 1600) : Math.min(cw / 1000, ch / 1800);
+  seed = 101 + (d.order || 1) * 7;
+  // the sheet: warm ivory, darker at the edges, fibres, a coffee ring, the fold
+  let g = x.createRadialGradient(cw * .5, ch * .46, Math.min(cw, ch) * .2, cw * .5, ch * .5, Math.hypot(cw, ch) * .6);
+  g.addColorStop(0, '#f7efdc'); g.addColorStop(.62, '#eee1c4'); g.addColorStop(1, '#d2bd91'); x.fillStyle = g; x.fillRect(0, 0, cw, ch);
+  noise(x, cw, ch, Math.round(cw * ch / 170), '#fffaf0', '#9c8456', .09);
+  x.lineWidth = 1; for (let i = 0; i < 320; i++) { x.strokeStyle = `rgba(120,92,52,${rnd(.04, .1).toFixed(3)})`; const fx = rnd(0, cw), fy = rnd(0, ch), l = rnd(6, 24) * U; x.beginPath(); x.moveTo(fx, fy); x.quadraticCurveTo(fx + rnd(-l, l), fy + rnd(-l, l), fx + rnd(-l, l), fy + rnd(-l, l)); x.stroke(); }
+  x.strokeStyle = 'rgba(128,88,40,.07)'; x.lineWidth = 9 * U; x.beginPath(); x.arc(cw * (land ? .9 : .82), ch * (land ? .17 : .08), 64 * U, .4, 5.3); x.stroke();
+  g = land ? x.createLinearGradient(cw / 2 - 16 * U, 0, cw / 2 + 16 * U, 0) : x.createLinearGradient(0, ch / 2 - 16 * U, 0, ch / 2 + 16 * U);
+  g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(.46, 'rgba(96,66,26,.13)'); g.addColorStop(.52, 'rgba(255,252,240,.4)'); g.addColorStop(1, 'rgba(0,0,0,0)'); x.fillStyle = g;
+  if (land) x.fillRect(cw / 2 - 16 * U, 0, 32 * U, ch); else x.fillRect(0, ch / 2 - 16 * U, cw, 32 * U);
+  // engraved border with rosettes in the corners
+  const m = 30 * U, bw = 30 * U, b0 = m + 14 * U, b1 = b0 + bw + 4 * U;
+  x.strokeStyle = '#3b2a17'; x.lineWidth = 4 * U; x.strokeRect(m, m, cw - 2 * m, ch - 2 * m); x.lineWidth = 1.3 * U; x.strokeRect(m + 8 * U, m + 8 * U, cw - 2 * m - 16 * U, ch - 2 * m - 16 * U);
+  guilloche(x, b0, b0, cw - 2 * b0, ch - 2 * b0, bw, U);
+  x.strokeStyle = '#3b2a17'; x.lineWidth = 1.3 * U; x.strokeRect(b1, b1, cw - 2 * b1, ch - 2 * b1);
+  [[b0 + bw / 2, b0 + bw / 2], [cw - b0 - bw / 2, b0 + bw / 2], [b0 + bw / 2, ch - b0 - bw / 2], [cw - b0 - bw / 2, ch - b0 - bw / 2]].forEach(([px, py]) => { x.fillStyle = '#efe3c6'; x.beginPath(); x.arc(px, py, bw * .95, 0, PI * 2); x.fill(); rosette(x, px, py, bw * .85, U); });
+  // the family's mark pressed faintly into the paper
+  x.save(); x.globalAlpha = .055; x.strokeStyle = '#24170b'; x.lineWidth = 10 * U; x.beginPath(); x.arc(cw / 2, ch / 2, Math.min(cw, ch) * .26, 0, PI * 2); x.stroke();
+  x.fillStyle = '#24170b'; x.font = `400 ${(Math.min(cw, ch) * .36).toFixed(1)}px Limelight, Georgia, serif`; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText('A', cw / 2, ch / 2 + Math.min(cw, ch) * .02); x.restore();
+  x.textBaseline = 'alphabetic';
+  const X0 = b1 + 46 * U, X1 = cw - X0, Y0 = X0, Y1 = ch - X0, no = String(d.order || 1).padStart(3, '0'), rows = contractLines(d.go).slice(0, 6);
+  let sig;
+  if (land) {
+    const xm = X0 + (X1 - X0) * .4, lc = (X0 + xm) / 2;
+    const y = titleBlock(x, lc, Y0 + 40 * U, xm - X0, U, d, no);
+    x.fillStyle = '#5a3f1c'; x.textAlign = 'center'; fitFont(x, 'Chi siede a questo tavolo', 'italic 500 #px Barlow, Arial, sans-serif', 26 * U, xm - X0);
+    x.fillText('Chi siede a questo tavolo', lc, y + 92 * U); x.fillText('mantiene la parola.', lc, y + 128 * U);
+    const dx = xm + 42 * U, dy0 = Y0 + 10 * U, dy1 = Y1 - 236 * U;
+    x.strokeStyle = 'rgba(59,42,23,.7)'; x.lineWidth = 1.3 * U; [-4, 4].forEach(o => { x.beginPath(); x.moveTo(dx + o * U, dy0); x.lineTo(dx + o * U, dy1); x.stroke(); });
+    x.fillStyle = '#efe3c6'; x.fillRect(dx - 12 * U, (dy0 + dy1) / 2 - 14 * U, 24 * U, 28 * U); x.fillStyle = '#3b2a17'; x.beginPath(); x.moveTo(dx, (dy0 + dy1) / 2 - 11 * U); x.lineTo(dx + 9 * U, (dy0 + dy1) / 2); x.lineTo(dx, (dy0 + dy1) / 2 + 11 * U); x.lineTo(dx - 9 * U, (dy0 + dy1) / 2); x.closePath(); x.fill();
+    const rx0 = xm + 92 * U, rx1 = X1, rc = (rx0 + rx1) / 2;
+    x.fillStyle = '#6b4a1a'; x.textAlign = 'center'; x.font = `700 ${22 * U}px "Barlow Condensed", Arial, sans-serif`; spacedText(x, `ARTICOLO I  ·  ${d.en.toUpperCase()}`, rc, Y0 + 40 * U, 6 * U);
+    ornament(x, rc, Y0 + 74 * U, (rx1 - rx0) * .6, U);
+    const top = Y0 + 160 * U, gap = clamp((dy1 - 40 * U - top) / Math.max(1, rows.length - .3), 56 * U, 80 * U);
+    clauseRows(x, rx0, rx1, top, gap, U, rows, 38 * U);
+    const yl = Y1 - 48 * U, sw = Math.min(430 * U, (X1 - X0) * .3);
+    sigLine(x, X0, X0 + sw, yl, 'FIRMA  ·  IL CAPO', U); inkPath(x, sigPath(X0 + 24 * U, X0 + sw - 34 * U, yl - 12 * U, 74 * U), 3.2 * U);
+    stamp(x, X1 - sw * .5, yl - 132 * U, U, 'APPROVATO');
+    sigLine(x, X1 - sw, X1, yl, "FIRMA  ·  L'AMICO", U);
+    sig = [X1 - sw + 28 * U, X1 - 36 * U, yl - 12 * U, 74 * U];
+    waxSeal(x, cw / 2, yl - 96 * U, 74 * U, U);
+  } else {
+    const cx = cw / 2, wd = X1 - X0;
+    let y = titleBlock(x, cx, Y0 + 50 * U, wd, U, d, no);
+    x.fillStyle = '#6b4a1a'; x.textAlign = 'center'; x.font = `700 ${22 * U}px "Barlow Condensed", Arial, sans-serif`; spacedText(x, 'ARTICOLO I', cx, y + 92 * U, 6 * U);
+    ornament(x, cx, y + 124 * U, wd * .5, U);
+    const yl = Y1 - 50 * U, ys = yl - 250 * U, top = y + 210 * U, gap = clamp((ys - 190 * U - top) / Math.max(1, rows.length), 62 * U, 104 * U);
+    y = clauseRows(x, X0, X1, top, gap, U, rows, 40 * U);
+    x.fillStyle = '#5a3f1c'; x.textAlign = 'center'; fitFont(x, 'Chi siede a questo tavolo mantiene la parola.', 'italic 500 #px Barlow, Arial, sans-serif', 28 * U, wd);
+    x.fillText('Chi siede a questo tavolo mantiene la parola.', cx, Math.min(ys - 110 * U, y + 40 * U));
+    const sw = (wd - 70 * U) / 2;
+    waxSeal(x, cx, ys, 82 * U, U);
+    sigLine(x, X0, X0 + sw, yl, 'IL CAPO', U); inkPath(x, sigPath(X0 + 14 * U, X0 + sw - 22 * U, yl - 12 * U, 70 * U), 3 * U);
+    stamp(x, X0 + sw * .42, yl - 104 * U, U * .8, 'APPROVATO');
+    sigLine(x, X1 - sw, X1, yl, "L'AMICO", U);
+    sig = [X1 - sw + 18 * U, X1 - 22 * U, yl - 12 * U, 70 * U];
+  }
+  PAPER.sigPts = sigPath(sig[0], sig[1], sig[2], sig[3], 1).map(([px, py]) => [px / cw, py / ch]);
+  PAPER.sigW = 3.2 * U / cw;
+  conTex.dispose(); conTex.needsUpdate = true; drawSealBack();
+  shapePaper();
+}
+const safe = (n, d = '') => { try { return n(); } catch (e) { return d; } };
 function contractLines(go) {
   const L = safe(() => LIST, []), Ms = safe(() => MATCHES, []), Ts = safe(() => tourResults(), []), F = n => safe(() => fmt(n), String(n));
   if (go === 'rank') return L.slice(0, 6).map((p, i) => [`${i + 1}.  ${p.name}`, `${F(p.elo)} ELO`]);
@@ -751,18 +889,36 @@ canvas.addEventListener('pointermove', ev => {
   if (ev.pointerType === 'mouse' && dealt && !busy) setHover(pick(ev));
 });
 canvas.addEventListener('pointerleave', () => { pointer.in = false; setHover(-1); });
-let busy = false, anim = null, cig = 1, nextDrink = 1e9, sayOff = .95;
-canvas.addEventListener('click', ev => { if (busy || !dealt) return; const k = pick(ev); if (k >= 0) choose(k); });
+let busy = false, anim = null, cig = 1, nextDrink = 1e9, sayOff = .95, diveE = 0, gatherRank = [0, 1, 2, 3, 4];
+canvas.addEventListener('click', ev => {
+  if (anim && anim.kind === 'contract') { skipContract(anim); return; }
+  if (busy || !dealt) return; const k = pick(ev); if (k >= 0) choose(k);
+});
 function choose(k) {
   if (busy || !cards[k]) return;
   const go = cards[k].d.go, plain = () => { busy = true; enter(go); setTimeout(resetRoom, 900); };
   if (REDUCE || !dealt || typeof openPage !== 'function') return plain();
-  try { drawContract(cards[k].d); conTex.needsUpdate = true; } catch (e) { return plain(); }
-  busy = true; hovered = k; cards[k].picked = true;
-  if (typeof say === 'function') say('Ecco.', 'Your contract.');
-  const c = anim = { kind: 'contract', t0: now, card: k, go, shown: false };
+  try { drawContract(cards[k].d); } catch (e) { return plain(); }
+  busy = true; hovered = k; focused = -1; cards[k].picked = true; canvas.style.cursor = '';
+  gatherRank = cards.map(c => cards.filter(o => o.rest.x < c.rest.x).length);
+  if (typeof say === 'function') say('Bene.', 'Let me find the papers.');
+  if (anim && anim.kind === 'drink') {   // he finishes his drink first, quickly
+    const dr = anim; dr.rush = k;
+    setTimeout(() => { if (anim === dr) { anim = null; startContract(k); } }, 4000 * (window.__conSlow || 1));
+    return;
+  }
+  startContract(k);
+}
+function startContract(k) {
+  const c = anim = { kind: 'contract', t0: now, card: k, go: cards[k].d.go, shown: false, from: snapPose() };
   // if the room stops drawing (tab in the background, scrolled away, a very slow device) the page still opens
-  setTimeout(() => { if (anim === c && !c.shown) endContract(c); }, 5000 * (window.__conSlow || 1));
+  setTimeout(() => { if (anim === c && !c.shown) endContract(c); }, 12000 * (window.__conSlow || 1));
+}
+// a second click: no need to sit through the scene
+function skipContract(c) {
+  if (c.done || c.shown) return;
+  c.done = c.shown = c.open = true;
+  enter(c.go); setTimeout(() => { if (anim === c) resetRoom(); }, 900);
 }
 // the one way out of a contract: the page is open, the sheet is gone, the room is back at rest
 function endContract(c) {
@@ -772,9 +928,10 @@ function endContract(c) {
   if (anim === c) resetRoom();
 }
 function resetRoom() {
-  busy = false; anim = null; sayOff = .95; contract.visible = false; contract.scale.setScalar(1); lighter.visible = false;
+  busy = false; anim = null; sayOff = .95; diveE = 0; lighter.visible = false; paper.visible = false; paperFlat.visible = false; M_paperFlat.opacity = 0;
   cards.forEach(c => { c.picked = false; c.pick = 0; c.hover = 0; }); hovered = -1; canvas.style.cursor = '';
-  Object.values(ARMS).forEach(a => a.pv.quaternion.copy(a.rest));
+  coverEl.classList.remove('dive'); camera.up.set(0, 1, 0); if (mode) fit();
+  restPose(lastPose); applyPose(lastPose); placeHeld();
 }
 
 /* ---------- deal ---------- */
@@ -783,7 +940,7 @@ function deal(waitMs = 650) {
   if (anim && anim.kind !== 'light') resetRoom();
   busy = false; dealt = false; dealT0 = now; dealWait = REDUCE ? 0 : waitMs / 1000;
   cards.forEach(c => { c.hover = 0; c.picked = false; c.pick = 0; });
-  if (whiskyLevel < .4) whiskyLevel = 1;
+  if (whiskyFill < .2) whiskyFill = .5;
   if (REDUCE) { dealt = true; if (typeof say === 'function') say(...SAY0, true); }
 }
 
@@ -817,7 +974,19 @@ function updateCards(dt) {
     qx.setFromAxisAngle(AX, -PI / 2 + lean + h * .95);
     qf.setFromAxisAngle(AY, (1 - easeInOut(tFlip)) * PI);
     q.copy(qy).multiply(qx).multiply(qf);
-    if (c.picked && (!anim || anim.kind !== 'contract')) {
+    // he calls them back: face down onto the pile, one after another
+    const g0 = .12 + gatherRank[k] * .085, ga = anim && anim.kind === 'contract' ? seg(now - anim.t0, g0, g0 + .62) : 0;
+    let sc = s;
+    if (ga > 0) {
+      const ge = easeInOut(ga), fe = easeInOut(clamp(ga * 1.5, 0, 1));
+      tmp2.set(mode === 'narrow' ? 0 : deckPos.x, (mode === 'narrow' ? .012 : .062) + gatherRank[k] * .0085, mode === 'narrow' ? -1.05 : deckPos.z);
+      p.lerp(tmp2, ge); p.y += Math.sin(PI * ge) * .3;
+      qy.setFromAxisAngle(AY, lerp(yaw, (gatherRank[k] - 2) * .03, ge));
+      qx.setFromAxisAngle(AX, -PI / 2 + (lean + h * .95) * (1 - fe));
+      qf.setFromAxisAngle(AY, (1 - easeInOut(tFlip)) * PI + fe * PI);
+      q.copy(qy).multiply(qx).multiply(qf); sc = lerp(s, c.scale, ge);
+    }
+    if (c.picked && !busy) {
       c.pick = Math.min(1, c.pick + dt / .38);
       const pk = easeInOut(c.pick);
       camera.getWorldDirection(camFwd);
@@ -826,112 +995,228 @@ function updateCards(dt) {
       qc.copy(camera.quaternion);
       q.slerp(qc, pk);
     }
-    c.g.position.copy(p); c.g.quaternion.copy(q); c.g.scale.setScalar(s);
+    c.g.position.copy(p); c.g.quaternion.copy(q); c.g.scale.setScalar(sc);
     const dim = (hovered >= 0 || focused >= 0) && k !== hovered && k !== focused && !c.picked ? .7 : 1;
     const mat = M.card[k]; const cur = mat.color.r; const nv = REDUCE ? dim : damp(cur, dim, 10, dt); mat.color.setScalar(nv);
     mat.emissive.setRGB(.06 * h, .045 * h, .02 * h); mat.emissiveIntensity = 1;
   });
 }
-/* ---------- his moves: light the cigar, take a drink, slide the contract ---------- */
-const AZ = new THREE.Vector3(0, 0, 1), DOWN = new THREE.Vector3(0, -1, 0), _aim = new THREE.Vector3(), _qa = new THREE.Quaternion(), _bt = new THREE.Vector3();
-const _w2b = new THREE.Matrix4(), _cp = new THREE.Vector3(), _cq = new THREE.Quaternion(), _cq2 = new THREE.Quaternion(), _e = new THREE.Euler();
-function aimArm(arm, target, k) {
-  _aim.copy(target).sub(arm.pv.position).normalize();
-  _qa.setFromUnitVectors(DOWN, _aim);
-  arm.pv.quaternion.slerpQuaternions(arm.rest, _qa, clamp(k, 0, 1));
-}
+/* ---------- his moves: lights the cigar, drinks (cigar out with one hand, glass up with the other), deals the contract ---------- */
+const AZ = new THREE.Vector3(0, 0, 1), V = (x, y, z) => new THREE.Vector3(x, y, z), ZERO = new THREE.Vector3();
+const _w2b = new THREE.Matrix4(), _qa = new THREE.Quaternion();
 const toBody = v => { body.updateMatrixWorld(); _w2b.copy(body.matrixWorld).invert(); return v.applyMatrix4(_w2b); };
 const seg = (t, a, b) => clamp((t - a) / (b - a), 0, 1);
+const smooth = (t, a, b) => easeInOut(seg(t, a, b));
+const bell = (t, a, b, c, d) => smooth(t, a, b) * (1 - smooth(t, c, d));
+const smoother = t => t * t * t * (t * (t * 6 - 15) + 10);
+// a pose of the upper body: both arms (turn and shoulder shift), the cigar (1 in the mouth, 0 in the left hand), the glass
+const SETTLE = .35;
+const newPose = () => ({ R: { q: new THREE.Quaternion(), s: new THREE.Vector3() }, L: { q: new THREE.Quaternion(), s: new THREE.Vector3() }, cigIn: 1, held: 1, tilt: 0, yaw: null, pitch: null });
+function restPose(p) { ['R', 'L'].forEach(k => { p[k].q.copy(ARMS[k].rest); p[k].s.set(0, 0, 0); }); p.cigIn = 1; p.held = 1; p.tilt = 0; p.yaw = p.pitch = null; return p; }
+function copyPose(a, b) { ['R', 'L'].forEach(k => { a[k].q.copy(b[k].q); a[k].s.copy(b[k].s); }); a.cigIn = b.cigIn; a.held = b.held; a.tilt = b.tilt; a.yaw = b.yaw; a.pitch = b.pitch; return a; }
+function mixPose(out, a, b, w) { ['R', 'L'].forEach(k => { out[k].q.slerpQuaternions(a[k].q, b[k].q, w); out[k].s.lerpVectors(a[k].s, b[k].s, w); }); out.cigIn = lerp(a.cigIn, b.cigIn, w); out.held = lerp(a.held, b.held, w); out.tilt = lerp(a.tilt, b.tilt, w); out.yaw = b.yaw; out.pitch = b.pitch; return out; }
+const pose = restPose(newPose()), poseMix = newPose(), lastPose = restPose(newPose());
+const snapPose = () => copyPose(newPose(), lastPose);
+function applyPose(p) { ['R', 'L'].forEach(k => { const a = ARMS[k]; a.pv.quaternion.copy(p[k].q); a.pv.position.copy(a.base).add(p[k].s); }); }
+// a smooth path through key points at set times; a point repeated is a pause
+const _m0 = new THREE.Vector3(), _m1 = new THREE.Vector3();
+function path(keys, t, out) {
+  const n = keys.length;
+  if (t <= keys[0][0]) return out.copy(keys[0][1]);
+  if (t >= keys[n - 1][0]) return out.copy(keys[n - 1][1]);
+  let i = 0; while (t > keys[i + 1][0]) i++;
+  const [t0, p0] = keys[i], [t1, p1] = keys[i + 1], d = t1 - t0, u = (t - t0) / d;
+  const still = j => (j > 0 && keys[j][1].distanceToSquared(keys[j - 1][1]) < 1e-8) || (j < n - 1 && keys[j][1].distanceToSquared(keys[j + 1][1]) < 1e-8);
+  if (i > 0 && !still(i)) _m0.subVectors(p1, keys[i - 1][1]).divideScalar(t1 - keys[i - 1][0]); else _m0.set(0, 0, 0);
+  if (i + 2 < n && !still(i + 1)) _m1.subVectors(keys[i + 2][1], p0).divideScalar(keys[i + 2][0] - t0); else _m1.set(0, 0, 0);
+  const u2 = u * u, u3 = u2 * u;
+  return out.copy(p0).multiplyScalar(2 * u3 - 3 * u2 + 1).addScaledVector(_m0, (u3 - 2 * u2 + u) * d).addScaledVector(p1, -2 * u3 + 3 * u2).addScaledVector(_m1, (u3 - u2) * d);
+}
+const _tp = new THREE.Vector3(), _ts = new THREE.Vector3(), _sh = new THREE.Vector3(), _ad = new THREE.Vector3();
+function aimArm(p, side, target, shift) { const arm = ARMS[side], a = p[side]; a.s.copy(shift); _ad.copy(target).sub(_sh.copy(arm.base).add(shift)).normalize(); a.q.setFromUnitVectors(DOWN, _ad); }
+function armPath(p, side, keys, shifts, t) { aimArm(p, side, path(keys, t, _tp), shifts ? path(shifts, t, _ts) : ZERO); }
+
+// lighting the cigar, when the room opens
 const tipBody = new THREE.Vector3();
-const MOUTH = new THREE.Vector3(-.12, 2.24, .86);
+function lightPose(t, p) {
+  if (t < 0) { cig = 0; return; }
+  cigarTip.getWorldPosition(tipBody); toBody(tipBody); tipBody.y -= .42; tipBody.x += .02; tipBody.z += .08;
+  const k = smooth(t, 0, .75) * (1 - smooth(t, 1.85, 2.5));
+  aimArm(p, 'L', tipBody, ZERO); _qa.copy(p.L.q); p.L.q.slerpQuaternions(ARMS.L.rest, _qa, k);
+  lighter.visible = t > .25 && t < 2.35;
+  const fire = t > .78 && t < 1.8 ? 1 : 0;
+  flame.visible = !!fire; flameLight.intensity = fire * (4 + Math.sin(now * 31) * .6 + Math.sin(now * 17) * .5);
+  flameCore.scale.set(1, 1 + Math.sin(now * 23) * .12, 1);
+  cig = smooth(t, .95, 1.6);
+  p.pitch = .1 * k; p.yaw = .12 * k;
+  if (t > 2.6) anim = null;
+}
+
+// a drink: the left hand takes the cigar out, the right hand brings the glass up, a slow sip, everything back
+const SIP_R = V(-.4, 2.04, 1.02), SIP_R2 = V(-.36, 2.08, .98);
+const HOLD_L = V(1.8, 1.62, 1.22), HOLD_L2 = V(1.83, 1.55, 1.26);
+const SH_GRIP = V(-.06, .07, .22), SH_HOLD = V(.02, .05, .1), SH_SIP = V(.05, .07, .16);
+const _grip = new THREE.Vector3();
+function cigarGrip(out) { headPivot.updateMatrix(); return out.set(0, 0, .45).applyQuaternion(cigRestQ).add(cigRestP).applyMatrix4(headPivot.matrix); }
+function drinkPose(t, p, a, dt) {
+  const grip = cigarGrip(_grip), LE = ARMS.L.restEnd, RE = ARMS.R.restEnd;
+  armPath(p, 'L', [[0, LE], [.72, grip], [1.0, grip], [1.75, HOLD_L], [3.95, HOLD_L2], [4.5, grip], [4.78, grip], [5.5, LE]],
+    [[0, ZERO], [.72, SH_GRIP], [1.0, SH_GRIP], [1.75, SH_HOLD], [3.95, SH_HOLD], [4.5, SH_GRIP], [4.78, SH_GRIP], [5.5, ZERO]], t);
+  armPath(p, 'R', [[0, RE], [.55, RE], [1.72, SIP_R], [3.05, SIP_R2], [4.3, RE]], [[0, ZERO], [.55, ZERO], [1.72, SH_SIP], [3.05, SH_SIP], [4.3, ZERO]], t);
+  p.cigIn = 1 - smooth(t, .98, 1.32) + smooth(t, 4.48, 4.76);
+  p.held = 1;
+  p.tilt = .95 * bell(t, 1.45, 2.4, 2.75, 3.4);
+  if (t > 2.05 && t < 2.75) whiskyFill = Math.max(.14, whiskyFill - dt * .11);
+  p.yaw = .14 * bell(t, .3, .85, 1.0, 1.5) - .06 * bell(t, 1.5, 2.1, 2.9, 3.5) + .1 * bell(t, 4.1, 4.5, 4.8, 5.2);
+  p.pitch = .06 * bell(t, .3, .85, 1.0, 1.5) - .2 * bell(t, 1.55, 2.25, 2.8, 3.45);
+  if (!a.exh && t > 1.36) { a.exh = true; exhale(); }
+  if (t > 5.55) { anim = null; nextDrink = now + 16 + Math.random() * 9; }
+}
+
+// the contract: his right hand calls the cards back, his left hand finds the papers under the table and tosses them over
+const T_REL = 1.6, T_LAND = 2.0, T_STOP = 2.45, T_DIVE = 2.5, T_DIVE1 = 3.6, T_HAND = 3.62;
+const UNDER = V(1.3, -.6, .3), UNDER2 = V(1.27, -.64, .27);
+function contractPose(t, p, c) {
+  const RE = ARMS.R.restEnd, LE = ARMS.L.restEnd;
+  armPath(p, 'R', [[0, RE], [.12, RE], [.5, V(-2.05, .65, 1.55)], [.92, V(-.85, .48, 1.6)], [1.02, V(-.8, .3, 1.62)], [1.12, V(-.85, .48, 1.6)], [1.6, RE]], null, t);
+  armPath(p, 'L', [[0, LE], [.12, LE], [.55, UNDER], [.8, UNDER2], [1.18, V(1.22, 1.9, 1.05)], [1.42, V(1.36, 2.1, .88)], [1.6, V(.72, 1.0, 2.0)], [1.86, V(.58, .52, 1.95)], [2.55, LE]],
+    [[0, ZERO], [.12, ZERO], [.55, V(0, -.08, -.06)], [.8, V(0, -.08, -.06)], [1.18, V(0, .06, .12)], [1.42, V(0, .06, .06)], [1.6, V(-.05, 0, .26)], [1.86, V(0, 0, .14)], [2.55, ZERO]], t);
+  p.held = t < .12 ? 1 : 0; p.cigIn = 1; p.tilt = 0;
+  p.yaw = t < .95 ? -.12 : t < 1.15 ? .16 : 0;
+  p.pitch = t < .95 ? .16 : t < 1.15 ? .22 : t < 2.4 ? .12 : .04;
+}
 function updateMoves(dt) {
-  ARMS.R.pv.quaternion.copy(ARMS.R.rest); ARMS.L.pv.quaternion.copy(ARMS.L.rest);
-  glassTilt.identity(); lighter.visible = false; flameLight.intensity = 0;
-  let headYaw = null, headPitch = null;
-  if (!anim && dealt && !busy && hovered < 0 && focused < 0 && now > nextDrink && !REDUCE) anim = { kind: 'drink', t0: now };
-  if (anim) {
-    const t = now - anim.t0;
-    if (anim.kind === 'light') {
-      if (t < 0) { cig = 0; }
-      else {
-        cigarTip.getWorldPosition(tipBody); toBody(tipBody); tipBody.y -= .42; tipBody.x += .02; tipBody.z += .08;
-        const k = easeInOut(seg(t, 0, .75)) * (1 - easeInOut(seg(t, 1.85, 2.5)));
-        aimArm(ARMS.L, tipBody, k);
-        lighter.visible = t > .25 && t < 2.35;
-        const fire = t > .78 && t < 1.8 ? 1 : 0;
-        flame.visible = !!fire; flameLight.intensity = fire * (4 + Math.sin(now * 31) * .6 + Math.sin(now * 17) * .5);
-        flameCore.scale.set(1, 1 + Math.sin(now * 23) * .12, 1);
-        cig = easeInOut(seg(t, .95, 1.6));
-        headPitch = .1 * k; headYaw = .12 * k;
-        if (t > 2.6) anim = null;
-      }
-    } else if (anim.kind === 'drink') {
-      const up = easeInOut(seg(t, 0, .9)) * (1 - easeInOut(seg(t, 2.05, 2.9)));
-      aimArm(ARMS.R, MOUTH, up);
-      const sip = easeInOut(seg(t, .85, 1.35)) * (1 - easeInOut(seg(t, 1.75, 2.15)));
-      glassTilt.setFromAxisAngle(AX, -.95 * sip);
-      if (t > 1.3 && t < 1.8) whiskyLevel = Math.max(.25, whiskyLevel - dt * .22);
-      headPitch = -.2 * sip; headYaw = -.08 * up;
-      if (t > 3.1) { anim = null; nextDrink = now + 18 + Math.random() * 9; }
-    } else if (anim.kind === 'contract') {
-      const up = easeInOut(seg(t, 0, .55)) * (1 - easeInOut(seg(t, 1.05, 1.6)));
-      _bt.set(.78, 2.1, 1.6); aimArm(ARMS.L, _bt, up);
-      headPitch = .05; headYaw = -.08;
-      contract.visible = t > .1;
-      handEnd(ARMS.L, _cp); body.localToWorld(_cp);
-      _cp.y += CON_H * .44; _cp.z += .14; _cp.x -= .12;
-      _cq.copy(camera.quaternion).multiply(_cq2.setFromAxisAngle(AZ, -.1));
-      const show = easeOut(seg(t, .1, .5)); contract.scale.setScalar(.3 + .7 * show);
-      const fly = easeInOut(seg(t, .9, 1.45));
-      if (fly > 0) { if (!anim.pose) anim.pose = presentPose(); _cp.lerp(anim.pose.p, fly); _cq.slerp(anim.pose.q, fly); }
-      contract.position.copy(_cp); contract.quaternion.copy(_cq);
-      if (t > 1.47 && !anim.shown) { anim.shown = true; contract.scale.setScalar(1); presentContract(anim); }
-    }
+  if (!anim && dealt && !busy && hovered < 0 && focused < 0 && now > nextDrink && !REDUCE) anim = { kind: 'drink', t0: now, from: snapPose() };
+  restPose(pose); lighter.visible = false; flameLight.intensity = 0;
+  const a = anim;
+  if (a) {
+    if (a.rush !== undefined) a.t0 -= dt * 3;   // hurrying the rest of the drink
+    const t = now - a.t0;
+    if (a.kind === 'light') lightPose(t, pose);
+    else if (a.kind === 'drink') drinkPose(t, pose, a, dt);
+    else if (a.kind === 'contract') contractPose(t, pose, a);
+    if (a.from && anim === a && t < SETTLE) { mixPose(poseMix, a.from, pose, smooth(t, 0, SETTLE)); copyPose(pose, poseMix); }
+    if (!anim && a.rush !== undefined) startContract(a.rush);
   }
-  // glass follows the right hand
-  handEnd(ARMS.R, _hand); _rel.copy(ARMS.R.pv.quaternion).multiply(_qi.copy(ARMS.R.rest).invert());
-  _off.copy(GLASS_OFF).applyQuaternion(_rel);
-  glassG.position.copy(_hand).add(_off); glassG.quaternion.copy(glassTilt);
-  whiskyMesh.scale.y = whiskyLevel; whiskyMesh.position.y = .07 + .08 * whiskyLevel;
-  // lighter stands upright in the left hand
+  applyPose(pose); copyPose(lastPose, pose);
   if (lighter.visible) { lighter.position.set(0, -1.62, .04); lighter.quaternion.copy(ARMS.L.pv.quaternion).invert(); }
-  return [headYaw, headPitch];
+  return [pose.yaw, pose.pitch];
 }
-function presentPose() {
-  camera.updateMatrixWorld();
-  const c = new THREE.Vector3(0, 0, .5).unproject(camera), dir = c.sub(camera.position).normalize();
-  const fwd = new THREE.Vector3(); camera.getWorldDirection(fwd);
-  const th = Math.tan(camera.fov * PI / 360);
-  const d = Math.max(CON_H / (.78 * 2 * th), CON_W / (.86 * 2 * th * (W / H)));
-  return { p: camera.position.clone().addScaledVector(dir, d / dir.dot(fwd)), q: camera.quaternion.clone() };
+
+// what he holds: the glass stays against the palm of his right hand, the cigar is in his mouth or between his fingers
+const GLASS_TABLE = new THREE.Vector3(), MOUTH_B = V(0, 2.2, .66);
+const _hp = new THREE.Vector3(), _n = new THREE.Vector3(), _gu = new THREE.Vector3(), _gm = new THREE.Vector3(), _gax = new THREE.Vector3(), _gc = new THREE.Vector3(), _go = new THREE.Vector3(), _lv = new THREE.Vector3();
+const _ax = new THREE.Vector3(), _gp = new THREE.Vector3(), _cph = new THREE.Vector3(), _cqh = new THREE.Quaternion(), _mp = new THREE.Vector3(), _mq = new THREE.Quaternion(), _hqi = new THREE.Quaternion();
+function glassFoot(out, tilt) {
+  const arm = ARMS.R; handEnd(arm, _hp); _n.copy(DOWN).applyQuaternion(arm.pv.quaternion);
+  _gu.set(0, 1, 0);
+  if (tilt > .001) { _gm.subVectors(MOUTH_B, _hp); _gm.y = 0; if (_gm.lengthSq() > 1e-6) { _gm.normalize(); _gax.crossVectors(_gu, _gm).normalize(); _gu.applyAxisAngle(_gax, tilt); } }
+  const nu = _n.dot(_gu), hs = Math.abs(nu) * .2 + .275 * Math.sqrt(Math.max(0, 1 - nu * nu));
+  _gc.copy(_hp).addScaledVector(_n, hs);
+  return out.copy(_gc).addScaledVector(_gu, -.2);
 }
+function placeHeld() {
+  glassFoot(_go, lastPose.tilt); if (lastPose.tilt < .05 && _go.y < 0) _go.y = 0;
+  _go.lerpVectors(GLASS_TABLE, _go, lastPose.held);
+  glassG.position.copy(_go); glassG.quaternion.setFromUnitVectors(AY, _gu);
+  glassG.updateMatrixWorld(true);
+  _lv.set(0, .072 + whiskyFill * .318, 0).applyMatrix4(glassG.matrixWorld); liquidPlane.constant = _lv.y;
+  const w = 1 - lastPose.cigIn;
+  if (w < .001) { cigarG.position.copy(cigRestP); cigarG.quaternion.copy(cigRestQ); return; }
+  const arm = ARMS.L; handEnd(arm, _hp); _n.copy(DOWN).applyQuaternion(arm.pv.quaternion);
+  _ax.set(1, 0, 0).applyQuaternion(arm.pv.quaternion).multiplyScalar(.9); _ax.y += .2; _ax.z += .35; _ax.normalize();   // out to the side, a little up and toward you
+  _gp.copy(_hp).addScaledVector(_n, .06).addScaledVector(_ax, .44);   // held at the edge of the hand, most of it sticking out
+  _cqh.setFromUnitVectors(AZ, _ax); _cph.copy(_gp).addScaledVector(_ax, -.12);
+  headPivot.updateMatrix(); _mp.copy(cigRestP).applyMatrix4(headPivot.matrix); _mq.copy(headPivot.quaternion).multiply(cigRestQ);
+  _mp.lerp(_cph, w); _mq.slerp(_cqh, w);
+  _hqi.copy(headPivot.quaternion).invert();
+  cigarG.position.copy(_mp).sub(headPivot.position).applyQuaternion(_hqi);
+  cigarG.quaternion.copy(_hqi).multiply(_mq);
+}
+glassFoot(GLASS_TABLE, 0); GLASS_TABLE.y = Math.max(0, GLASS_TABLE.y);
+
+// the papers: in his hand, through the air, onto the felt, open; then the camera leans in until the sheet is the screen
+const _ph = new THREE.Vector3(), _pq = new THREE.Quaternion(), _pq2 = new THREE.Quaternion(), _pp = new THREE.Vector3(), _e2 = new THREE.Euler();
+function contractScene(t, c) {
+  if (!c.fin) { const fz = mode === 'narrow' ? .25 : .5; c.fin = V(0, .008, fz); c.land = V(.05, .008, fz - .38); c.relP = new THREE.Vector3(); c.relQ = new THREE.Quaternion(); }
+  paper.visible = t > .7;
+  if (t < T_REL) {
+    handEnd(ARMS.L, _ph); _pp.copy(DOWN).applyQuaternion(ARMS.L.pv.quaternion); _ph.addScaledVector(_pp, .3); body.localToWorld(_ph);
+    _pq.setFromEuler(_e2.set(-1.15, .3, 0)); _pp.copy(PAPER.packet).applyQuaternion(_pq);
+    paper.quaternion.copy(_pq); paper.position.copy(_ph).sub(_pp); paper.position.y -= .04;
+    setFold(1); c.relP.copy(paper.position); c.relQ.copy(paper.quaternion);
+  } else if (t < T_LAND) {
+    const u = seg(t, T_REL, T_LAND);
+    paper.position.lerpVectors(c.relP, c.land, u); paper.position.y += Math.sin(PI * u) * .5 * (1 - u * .3);
+    _pq2.setFromEuler(_e2.set(0, .35 + (1 - easeOut(u)) * .5, 0)); paper.quaternion.slerpQuaternions(c.relQ, _pq2, easeOut(u));
+    setFold(1);
+  } else {
+    const v = easeOut(seg(t, T_LAND, T_STOP));
+    paper.position.lerpVectors(c.land, c.fin, v); paper.quaternion.setFromEuler(_e2.set(0, .35 * (1 - v), 0));
+    setFold(1 - easeInOut(seg(t, T_LAND + .04, T_STOP)));
+  }
+  paperFlat.visible = t > T_STOP; M_paperFlat.opacity = smooth(t, T_DIVE1 - .45, T_DIVE1);
+  if (!c.said && t > T_LAND) { c.said = true; if (typeof say === 'function') say('Ecco.', 'Sign here.'); }
+  if (!c.dove && t > T_DIVE + .2) { c.dove = true; coverEl.classList.add('dive'); }
+  if (t >= T_HAND && !c.shown) { c.shown = true; presentContract(c); }
+}
+const _cp0 = new THREE.Vector3(), _ct0 = new THREE.Vector3(), _cu0 = new THREE.Vector3();
+function diveCamera(c, e) {
+  if (!c.cam) c.cam = { p: camera.position.clone(), t: camTarget.clone(), ox: view.ox || 0, oy: view.oy || 0 };
+  const th = Math.tan(camera.fov * PI / 360), C = paper.position, hgt = Math.max(PAPER.h, PAPER.w / (W / H)) / (2 * th);
+  _cp0.set(C.x, C.y + hgt, C.z);
+  camera.position.lerpVectors(c.cam.p, _cp0, e); camera.position.y += Math.sin(PI * e) * .3;
+  _ct0.lerpVectors(c.cam.t, C, easeOut(e));
+  camera.up.set(0, 1, 0).lerp(_cu0.set(0, 0, -1), smooth(e, .45, 1)).normalize();
+  camera.lookAt(_ct0);
+  camera.setViewOffset(W, H, c.cam.ox * (1 - e), c.cam.oy * (1 - e), W, H); camera.updateProjectionMatrix();
+}
+// the sheet takes the whole screen, your name goes on the line, and the ink runs and opens the page
+function blob(g, cx, cy, R, ph, wob) { g.beginPath(); for (let i = 0; i <= 96; i++) { const a = i / 96 * PI * 2, rr = R * (1 + wob * (.55 * Math.sin(5 * a + ph) + .3 * Math.sin(11 * a - ph * 1.7) + .15 * Math.sin(23 * a + ph * 2.3))); const px = cx + Math.cos(a) * rr, py = cy + Math.sin(a) * rr; i ? g.lineTo(px, py) : g.moveTo(px, py); } g.closePath(); }
+let conClock = () => performance.now();
 function presentContract(c) {
-  const E = 'cubic-bezier(.55,0,.35,1)', SL = window.__conSlow || 1;
-  let bg, top, bot;
+  const SL = window.__conSlow || 1;
   try {
-    contract.updateMatrixWorld();
-    const r = canvas.getBoundingClientRect(), pts = [[-1, 1], [1, 1], [1, -1], [-1, -1]].map(([a, b]) => { const v = new THREE.Vector3(a * CON_W / 2, b * CON_H / 2, 0).applyMatrix4(contract.matrixWorld); const [x, y] = proj(v.x, v.y, v.z); return [r.left + x, r.top + y]; });
+    camera.updateMatrixWorld(); paper.updateMatrixWorld(true);
+    const r = canvas.getBoundingClientRect(), hw = PAPER.w / 2, hh = PAPER.h / 2;
+    const pts = [[-hw, -hh], [hw, -hh], [hw, hh], [-hw, hh]].map(([a, b]) => { const v = new THREE.Vector3(a, .006, b).applyMatrix4(paper.matrixWorld); const [px, py] = proj(v.x, v.y, v.z); return [r.left + px, r.top + py]; });
     const L = Math.min(...pts.map(p => p[0])), R = Math.max(...pts.map(p => p[0])), T = Math.min(...pts.map(p => p[1])), B = Math.max(...pts.map(p => p[1]));
     const ov = c.ov = document.createElement('div'); ov.className = 'contract-ov'; ov.setAttribute('aria-hidden', 'true');
-    ov.innerHTML = '<div class="c-bg"></div><div class="c-paper"><canvas class="c-top"></canvas><canvas class="c-bot"></canvas></div>';
-    const paper = ov.querySelector('.c-paper'); Object.assign(paper.style, { left: L + 'px', top: T + 'px', width: (R - L) + 'px', height: (B - T) + 'px' });
-    const [src] = conCanvas, hw = src.width, hh = src.height / 2;
-    ov.querySelectorAll('canvas').forEach((cv, i) => { cv.width = hw; cv.height = hh; cv.getContext('2d').drawImage(src, 0, i * hh, hw, hh, 0, 0, hw, hh); });
+    const cv = document.createElement('canvas'), dpr = Math.min(devicePixelRatio || 1, 1.5), VW = innerWidth, VH = innerHeight;
+    cv.width = Math.round(VW * dpr); cv.height = Math.round(VH * dpr); ov.appendChild(cv);
+    const g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0);
     document.body.appendChild(ov);
-    [bg, top, bot] = ['.c-bg', '.c-top', '.c-bot'].map(q => ov.querySelector(q));
-    bg.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 240 * SL, fill: 'forwards' });
-  } catch (e) { endContract(c); return; }
-  setTimeout(() => {
-    if (c.done) return;
-    c.open = true; try { openPage(c.go); } catch (e) { }
-    try {
-      top.animate([{ transform: 'rotateX(0deg)', opacity: 1 }, { opacity: 1, offset: .55 }, { transform: 'rotateX(-104deg)', opacity: 0 }], { duration: 760 * SL, easing: E, fill: 'forwards' });
-      bot.animate([{ transform: 'rotateX(0deg)', opacity: 1 }, { opacity: 1, offset: .55 }, { transform: 'rotateX(104deg)', opacity: 0 }], { duration: 760 * SL, easing: E, fill: 'forwards' });
-      bg.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 640 * SL, delay: 160 * SL, easing: 'ease-out', fill: 'forwards' }).finished.then(() => endContract(c), () => endContract(c));
-    } catch (e) { endContract(c); }
-    // the sheet never stays over the page, even when the browser holds the animation back
-    setTimeout(() => endContract(c), 1000 * SL);
-  }, 560 * SL);
+    const src = conCanvas[0], sig = PAPER.sigPts, n = sig.length, ink = '#0b0907';
+    const TG = 380 * SL, TS = 560 * SL, TI = 900 * SL, t0 = conClock();
+    const drops = Array.from({ length: 18 }, (_, i) => [i / 18 * PI * 2 + Math.random() * .3, 1.03 + Math.random() * .14, .01 + Math.random() * .02]);
+    const step = () => {
+      if (c.done) return;
+      const el = conClock() - t0, gk = easeInOut(Math.min(1, el / TG));
+      const x0 = lerp(L, 0, gk), y0 = lerp(T, 0, gk), w = lerp(R - L, VW, gk), h = lerp(B - T, VH, gk);
+      g.clearRect(0, 0, VW, VH); g.drawImage(src, x0, y0, w, h);
+      const sk = clamp((el - TG) / TS, 0, 1);
+      if (sk > 0 && n > 1) {   // your name on the line, as if the pen were moving
+        const upto = easeInOut(sk) * (n - 1), lw = Math.max(1.2, PAPER.sigW * w);
+        g.strokeStyle = '#1b1209'; g.lineCap = g.lineJoin = 'round';
+        for (let i = 1; i <= Math.ceil(upto); i++) { const f = Math.min(1, upto - (i - 1)), [ax, ay] = sig[i - 1], [bx, by] = sig[i];
+          g.lineWidth = lw * (.75 + .45 * Math.abs(Math.sin(i * .21))); g.beginPath(); g.moveTo(x0 + ax * w, y0 + ay * h); g.lineTo(x0 + (ax + (bx - ax) * f) * w, y0 + (ay + (by - ay) * f) * h); g.stroke(); }
+      }
+      const ik = clamp((el - TG - TS) / TI, 0, 1);
+      if (ik > 0) {   // the ink spreads from the end of your name and the page shows through
+        if (!c.open) { c.open = true; try { openPage(c.go); } catch (e) { } }
+        const [lx, ly] = n ? sig[n - 1] : [.8, .85], cx = x0 + lx * w, cy = y0 + ly * h;
+        const Rm = Math.hypot(Math.max(cx, VW - cx), Math.max(cy, VH - cy)), Rk = Rm * 1.32 * (.025 + .975 * Math.pow(ik, 1.7)), ph = el / 380;
+        g.fillStyle = ink; g.globalAlpha = .32; blob(g, cx, cy, Rk * 1.06, ph, .09); g.fill();
+        g.globalAlpha = .96; blob(g, cx, cy, Rk, ph, .07); g.fill();
+        drops.forEach(([a, dd, sz]) => { g.beginPath(); g.arc(cx + Math.cos(a) * Rk * dd, cy + Math.sin(a) * Rk * dd, Rk * sz, 0, PI * 2); g.fill(); });
+        g.globalAlpha = 1; g.globalCompositeOperation = 'destination-out'; blob(g, cx, cy, Rk * .88, ph + 1, .06); g.fill(); g.globalCompositeOperation = 'source-over';
+      }
+      if (ik >= 1) { endContract(c); return; }
+      requestAnimationFrame(step);
+    };
+    step();
+    setTimeout(() => endContract(c), TG + TS + TI + 1600 * SL);   // the sheet never stays over the page
+  } catch (e) { endContract(c); }
 }
 let last = performance.now(), running = false, frames = 0, slow = 0;
 const EMBER2 = scene.getObjectByName('ember2');
@@ -948,12 +1233,9 @@ function update(dt) {
   const t = now;
   // lamp: comes on with a flicker, then sways a little
   const on = REDUCE ? 1 : (() => { const u = now - lightT0; if (u > 1.4) return 1; const f = [0, .9, .15, .85, .3, 1, .6, 1]; const i = Math.min(f.length - 1, Math.floor(u / .18)); return f[i]; })();
-  spot.intensity = 110 * LAMP_K * on; M.bulb.color.setRGB(4 * on + .2, 3.7 * on + .15, 3 * on + .1); coneMat.uniforms.uI.value = .09 * on; M.shadeIn.emissiveIntensity = .6 * on; bulbGlow.material.opacity = .55 * on;
+  spot.intensity = 110 * LAMP_K * on; M.bulb.color.setRGB(4 * on + .2, 3.7 * on + .15, 3 * on + .1); coneMat.uniforms.uI.value = .09 * on * (1 - diveE); M.shadeIn.emissiveIntensity = .6 * on; bulbGlow.material.opacity = .55 * on;
   if (!REDUCE) { lampPivot.rotation.z = Math.sin(t * .55) * .016; lampPivot.rotation.x = Math.sin(t * .41 + 1) * .01; }
-  // cigar ember
   const [mYaw, mPitch] = updateMoves(dt);
-  const fl = (.78 + .22 * Math.sin(t * 7.3) * Math.sin(t * 2.9 + 1.3)) * cig;
-  M.ember.emissiveIntensity = .05 + 3 * fl; cigarTip.getWorldPosition(emberLight.position); emberLight.intensity = .6 * fl; emberGlow.position.copy(emberLight.position); emberGlow.material.opacity = (.55 + .35 * fl) * cig;
   // breathing, head follows the card you point at or your pointer
   if (!REDUCE) body.position.y = Math.sin(t * 1.3) * .012;
   const focus = hovered >= 0 ? hovered : focused;
@@ -963,10 +1245,14 @@ function update(dt) {
   else if (pointer.in && FINE) { yawT = pointer.x * .22; pitchT = pointer.y * .06; }
   headPivot.rotation.y = damp(headPivot.rotation.y, yawT, 4, dt);
   headPivot.rotation.x = damp(headPivot.rotation.x, pitchT, 4, dt);
+  placeHeld();
+  // cigar ember
+  const fl = (.78 + .22 * Math.sin(t * 7.3) * Math.sin(t * 2.9 + 1.3)) * cig;
+  M.ember.emissiveIntensity = .05 + 3 * fl; cigarTip.getWorldPosition(emberLight.position); emberLight.intensity = .6 * fl; emberGlow.position.copy(emberLight.position); emberGlow.material.opacity = (.55 + .35 * fl) * cig;
   // smoke
   if (!REDUCE) {
     smokeClock += dt; while (smokeClock > .13) { smokeClock -= .13; if (cig > .6) puff(); }
-    smoke.forEach(s => { if (!s.visible) return; const u = s.userData; u.life += dt; const k = u.life / u.max; if (k >= 1) { s.visible = false; s.material.opacity = 0; return; }
+    smoke.forEach(s => { if (!s.visible) return; const u = s.userData; u.life += dt; if (u.life < 0) return; const k = u.life / u.max; if (k >= 1) { s.visible = false; s.material.opacity = 0; return; }
       s.position.x += (u.vx + Math.sin(u.life * 1.7 + s.id) * .05) * dt; s.position.y += (.32 + k * .1) * dt; s.position.z += u.vz * dt;
       const sc = .1 + k * .95; s.scale.set(sc, sc, 1); s.material.rotation += u.rot * dt; s.material.opacity = Math.min(1, k * 6) * (1 - k) * .3; });
     const a = dustGeo.attributes.position; for (let i = 0; i < DUST; i++) { let y = a.getY(i) + dt * .03 * (1 + (i % 3)); if (y > 3.6) y = .3; a.setY(i, y); a.setX(i, a.getX(i) + Math.sin(t * .3 + i) * .0006); } a.needsUpdate = true;
@@ -977,12 +1263,17 @@ function update(dt) {
   const tx = still ? par.x : (pointer.in && FINE ? pointer.x * .32 : Math.sin(t * .23) * .12), ty = still ? par.y : (pointer.in && FINE ? -pointer.y * .14 : Math.sin(t * .31) * .05);
   par.x = damp(par.x, tx, 2.5, dt); par.y = damp(par.y, ty, 2.5, dt);
   placeCamera(par.x, par.y);
+  if (anim && anim.kind === 'contract') {
+    const ct = now - anim.t0; diveE = smoother(seg(ct, T_DIVE, T_DIVE1));
+    if (diveE > 0) diveCamera(anim, diveE);
+    body.updateMatrixWorld(); contractScene(ct, anim);
+  }
   updateCards(dt);
 }
 const HP = new THREE.Vector3();
 function placeSay(dt) {
   if (!sayEl || stacked) { if (sayEl) sayEl.style.removeProperty('--sx'); return; }
-  const want = anim && anim.kind === 'contract' ? 1.8 : .95;
+  const want = .95;
   sayOff = dt ? damp(sayOff, want, 7, dt) : want;
   const hp = headPivot.getWorldPosition(HP);
   const [x, y] = proj(hp.x + sayOff, hp.y + .78, hp.z + .2);
@@ -1008,7 +1299,7 @@ if ('IntersectionObserver' in window) new IntersectionObserver(es => { onScreen 
 window.room3d = {
   layout, deal, start,
   focus(k) { if (busy) return; focused = k; if (k >= 0) hovered = -1; kick(); },
-  pick(k) { choose(k); }
+  pick(k) { if (anim && anim.kind === 'contract') skipContract(anim); else choose(k); }
 };
 async function boot() {
   try { await Promise.race([Promise.all(['400 80px Limelight', 'italic 500 40px Barlow', '700 40px "Barlow Condensed"'].map(f => document.fonts.load(f))), new Promise(r => setTimeout(r, 2500))]); } catch (e) { }
@@ -1016,7 +1307,7 @@ async function boot() {
   coverEl.classList.add('r3d');
   if (typeof layoutScene === 'function') layoutScene(); else layout(false);
   lightT0 = now; deal(REDUCE ? 0 : 2900);
-  if (!REDUCE) { cig = 0; anim = { kind: 'light', t0: now + .6 }; }
+  if (!REDUCE) { cig = 0; anim = { kind: 'light', t0: now + .6, from: snapPose() }; }
   start();
   if (document.fonts) document.fonts.ready.then(() => { paintCards(); faceTex.forEach(t => t.needsUpdate = true); });
 }

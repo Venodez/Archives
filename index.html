@@ -171,13 +171,13 @@ html.try3d .stage-box,html.try3d .cv:not(.r3d) .deck,html.try3d .cv:not(.r3d) .s
 .cv.stack.r3d .say{transform:none;margin:14px auto 6px}
 .cv.stack.r3d .say::before{top:-8px}
 .cv.stack.r3d .cv-copy{padding-top:18px}
-/* the contract he hands you opens into the page */
-.contract-ov{position:fixed;inset:0;z-index:140;pointer-events:none;perspective:1500px}
-.contract-ov .c-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 50%,rgba(11,9,7,.6),rgba(11,9,7,.94));opacity:0}
-.contract-ov .c-paper{position:absolute;transform-style:preserve-3d}
-.contract-ov canvas{position:absolute;left:0;width:100%;height:50%;display:block;-webkit-backface-visibility:hidden;backface-visibility:hidden;box-shadow:0 30px 60px -20px rgba(0,0,0,.8)}
-.contract-ov .c-top{top:0;transform-origin:50% 0}
-.contract-ov .c-bot{top:50%;transform-origin:50% 100%}
+/* the contract: once it lies in front of you it takes the whole screen, you sign, and the ink opens the page */
+.contract-ov{position:fixed;inset:0;z-index:140;pointer-events:none}
+.contract-ov canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.cv-top,.tick,.cv-copy,.cv-credit{transition:opacity .55s ease}
+.room-box::after{transition:opacity .6s ease}
+.cv.dive .cv-top,.cv.dive .tick,.cv.dive .cv-copy,.cv.dive .cv-credit,.cv.dive .say{opacity:0!important;pointer-events:none}
+.cv.dive .room-box::after{opacity:0}
 .tick{flex:none;background:#070605;border-top:1px solid var(--line2);overflow:hidden;white-space:nowrap;padding-bottom:env(safe-area-inset-bottom,0px)}
 .tick-track{display:inline-flex;animation:tick 120s linear infinite}
 .tick:hover .tick-track{animation-play-state:paused}
