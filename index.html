@@ -16,15 +16,16 @@
 <link rel="apple-touch-icon" href="favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,500..900;1,6..96,500..900&family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Limelight&family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@500;600;700&display=swap">
 <style>
 /* Aphrite: a back room after midnight. Smoke-black, nicotine cream, one lamp of gold. The ranking is the family ledger; champions hang on the wall. */
 :root{
   --ink:#0b0907;--room:#120f0c;--paper:#1a1511;--line:#342a20;--line2:#4a3c2c;
   --cream:#ede2c8;--cream2:#c9bb9c;--muted:#8f8269;
   --gold:#d4a64c;--gold2:#f1d48c;--silver:#c8c3b8;--bronze:#b97a48;--neon:#e8432f;
-  --f-disp:"Bodoni Moda","Didot","Bodoni 72",Georgia,serif;
-  --f-type:"Courier Prime","Courier New",ui-monospace,monospace;
+  --f-disp:"Limelight","Didot",Georgia,serif;
+  --f-num:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
+  --f-type:"Barlow","Helvetica Neue",Arial,sans-serif;
   --ease:cubic-bezier(.2,.8,.2,1);
 }
 *{box-sizing:border-box}
@@ -360,6 +361,23 @@ select option{background:var(--paper);color:var(--cream)}
 @media (max-width:720px){.ph .wm{display:none}}
 @media (max-width:820px){.gl{grid-template-columns:1fr}.gl-l>div{grid-template-columns:1fr;gap:4px}.news-line{display:none!important}}
 @media (max-width:720px){.tab .t-lg{display:none}.tab .t-sm{display:inline}.nav .news-btn{display:grid}}
+
+/* ---------- fonts: Limelight titles, Barlow Condensed names and numbers, Barlow text ---------- */
+.disp,.mark,.cv h1,.ph h2,.pod .nm,.fact b,.most b,.frame .win,.drawer h3,.modal-h h3,.duel-pick .vs,.h2h .mid b,.seasonhd,.kick b,.ph .wm,.gl-g h3 b,.motto b,.upd h4,.ti.it b,.cv-art figcaption b,.cv-top .it,.chip{font-style:normal!important}
+.disp,.cv h1,.ph h2{font-weight:400!important;letter-spacing:0}
+.cv h1{line-height:.95}
+.lr .who b,.mrow button.n,.bm .w b,.ti b,.it .nm2,.gl-l dt,.tp-user,.duel-pick select{font-family:var(--f-num)!important;font-weight:600!important;letter-spacing:.01em}
+.lr .who b{font-size:24px}
+.mrow button.n{font-size:21px}
+.lr .rk,.lr .pts,.stats b,.h2h .big,.fact b,.pod .pts b,.mrow .score,.tot,.cmp td,.st .n{font-family:var(--f-num)!important;font-weight:700}
+.h2h .big{font-weight:700!important}
+.pod .nm,.frame .win,.drawer h3,.most b,.seasonhd,.motto b{font-weight:400!important}
+.gl-l dt{font-size:20px}
+.btn,.tab,.chipf,.link,.seasonsel,.small,.count,.lh,.lead,.note,footer,.credit,.report{font-family:var(--f-type)}
+.btn{font-weight:700;letter-spacing:.06em;text-transform:uppercase;font-size:13px}
+.tab{font-weight:700;letter-spacing:.06em;text-transform:uppercase;font-size:13px}
+.lead{font-size:clamp(15px,1.25vw,17px)}
+body{font-size:15.5px}
 </style>
 </head>
 <body>
@@ -711,7 +729,7 @@ document.addEventListener("click",e=>{if(e.target.closest("[data-news]"))openNew
 /* ---------- toast + share as image ---------- */
 function toast(msg){const h=$("#toastHost");h.innerHTML="";const t=document.createElement("div");t.className="toast";t.innerHTML=msg;h.appendChild(t);clearTimeout(toast.t);toast.t=setTimeout(()=>t.remove(),2200)}
 const C={ink:"#0b0907",paper:"#1a1511",line:"#342a20",cream:"#ede2c8",cream2:"#c9bb9c",muted:"#8f8269",gold:"#d4a64c",gold2:"#f1d48c",silver:"#c8c3b8",bronze:"#b97a48"};
-const FD=(w,sz,it)=>`${it?"italic ":""}${w} ${sz}px "Bodoni Moda",Didot,Georgia,serif`,FT=(w,sz)=>`${w} ${sz}px "Courier Prime","Courier New",monospace`;
+const FD=(w,sz)=>`400 ${sz}px "Limelight",Didot,Georgia,serif`,FN=(w,sz)=>`${w} ${sz}px "Barlow Condensed","Arial Narrow",Arial,sans-serif`,FT=(w,sz)=>`${w} ${sz}px "Barlow Condensed",Arial,sans-serif`;
 let heroImg=null;function loadHero(){return heroImg||(heroImg=new Promise(r=>{const i=new Image();i.onload=()=>r(i);i.onerror=()=>r(null);i.src="art/hero.webp"}))}
 async function frame(ctx,W,H,label){ctx.fillStyle=C.ink;ctx.fillRect(0,0,W,H);
   const im=await loadHero();if(im){ctx.save();ctx.globalAlpha=.28;const s=H/im.height*1.15;ctx.drawImage(im,W-im.width*s+120,-60,im.width*s,im.height*s);ctx.restore();
@@ -723,7 +741,7 @@ async function frame(ctx,W,H,label){ctx.fillStyle=C.ink;ctx.fillRect(0,0,W,H);
 async function buildTop(){const top=LIST.slice(0,10);if(!top.length)return null;const W=1200,H=180+top.length*58+90,cv=document.createElement("canvas");cv.width=W;cv.height=H;const ctx=cv.getContext("2d");
   await frame(ctx,W,H,"THE RANKING · TOP 10");
   top.forEach((p,i)=>{const y=168+i*58;ctx.fillStyle=i<3?[C.gold,C.silver,C.bronze][i]:C.muted;ctx.font=FT(700,26);ctx.fillText(String(i+1).padStart(2,"0"),56,y);
-    ctx.fillStyle=i===0?C.gold2:C.cream;ctx.font=FD(800,i===0?36:30,i===0);ctx.fillText(p.name,130,y);
+    ctx.fillStyle=i===0?C.gold2:C.cream;ctx.font=FN(600,i===0?36:32);ctx.fillText(p.name,130,y);
     ctx.textAlign="right";ctx.font=FT(700,26);ctx.fillStyle=C.cream;ctx.fillText(fmt(p.elo),860,y);ctx.font=FT(400,20);ctx.fillStyle=C.cream2;ctx.fillText(`${p.w}–${p.l}`,1010,y);ctx.fillStyle=C.gold2;ctx.fillText(p.titles.length?"♛ "+p.titles.length:"",W-56,y);ctx.textAlign="left";
     ctx.fillStyle=C.line;ctx.fillRect(56,y+20,W-112,1)});
   return cv}
