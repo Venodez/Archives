@@ -1,0 +1,385 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Aphrite · Ranked Redliner</title>
+<meta name="description" content="Aphrite, the ranked Redliner community: the full player ranking and every past tournament champion.">
+<meta name="theme-color" content="#0c0a08">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Aphrite">
+<meta property="og:title" content="Aphrite · Ranked Redliner">
+<meta property="og:description" content="The full player ranking and every past tournament champion.">
+<meta property="og:image" content="og.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="favicon.png" type="image/png">
+<link rel="apple-touch-icon" href="favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,500..900;1,6..96,500..900&family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap">
+<style>
+/* Aphrite: a back room after midnight. Smoke-black, nicotine cream, one lamp of gold. The ranking is the family ledger; champions hang on the wall. */
+:root{
+  --ink:#0b0907;--room:#120f0c;--paper:#1a1511;--line:#342a20;--line2:#4a3c2c;
+  --cream:#ede2c8;--cream2:#c9bb9c;--muted:#8f8269;
+  --gold:#d4a64c;--gold2:#f1d48c;--silver:#c8c3b8;--bronze:#b97a48;--neon:#e8432f;
+  --f-disp:"Bodoni Moda","Didot","Bodoni 72",Georgia,serif;
+  --f-type:"Courier Prime","Courier New",ui-monospace,monospace;
+  --ease:cubic-bezier(.2,.8,.2,1);
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{background:var(--ink)}
+body{margin:0;background:var(--ink);color:var(--cream);font:400 15px/1.6 var(--f-type);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+body::after{content:"";position:fixed;inset:0;z-index:200;pointer-events:none;opacity:.07;mix-blend-mode:overlay;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+.disp{font-family:var(--f-disp);font-weight:800;letter-spacing:-.01em;line-height:.95}
+.small{font-size:12.5px;color:var(--muted)}
+html.lock,html.lock body{overflow:hidden}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:46px;padding:0 22px;border:1px solid var(--gold);background:var(--gold);color:#1a1206;font:700 14px/1 var(--f-type);letter-spacing:.04em;text-decoration:none;transition:background .2s,color .2s,border-color .2s}
+.btn:hover{background:var(--gold2);border-color:var(--gold2)}
+.btn.ghost{background:transparent;color:var(--cream);border-color:var(--line2)}
+.btn.ghost:hover{border-color:var(--gold);color:var(--gold2)}
+.btn svg{width:18px;height:18px;fill:currentColor}
+
+/* ============ COVER ============ */
+.cv{position:fixed;inset:0;z-index:50;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);background:var(--ink);overflow:hidden}
+.cv-art{position:relative;order:2;margin:0;overflow:hidden}
+.cv-art img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:60% 50%;animation:lampon 2.4s var(--ease) both}
+@keyframes lampon{0%{opacity:0;filter:brightness(.2) saturate(.6)}35%{opacity:1;filter:brightness(.55)}45%{filter:brightness(.35)}100%{opacity:1;filter:none}}
+.cv-art::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,var(--ink) 0%,rgba(11,9,7,.35) 18%,transparent 40%),linear-gradient(0deg,rgba(11,9,7,.85),transparent 30%)}
+.cv-copy{position:relative;z-index:2;display:flex;flex-direction:column;justify-content:center;gap:26px;padding:max(28px,env(safe-area-inset-top)) clamp(24px,5vw,72px) max(28px,env(safe-area-inset-bottom))}
+.cv-top{position:absolute;top:max(22px,env(safe-area-inset-top));left:clamp(24px,5vw,72px);right:clamp(24px,5vw,72px);display:flex;justify-content:space-between;align-items:center;gap:16px}
+.mark{font-family:var(--f-disp);font-style:italic;font-weight:900;font-size:22px;letter-spacing:.02em;color:var(--cream)}
+.mark i{font-style:normal;color:var(--gold)}
+.cv h1{margin:0;font-size:clamp(64px,9vw,148px);font-style:italic;font-weight:900;color:var(--cream)}
+.cv h1 span{display:block;margin-top:1.7em;font-size:.2em;font-style:normal;font-weight:600;letter-spacing:.3em;text-transform:uppercase;color:var(--gold)}
+.lead{margin:0;max-width:40ch;font-size:16px;line-height:1.65;color:var(--cream2)}
+.cta{display:flex;flex-wrap:wrap;gap:12px}
+.cv-facts{display:flex;flex-wrap:wrap;gap:16px 40px;padding-top:22px;border-top:1px solid var(--line)}
+.fact b{display:block;font-family:var(--f-disp);font-weight:800;font-size:34px;line-height:1;color:var(--cream)}
+.fact span{font-size:12.5px;color:var(--muted)}
+.fact.champ b{font-style:italic;color:var(--gold2)}
+.credit{margin:0;font-size:12.5px;color:var(--muted)}
+.credit b{color:var(--cream2);font-weight:700}
+
+/* ============ SITE ============ */
+.nav{position:sticky;top:0;z-index:20;background:rgba(11,9,7,.88);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.nav-in{max-width:1120px;margin:0 auto;padding:0 20px;height:62px;display:flex;align-items:center;gap:18px}
+.nav .mark{background:none;border:0;padding:0}
+.tabs{display:flex;gap:4px;margin-left:auto}
+.tab{background:none;border:0;padding:8px 14px;font:700 13.5px var(--f-type);letter-spacing:.04em;color:var(--muted);border-bottom:2px solid transparent}
+.tab:hover{color:var(--cream)}
+.tab[aria-selected="true"]{color:var(--gold2);border-bottom-color:var(--gold)}
+.iconbtn{width:40px;height:40px;display:grid;place-items:center;border:1px solid var(--line2);background:transparent;color:var(--cream2);text-decoration:none}
+.iconbtn:hover{border-color:var(--gold);color:var(--gold2)}
+.iconbtn svg{width:18px;height:18px;fill:currentColor}
+.wrap{max-width:1120px;margin:0 auto;padding:0 20px 64px}
+.ph{padding:clamp(34px,6vw,64px) 0 26px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px 40px;align-items:end;border-bottom:1px solid var(--line)}
+.ph h2{margin:0;padding-bottom:.14em;font-size:clamp(48px,8vw,92px);font-style:italic;font-weight:900}
+.ph p{margin:12px 0 0;max-width:56ch;color:var(--cream2)}
+.note{margin:18px 0 0;padding:10px 14px;border-left:3px solid var(--neon);background:rgba(232,67,47,.08);font-size:13px;color:var(--cream2)}
+
+/* podium */
+.podium{display:grid;grid-template-columns:1fr 1.15fr 1fr;gap:16px;align-items:end;margin:34px 0 10px}
+.pod{position:relative;padding:22px 20px 20px;background:var(--paper);border:1px solid var(--line);text-align:center;cursor:pointer;transition:border-color .2s,transform .25s var(--ease)}
+.pod:hover{border-color:var(--c);transform:translateY(-3px)}
+.pod.p1{--c:var(--gold);padding-top:34px;background:linear-gradient(180deg,rgba(212,166,76,.14),var(--paper) 55%);border-color:rgba(212,166,76,.5)}
+.pod.p2{--c:var(--silver)}
+.pod.p3{--c:var(--bronze)}
+.chip{width:58px;height:58px;margin:0 auto 14px;display:grid;place-items:center;border-radius:50%;background:var(--c);color:#14100a;font:900 24px/1 var(--f-disp);box-shadow:inset 0 0 0 4px rgba(0,0,0,.25),inset 0 0 0 7px var(--c),inset 0 0 0 9px rgba(255,255,255,.45)}
+.pod.p1 .chip{width:72px;height:72px;font-size:30px}
+.pod .nm{font-family:var(--f-disp);font-weight:800;font-size:clamp(22px,2.6vw,32px);line-height:1.05;overflow-wrap:anywhere}
+.pod.p1 .nm{font-style:italic;font-size:clamp(28px,3.4vw,42px);color:var(--gold2)}
+.pod .pts{margin-top:8px;font-size:13px;color:var(--cream2)}
+.pod .pts b{font-size:18px;color:var(--cream)}
+.pod .tier{margin-top:6px;font-size:12px;color:var(--muted)}
+
+/* filters */
+.filters{position:sticky;top:62px;z-index:10;display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;padding:14px 0;background:var(--ink);border-bottom:1px solid var(--line)}
+.search{flex:1 1 220px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--line2);padding:6px 0}
+.search svg{width:16px;height:16px;stroke:var(--muted);fill:none;stroke-width:2}
+.search input{flex:1;min-width:0;border:0;background:transparent;outline:none;font-size:15px}
+.search input::placeholder{color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chipf{height:32px;padding:0 12px;border:1px solid var(--line2);background:transparent;font-size:12.5px;color:var(--cream2)}
+.chipf:hover{border-color:var(--gold)}
+.chipf.on{background:var(--gold);border-color:var(--gold);color:#1a1206}
+.count{margin-left:auto;font-size:12.5px;color:var(--muted)}
+
+/* the ledger */
+.ledger{margin-top:6px}
+.lh,.lr{display:grid;grid-template-columns:64px minmax(0,1fr) 110px 110px 90px 70px;gap:14px;align-items:center}
+.lh{padding:14px 12px 8px;font-size:12px;color:var(--muted)}
+.lh .r,.lr .r{text-align:right}
+.lr{padding:13px 12px;border-bottom:1px dashed var(--line);cursor:pointer;transition:background .15s}
+.lr:hover,.lr:focus-visible{background:rgba(212,166,76,.07);outline:none}
+.lr .rk{font:700 20px/1 var(--f-type);color:var(--muted)}
+.lr.top .rk{color:var(--gold)}
+.lr .who{min-width:0}
+.lr .who b{display:block;font-family:var(--f-disp);font-weight:800;font-size:22px;line-height:1.1;overflow-wrap:anywhere}
+.lr .who span{font-size:12px;color:var(--muted)}
+.lr .pts{font:700 18px/1 var(--f-type)}
+.lr .wl{font-size:14px;color:var(--cream2)}
+.lr .wr{font-size:14px}
+.lr .ti{font-size:14px;color:var(--gold2)}
+.empty{padding:40px 12px;color:var(--muted)}
+
+/* champions */
+.most{display:flex;flex-wrap:wrap;gap:10px;margin:28px 0 8px}
+.most button{display:inline-flex;align-items:baseline;gap:10px;padding:10px 14px;border:1px solid var(--line2);background:var(--paper);text-align:left}
+.most button:hover{border-color:var(--gold)}
+.most b{font-family:var(--f-disp);font-style:italic;font-weight:800;font-size:20px;color:var(--cream)}
+.most span{font-size:13px;color:var(--gold2)}
+.wall{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin-top:22px}
+.frame{position:relative;padding:22px;background:var(--paper);border:1px solid var(--line);box-shadow:inset 0 0 0 6px var(--ink),inset 0 0 0 7px var(--line2)}
+.frame .when{font-size:12.5px;color:var(--muted)}
+.frame h3{margin:6px 0 14px;font:700 15px/1.35 var(--f-type);color:var(--cream2)}
+.frame .win{font-family:var(--f-disp);font-style:italic;font-weight:900;font-size:clamp(30px,3.6vw,40px);line-height:1;color:var(--gold2);cursor:pointer;background:none;border:0;padding:0;text-align:left}
+.frame .win:hover{color:var(--cream)}
+.frame .lbl{display:block;margin-top:4px;font-size:12px;color:var(--muted)}
+.frame dl{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;margin:16px 0 0;padding-top:12px;border-top:1px dashed var(--line);font-size:13px}
+.frame dt{color:var(--muted)}
+.frame dd{margin:0;color:var(--cream2)}
+.frame .crown{position:absolute;top:16px;right:18px;color:var(--gold);font-size:20px}
+
+/* drawer */
+.scrim{position:fixed;inset:0;z-index:70;background:rgba(0,0,0,.6);opacity:0;pointer-events:none;transition:opacity .3s}
+.scrim.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;bottom:0;z-index:71;width:min(460px,100%);background:var(--room);border-left:1px solid var(--line2);padding:calc(18px + env(safe-area-inset-top)) 24px 24px;overflow-y:auto;transform:translateX(104%);visibility:hidden;transition:transform .45s var(--ease),visibility 0s .45s}
+.drawer.on{transform:none;visibility:visible;transition:transform .45s var(--ease),visibility 0s}
+.dr-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+.drawer h3{margin:0;font-family:var(--f-disp);font-style:italic;font-weight:900;font-size:clamp(40px,9vw,58px);line-height:1;overflow-wrap:anywhere}
+.drawer .sub{margin-top:8px;color:var(--gold2);font-size:13.5px}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:1px;margin:22px 0;background:var(--line);border:1px solid var(--line)}
+.stats div{background:var(--paper);padding:14px}
+.stats b{display:block;font:700 26px/1 var(--f-type)}
+.stats span{font-size:12px;color:var(--muted)}
+.titles{margin:0;padding:0;list-style:none}
+.titles li{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px dashed var(--line);font-size:13.5px}
+.titles li span:last-child{color:var(--muted);white-space:nowrap}
+
+footer{margin-top:64px;padding-top:18px;border-top:1px solid var(--line);display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px 24px;font-size:12.5px;color:var(--muted)}
+
+@media (max-width:900px){
+  .cv{grid-template-columns:1fr;grid-template-rows:42vh 1fr;overflow-y:auto}
+  .cv-art{order:0}
+  .cv-art::after{background:linear-gradient(0deg,var(--ink) 0%,transparent 55%)}
+  .cv-copy{justify-content:flex-start;gap:20px;padding-top:6px}
+  .cv-top{position:fixed;z-index:3}
+  .cv h1{font-size:0;line-height:0}
+  .cv h1 span{margin:0;font-size:15px;line-height:1.2}
+  .ph{grid-template-columns:1fr}
+}
+@media (max-width:720px){
+  .podium{gap:8px;margin-top:24px}
+  .pod{padding:14px 8px 12px}.pod.p1{padding-top:18px}
+  .chip{width:40px;height:40px;font-size:18px;margin-bottom:10px}.pod.p1 .chip{width:48px;height:48px;font-size:21px}
+  .pod .nm{font-size:17px}.pod.p1 .nm{font-size:21px}
+  .pod .pts{font-size:11px}.pod .pts b{font-size:14px;display:block}
+  .pod .tier{font-size:10.5px}
+  .lh{display:none}
+  .lr{grid-template-columns:44px minmax(0,1fr) auto;grid-template-areas:"rk who pts" "rk wl wr";gap:4px 12px}
+  .lr .rk{grid-area:rk}.lr .who{grid-area:who}.lr .pts{grid-area:pts;text-align:right}.lr .wl{grid-area:wl}.lr .wr{grid-area:wr;text-align:right}.lr .ti{display:none}
+  .tab{padding:8px 8px;font-size:12.5px}
+  .nav .iconbtn{display:none}
+  .count{margin-left:0}
+}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<!-- ============ COVER ============ -->
+<section class="cv" id="cover" aria-label="Aphrite welcome screen">
+  <figure class="cv-art"><img src="art/hero.webp" alt="Aphrite artwork: a Roblox mobster at a poker table in a smoky New York bar" width="1254" height="1254" fetchpriority="high"></figure>
+  <div class="cv-top"><span class="mark">Aphrite<i>.</i></span><a class="iconbtn" href="#" data-discord target="_blank" rel="noopener" aria-label="Join the Aphrite Discord" title="Join the Aphrite Discord"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z"/></svg></a></div>
+  <div class="cv-copy">
+    <h1 class="disp">Aphrite<span>Ranked Redliner</span></h1>
+    <p class="lead">Every match counts, every name is written down. The full ranking of the family and every champion who ever took the table.</p>
+    <div class="cta">
+      <button class="btn" type="button" id="goRank">See the ranking</button>
+      <button class="btn ghost" type="button" id="goChamps">Hall of champions</button>
+    </div>
+    <div class="cv-facts" id="facts"></div>
+    <p class="credit">Made by <b>@venodez</b> for the Aphrite community</p>
+  </div>
+</section>
+
+<!-- ============ SITE ============ -->
+<header class="nav">
+  <div class="nav-in">
+    <button class="mark" type="button" id="toCover" aria-label="Back to the welcome screen">Aphrite<i>.</i></button>
+    <nav class="tabs" role="tablist" aria-label="Sections">
+      <button class="tab" role="tab" type="button" id="tab-rank" data-tab="rank" aria-selected="true">Ranking</button>
+      <button class="tab" role="tab" type="button" id="tab-champs" data-tab="champs" aria-selected="false">Champions</button>
+    </nav>
+    <a class="iconbtn" href="#" data-discord target="_blank" rel="noopener" aria-label="Join the Aphrite Discord" title="Join the Aphrite Discord"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z"/></svg></a>
+  </div>
+</header>
+
+<main class="wrap">
+  <section id="p-rank" aria-labelledby="h-rank">
+    <div class="ph">
+      <div><h2 class="disp" id="h-rank">The Ranking</h2><p>Every ranked player in Aphrite, ordered by points. Click a name to see their record and the titles they've won.</p></div>
+      <span class="small" id="updated"></span>
+    </div>
+    <p class="note" id="demo" hidden>These are example players so you can see the layout. The real ranking shows up as soon as the Google Sheet is connected.</p>
+    <div class="podium" id="podium"></div>
+    <div class="filters">
+      <label class="search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input id="q" type="search" placeholder="Find a player" aria-label="Find a player"></label>
+      <div class="chips" id="tiers"></div>
+      <span class="count" id="count"></span>
+    </div>
+    <div class="ledger">
+      <div class="lh" aria-hidden="true"><span>Rank</span><span>Player</span><span class="r">Points</span><span class="r">Wins – Losses</span><span class="r">Win rate</span><span class="r">Titles</span></div>
+      <div id="rows"></div>
+    </div>
+  </section>
+
+  <section id="p-champs" hidden aria-labelledby="h-champs">
+    <div class="ph">
+      <div><h2 class="disp" id="h-champs">Hall of Champions</h2><p>Every Aphrite tournament and the player who walked away with it, newest first.</p></div>
+    </div>
+    <div class="most" id="most"></div>
+    <div class="wall" id="wall"></div>
+  </section>
+
+  <footer>
+    <span>Aphrite is a community project, not affiliated with Redliner or Roblox.</span>
+    <span>Made by @venodez</span>
+  </footer>
+</main>
+
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-label="Player record" aria-hidden="true"></aside>
+
+<script>
+/* =====================================================================
+   DATA
+   Paste the link of the Google Sheet between the quotes (shared as "Anyone with the link: Viewer").
+   Tab "Ranking":     Player | Points | Wins | Losses | Tier   (Tier is optional)
+   Tab "Tournaments": Date | Tournament | Winner | Runner-up | Third | Prize
+   Leave the link empty to show the example players.
+   ===================================================================== */
+const SHEET_URL="";
+const DISCORD_URL="";
+
+/* Example data, only used while no sheet is connected */
+let PLAYERS=[
+ ["Vito",1840,42,9],["Sal",1765,38,12],["Lucky",1710,35,13],["Nicky Blue",1650,31,15],["Frankie",1602,29,16],
+ ["Tommy Two",1555,27,18],["Rocco",1510,24,18],["Carmine",1480,22,19],["Vinnie",1445,21,21],["Mickey",1410,19,20],
+ ["Paulie",1380,18,22],["Benny",1350,16,21],["Johnny Ace",1320,15,23],["Leo",1290,13,22],["Dutch",1260,12,24]
+].map(([name,pts,w,l])=>({name,pts,w,l,tier:""}));
+let TOURNEYS=[
+ ["Oct 4, 2026","Aphrite Open #3","Vito","Lucky","Sal","5,000 value"],
+ ["Sep 20, 2026","Midnight Cup","Sal","Vito","Nicky Blue","Dragora"],
+ ["Sep 6, 2026","Aphrite Open #2","Vito","Frankie","Rocco","3,000 value"],
+ ["Aug 23, 2026","Back Room 1v1","Lucky","Sal","Tommy Two",""],
+ ["Aug 9, 2026","Aphrite Open #1","Nicky Blue","Vito","Lucky","2,000 value"]
+].map(([date,name,win,second,third,prize])=>({date,name,win,second,third,prize}));
+let DEMO=true,UPDATED="";
+
+/* ---------- helpers ---------- */
+const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
+const esc=s=>String(s??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;");
+const fmt=n=>n==null?"—":Number(n).toLocaleString("en-US");
+const norm=s=>String(s||"").trim().toLowerCase();
+const winRate=p=>p.w+p.l?Math.round(p.w/(p.w+p.l)*100):null;
+/* Family ranks by position, used when the sheet has no Tier column */
+const TIERS=[["Boss",1],["Underboss",3],["Capo",10],["Soldier",25],["Associate",Infinity]];
+function tierOf(p,i){if(p.tier)return p.tier;for(const[t,max]of TIERS)if(i+1<=max)return t}
+function titlesOf(name){return TOURNEYS.filter(t=>norm(t.win)===norm(name))}
+function ranked(){return [...PLAYERS].sort((a,b)=>b.pts-a.pts||b.w-a.w||a.name.localeCompare(b.name)).map((p,i)=>({...p,rank:i+1,tierName:tierOf(p,i),titles:titlesOf(p.name).length}))}
+
+/* ---------- ranking ---------- */
+let tierFilter="all";
+function renderRank(){
+  const R=ranked();$("#demo").hidden=!DEMO;
+  $("#updated").textContent=UPDATED?`Updated ${UPDATED}`:"";
+  const pod=R.slice(0,3),order=[1,0,2].filter(i=>pod[i]);
+  $("#podium").innerHTML=order.map(i=>{const p=pod[i];return `<div class="pod p${i+1}" role="button" tabindex="0" data-p="${esc(p.name)}"><div class="chip">${i+1}</div><div class="nm">${esc(p.name)}</div><div class="pts"><b>${fmt(p.pts)}</b> points</div><div class="tier">${esc(p.tierName)}${p.titles?` · ${p.titles} title${p.titles>1?"s":""}`:""}</div></div>`}).join("");
+  const tiers=[...new Set(R.map(p=>p.tierName))];
+  $("#tiers").innerHTML=["all",...tiers].map(t=>`<button class="chipf${t===tierFilter?" on":""}" type="button" data-t="${esc(t)}">${t==="all"?"Everyone":esc(t)}</button>`).join("");
+  const q=norm($("#q").value);
+  const L=R.filter(p=>(tierFilter==="all"||p.tierName===tierFilter)&&(!q||norm(p.name).includes(q)));
+  $("#rows").innerHTML=L.length?L.map(p=>{const wr=winRate(p);return `<div class="lr${p.rank<=3?" top":""}" role="button" tabindex="0" data-p="${esc(p.name)}">
+    <span class="rk">${String(p.rank).padStart(2,"0")}</span>
+    <span class="who"><b>${esc(p.name)}</b><span>${esc(p.tierName)}</span></span>
+    <span class="pts r">${fmt(p.pts)}</span>
+    <span class="wl r">${p.w} – ${p.l}</span>
+    <span class="wr r">${wr==null?"—":wr+"%"}</span>
+    <span class="ti r">${p.titles?"♛ "+p.titles:""}</span></div>`}).join(""):`<div class="empty">No player matches “${esc($("#q").value)}”.</div>`;
+  $("#count").textContent=`${L.length} of ${R.length} players`;
+}
+$("#q").oninput=renderRank;
+$("#tiers").onclick=e=>{const b=e.target.closest("[data-t]");if(!b)return;tierFilter=b.dataset.t;renderRank()};
+
+/* ---------- champions ---------- */
+function renderChamps(){
+  const count={};TOURNEYS.forEach(t=>{if(t.win)count[t.win]=(count[t.win]||0)+1});
+  const top=Object.entries(count).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0]));
+  $("#most").innerHTML=top.map(([n,c])=>`<button type="button" data-p="${esc(n)}"><b>${esc(n)}</b><span>${"♛".repeat(Math.min(c,5))} ${c} title${c>1?"s":""}</span></button>`).join("");
+  $("#wall").innerHTML=TOURNEYS.length?TOURNEYS.map((t,i)=>`<article class="frame">${i===0?'<span class="crown" title="Latest champion">♛</span>':""}
+    <span class="when">${esc(t.date)}</span><h3>${esc(t.name)}</h3>
+    <button class="win" type="button" data-p="${esc(t.win)}">${esc(t.win)}</button><span class="lbl">Champion</span>
+    <dl>${t.second?`<dt>Runner-up</dt><dd>${esc(t.second)}</dd>`:""}${t.third?`<dt>Third</dt><dd>${esc(t.third)}</dd>`:""}${t.prize?`<dt>Prize</dt><dd>${esc(t.prize)}</dd>`:""}</dl></article>`).join(""):`<div class="empty">No tournament yet.</div>`;
+}
+
+/* ---------- player record ---------- */
+const X_ICON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+function openPlayer(name){
+  const p=ranked().find(x=>norm(x.name)===norm(name)),won=titlesOf(name),podiums=TOURNEYS.filter(t=>norm(t.second)===norm(name)||norm(t.third)===norm(name));
+  const d=$("#drawer");
+  d.innerHTML=`<div class="dr-top"><span class="small">Player record</span><button class="iconbtn" type="button" id="drClose" aria-label="Close">${X_ICON}</button></div>
+    <h3>${esc(p?p.name:name)}</h3><div class="sub">${p?`#${p.rank} · ${esc(p.tierName)}`:"Not in the current ranking"}</div>
+    ${p?`<div class="stats"><div><b>${fmt(p.pts)}</b><span>Points</span></div><div><b>${winRate(p)==null?"—":winRate(p)+"%"}</b><span>Win rate</span></div><div><b>${p.w}</b><span>Wins</span></div><div><b>${p.l}</b><span>Losses</span></div></div>`:""}
+    <p class="small" style="margin:18px 0 6px">Titles (${won.length})</p>
+    ${won.length?`<ul class="titles">${won.map(t=>`<li><span>♛ ${esc(t.name)}</span><span>${esc(t.date)}</span></li>`).join("")}</ul>`:`<p style="margin:0;color:var(--cream2)">No title yet.</p>`}
+    ${podiums.length?`<p class="small" style="margin:18px 0 6px">Other podiums</p><ul class="titles">${podiums.map(t=>`<li><span>${norm(t.second)===norm(name)?"2nd":"3rd"} · ${esc(t.name)}</span><span>${esc(t.date)}</span></li>`).join("")}</ul>`:""}`;
+  d.classList.add("on");d.setAttribute("aria-hidden","false");$("#scrim").classList.add("on");$("#drClose").onclick=closeDrawer;$("#drClose").focus();
+}
+function closeDrawer(){$("#drawer").classList.remove("on");$("#drawer").setAttribute("aria-hidden","true");$("#scrim").classList.remove("on")}
+$("#scrim").onclick=closeDrawer;addEventListener("keydown",e=>{if(e.key==="Escape")closeDrawer()});
+document.addEventListener("click",e=>{const el=e.target.closest("[data-p]");if(el&&!e.target.closest("#drawer"))openPlayer(el.dataset.p)});
+document.addEventListener("keydown",e=>{const el=e.target.closest&&e.target.closest("[data-p][role=button]");if(el&&(e.key==="Enter"||e.key===" ")){e.preventDefault();openPlayer(el.dataset.p)}});
+
+/* ---------- tabs and cover ---------- */
+function show(tab){["rank","champs"].forEach(t=>{$("#p-"+t).hidden=t!==tab;$("#tab-"+t).setAttribute("aria-selected",t===tab)});}
+$$(".tab").forEach(b=>b.onclick=()=>{show(b.dataset.tab);scrollTo(0,0)});
+const cover=$("#cover"),root=document.documentElement;
+function enter(tab){show(tab);scrollTo(0,0);const done=()=>{cover.hidden=true;root.classList.remove("lock")};
+  if(matchMedia("(prefers-reduced-motion: reduce)").matches||!cover.animate){done();return}
+  cover.animate([{opacity:1},{opacity:0}],{duration:450,easing:"ease-out"}).onfinish=done}
+$("#goRank").onclick=()=>enter("rank");$("#goChamps").onclick=()=>enter("champs");
+$("#toCover").onclick=()=>{closeDrawer();cover.hidden=false;root.classList.add("lock");cover.animate&&cover.animate([{opacity:0},{opacity:1}],{duration:350})};
+function renderFacts(){const R=ranked(),last=TOURNEYS[0];
+  $("#facts").innerHTML=`<div class="fact"><b>${R.length}</b><span>Ranked players</span></div><div class="fact"><b>${TOURNEYS.length}</b><span>Tournaments played</span></div>${last?`<div class="fact champ"><b>${esc(last.win)}</b><span>Reigning champion</span></div>`:""}`}
+$$("[data-discord]").forEach(a=>{if(DISCORD_URL)a.href=DISCORD_URL;else a.hidden=true});
+
+/* ---------- Google Sheet ---------- */
+async function readTab(tab){const m=/\/d\/([\w-]{20,})/.exec(SHEET_URL);if(!m)return null;
+  const r=await fetch(`https://docs.google.com/spreadsheets/d/${m[1]}/gviz/tq?tqx=out:json&headers=1&sheet=${encodeURIComponent(tab)}&t=${Date.now()}`,{cache:"no-store"});
+  const t=await r.text(),j=JSON.parse(t.slice(t.indexOf("{"),t.lastIndexOf("}")+1));if(j.status==="error")return null;
+  const H=j.table.cols.map(c=>norm(c.label)),col=(...n)=>H.findIndex(h=>n.some(x=>h===x||h.startsWith(x)));
+  const val=c=>{if(!c||c.v==null)return "";const d=/^Date\((\d+),(\d+),(\d+)/.exec(String(c.v));return d?new Date(+d[1],+d[2],+d[3]).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}):String(c.f??c.v).trim()};
+  const num=c=>{if(!c||c.v==null)return 0;const n=typeof c.v==="number"?c.v:parseFloat(String(c.v).replace(/[^\d.-]/g,""));return isFinite(n)?n:0};
+  return {rows:(j.table.rows||[]).map(r=>r.c||[]),col,val,num}}
+async function loadSheet(){if(!SHEET_URL)return;
+  try{const a=await readTab("Ranking");if(a){const c={n:a.col("player","name","joueur"),p:a.col("points","elo","score"),w:a.col("wins","win","victoires"),l:a.col("losses","loss","défaites","defaites"),t:a.col("tier","rank","rang")};
+      const P=a.rows.map(r=>({name:a.val(r[c.n]),pts:a.num(r[c.p]),w:a.num(r[c.w]),l:a.num(r[c.l]),tier:c.t>=0?a.val(r[c.t]):""})).filter(p=>p.name);if(P.length){PLAYERS=P;DEMO=false}}
+    const b=await readTab("Tournaments");if(b){const c={d:b.col("date"),n:b.col("tournament","name","tournoi"),w:b.col("winner","champion","vainqueur"),s:b.col("runner","second","2nd"),t:b.col("third","3rd","troisième"),p:b.col("prize","reward","prix")};
+      const T=b.rows.map(r=>({date:b.val(r[c.d]),name:b.val(r[c.n]),win:b.val(r[c.w]),second:c.s>=0?b.val(r[c.s]):"",third:c.t>=0?b.val(r[c.t]):"",prize:c.p>=0?b.val(r[c.p]):""})).filter(t=>t.win);
+      if(T.length){TOURNEYS=T.every(t=>Date.parse(t.date))?T.sort((x,y)=>Date.parse(y.date)-Date.parse(x.date)):T.reverse();DEMO=false}}
+    UPDATED=new Date().toLocaleDateString("en-US",{month:"short",day:"numeric"});renderAll()}catch(e){console.warn("Sheet unavailable, showing examples:",e.message)}}
+
+function renderAll(){renderRank();renderChamps();renderFacts()}
+root.classList.add("lock");show("rank");renderAll();loadSheet();
+</script>
+</body>
+</html>
