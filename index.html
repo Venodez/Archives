@@ -378,6 +378,50 @@ select option{background:var(--paper);color:var(--cream)}
 .tab{font-weight:700;letter-spacing:.06em;text-transform:uppercase;font-size:13px}
 .lead{font-size:clamp(15px,1.25vw,17px)}
 body{font-size:15.5px}
+
+/* ---------- motion: the noir set ---------- */
+::selection{background:var(--gold);color:#1a1206}
+html{scrollbar-color:var(--line2) var(--ink)}
+/* venetian blinds: the way in and out of the back room */
+.blinds{position:fixed;inset:0;z-index:150;display:flex;flex-direction:column;perspective:1600px;pointer-events:none;visibility:hidden}
+.blinds.on{visibility:visible;pointer-events:auto}
+.blinds i{flex:1;transform:rotateX(90deg);background:linear-gradient(180deg,#221a12 0%,#0f0c09 45%,#0b0907 78%,#3b2d1b 92%,rgba(241,212,140,.7) 97.5%,#0b0907 100%);box-shadow:0 2px 8px rgba(0,0,0,.6)}
+/* neon sign on the welcome screen */
+.cv-top .it{color:#ff7a62;text-shadow:0 0 5px rgba(232,67,47,.9),0 0 16px rgba(232,67,47,.55),0 0 34px rgba(232,67,47,.3);animation:neon 2.4s .5s both}
+@keyframes neon{0%{opacity:.12;text-shadow:none}7%{opacity:1}9%{opacity:.18;text-shadow:none}13%{opacity:1}15%{opacity:.3}21%,100%{opacity:1}}
+/* cigar smoke drifting over the table */
+.smoke{position:absolute;inset:0;z-index:1;pointer-events:none;overflow:hidden;-webkit-mask-image:radial-gradient(closest-side,#000 55%,transparent);mask-image:radial-gradient(closest-side,#000 55%,transparent)}
+.smoke i{position:absolute;bottom:-35%;width:62%;height:62%;border-radius:50%;background:radial-gradient(closest-side,rgba(237,226,200,.09),rgba(237,226,200,.03) 55%,transparent 72%);animation:smoke 20s linear infinite}
+.smoke i:nth-child(1){left:4%;animation-delay:-3s}
+.smoke i:nth-child(2){left:34%;animation-duration:25s;animation-delay:-11s}
+.smoke i:nth-child(3){left:58%;animation-duration:29s;animation-delay:-19s}
+@keyframes smoke{0%{transform:translate(0,0) scale(.75);opacity:0}18%{opacity:1}100%{transform:translate(-14%,-175%) scale(1.7);opacity:0}}
+.cv-art img{position:relative;z-index:0}
+/* tabs: a gold line drawn under the open page */
+.tab{position:relative;border-bottom:0!important}
+.tab::after{content:"";position:absolute;left:12%;right:12%;bottom:-1px;height:2px;background:var(--gold);transform:scaleX(0);transition:transform .35s var(--ease)}
+.tab[aria-selected="true"]::after{transform:scaleX(1)}
+/* poker chips flip when you point at them */
+.pod .chip{transform-style:preserve-3d}
+@media (hover:hover){.pod:hover .chip{animation:chipflip .8s cubic-bezier(.3,.7,.3,1)}}
+@keyframes chipflip{to{transform:rotateY(360deg)}}
+/* the player record is a dossier: it lands on the desk and gets stamped */
+.drawer{transform:translateX(104%) rotate(2.5deg);transform-origin:0 100%}
+.drawer.on{transform:none}
+.ink{position:absolute;top:66px;right:22px;padding:7px 12px 5px;border:3px solid var(--neon);border-radius:3px;color:var(--neon);font:700 19px/1 var(--f-num);letter-spacing:.16em;text-transform:uppercase;opacity:.86;transform:rotate(-9deg);pointer-events:none;-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -2.4 2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -2.4 2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");-webkit-mask-size:170px;mask-size:170px}
+.drawer.on .ink{animation:stamp .5s .4s cubic-bezier(.3,1.5,.5,1) both}
+@keyframes stamp{0%{opacity:0;transform:scale(2.7) rotate(-17deg)}55%{opacity:.95;transform:scale(.9) rotate(-9deg)}100%{opacity:.86;transform:scale(1) rotate(-9deg)}}
+/* the lamp comes on above the bracket */
+.modal::before{content:"";position:absolute;left:50%;top:-38vh;width:130vw;height:120vh;transform:translateX(-50%);background:radial-gradient(closest-side,rgba(241,212,140,.16),rgba(241,212,140,.05) 55%,transparent);pointer-events:none;opacity:0}
+.modal.on::before{animation:lamp 1.5s .1s both}
+@keyframes lamp{0%{opacity:0}16%{opacity:1}22%{opacity:.2}31%{opacity:.85}37%{opacity:.35}52%,100%{opacity:1}}
+.modal>*{position:relative}
+.bcol.final .bm.glow{animation:glow 1.6s ease-out}
+@keyframes glow{0%{box-shadow:0 0 0 1px rgba(212,166,76,.35),0 0 0 0 rgba(241,212,140,.0)}35%{box-shadow:0 0 0 1px rgba(241,212,140,.9),0 0 60px 6px rgba(241,212,140,.45)}100%{box-shadow:0 0 0 1px rgba(212,166,76,.35),0 0 30px -10px rgba(212,166,76,.6)}}
+/* duel: the odds bar fills from an even split */
+.odds .bar i:last-child{flex:1}
+/* toast is dealt like a card */
+@keyframes toastIn{from{opacity:0;transform:translate(-50%,26px) rotate(-5deg)}}
 </style>
 </head>
 <body>
@@ -405,7 +449,7 @@ body{font-size:15.5px}
       <p class="credit">Made by <b>@venodez</b> for the Aphrite community</p>
       <p class="report">© 2026 Aphrite. All rights reserved.</p>
     </div>
-    <figure class="cv-art" aria-hidden="true"><img src="art/hero.webp" alt="" width="1254" height="1254" fetchpriority="high"><figcaption><b>Il tavolo</b>the table</figcaption></figure>
+    <figure class="cv-art" aria-hidden="true"><span class="smoke"><i></i><i></i><i></i></span><img src="art/hero.webp" alt="" width="1254" height="1254" fetchpriority="high"><figcaption><b>Il tavolo</b>the table</figcaption></figure>
   </div>
   <div class="tick" aria-label="Top of the ranking"><div class="tick-track" id="tick"></div></div>
 </section>
@@ -551,7 +595,7 @@ function buildSeasons(){const s=[...new Set(MATCHES.map(m=>m.season).filter(Bool
   if(!season||(season!=="all"&&!SEASONS.includes(season)))season=SEASONS[0]||"all";
   const opts=SEASONS.map((x,i)=>`<option value="${esc(x)}">${esc(x)}${i===0?" (current)":""}</option>`).join("")+`<option value="all">All time</option>`;
   $$(".seasonsel").forEach(sel=>{sel.innerHTML=opts;sel.value=season})}
-$$(".seasonsel").forEach(sel=>sel.onchange=()=>{season=sel.value;$$(".seasonsel").forEach(o=>o.value=season);renderAll()});
+$$(".seasonsel").forEach(sel=>sel.onchange=()=>{season=sel.value;$$(".seasonsel").forEach(o=>o.value=season);renderAll();const open=PAGES.find(t=>!$("#p-"+t).hidden);if(open)dealIn(open)});
 const inSeason=m=>season==="all"||m.season===season;
 
 /* ---------- ELO engine ---------- */
@@ -635,7 +679,9 @@ function openBracket(name){const t=tourResults().find(x=>same(x.name,name));if(!
   const card=m=>`<div class="bm"><div class="w"><b>${esc(m.win)}</b><span>${esc((m.score||"").split(/[-–:]/)[0]||"W")}</span></div><div class="l"><span>${esc(m.lose)}</span><span>${esc((m.score||"").split(/[-–:]/)[1]||"")}</span></div></div>`;
   const md=$("#modal");md.innerHTML=`<div class="modal-h"><div><h3>${esc(t.name)}</h3><p>${esc(pretty(t.date))}${t.win?` · Champion: ${esc(t.win)}`:""}</p></div><button class="iconbtn" type="button" id="mdClose" aria-label="Close">${X_ICON}</button></div>
     <div class="bracket">${rounds.map(r=>`<div class="bcol${r==="f"?" final":""}"><h4>${ROUNDS[r]}</h4>${t.matches.filter(m=>m.round===r).map(card).join("")}${r==="f"&&third?`<div class="third"><h4>${ROUNDS.b}</h4>${card(third)}</div>`:""}</div>`).join("")}</div>`;
-  md.classList.add("on");md.setAttribute("aria-hidden","false");$("#mdClose").onclick=closeModal;$("#mdClose").focus()}
+  md.classList.add("on");md.setAttribute("aria-hidden","false");$("#mdClose").onclick=closeModal;$("#mdClose").focus();
+  if(MOTION){const cols=$$(".bcol",md);cols.forEach((c,i)=>c.animate([{opacity:0,transform:"translateY(18px)"},{opacity:1,transform:"none"}],{duration:520,delay:420+i*150,easing:EASE,fill:"backwards"}));
+    const f=$(".bcol.final .bm",md);if(f)setTimeout(()=>f.classList.add("glow"),420+cols.length*150+200)}}
 function closeModal(){const md=$("#modal");md.classList.remove("on");md.setAttribute("aria-hidden","true")}
 
 /* ---------- DUEL ---------- */
@@ -651,15 +697,15 @@ function renderDuel(){
   const pa=Math.round(100/(1+Math.pow(10,(B.elo-A.elo)/400)));
   const row=(k,a,b,hi=true)=>{const best=hi?(a>b?"a":b>a?"b":""):(a<b?"a":b<a?"b":"");return `<tr><td class="${best==="a"?"best":""}">${typeof a==="number"?fmt(a):a}</td><td class="k">${k}</td><td class="${best==="b"?"best":""}">${typeof b==="number"?fmt(b):b}</td></tr>`};
   box.innerHTML=`<div class="h2h"><div class="big${aw>bw?" lead":""}">${aw}</div><div class="mid"><b>Head to head</b>${met.length?`${met.length} meeting${met.length>1?"s":""}, all seasons`:"They have never played each other"}</div><div class="big${bw>aw?" lead":""}">${bw}</div></div>
-    <div class="odds"><div class="bar"><i style="width:${pa}%"></i><i style="width:${100-pa}%"></i></div><div class="lbls"><span>${esc(A.name)} ${pa}%</span><span>Chance to win the next match, by ELO</span><span>${100-pa}% ${esc(B.name)}</span></div></div>
+    <div class="odds"><div class="bar"><i style="width:${pa}%"></i><i></i></div><div class="lbls"><span>${esc(A.name)} ${pa}%</span><span>Chance to win the next match, by ELO</span><span>${100-pa}% ${esc(B.name)}</span></div></div>
     <table class="cmp">${row("Rank",`#${A.rank}`,`#${B.rank}`,false).replace(/class="best"/g,"").replace(/<td class="">/g,"<td>")}${row("ELO",A.elo,B.elo)}${row("Peak ELO",A.peak,B.peak)}${row("Wins",A.w,B.w)}${row("Win rate",(winRate(A)??0)+"%",(winRate(B)??0)+"%")}${row("Titles",A.titles.length,B.titles.length)}</table>
     ${met.length?`<p class="small" style="margin:26px 0 6px">Every meeting</p><ul class="titles">${[...met].reverse().map(m=>`<li><span><b style="color:var(--gold2)">${esc(m.win)}</b> beat ${esc(m.lose)} ${esc(m.score)}${m.tour?` · ${esc(m.tour)}`:""}</span><span>${esc(pretty(m.date))}</span></li>`).join("")}</ul>`:""}`;
   // fix rank row highlighting (lower rank number is better)
   const r=box.querySelector(".cmp tr");if(r){const c=r.children;c[A.rank<B.rank?0:2].classList.add("best")}
   const wr=box.querySelectorAll(".cmp tr")[4];if(wr){const a=winRate(A)??0,b=winRate(B)??0;wr.children[0].className=a>b?"best":"";wr.children[2].className=b>a?"best":""}
 }
-$("#dA").onchange=renderDuel;$("#dB").onchange=renderDuel;
-function duelWith(name){const other=LIST.find(p=>!same(p.name,name));closeDrawer();show("duel");$("#dA").value=name;if(same($("#dB").value,name)&&other)$("#dB").value=other.name;renderDuel();scrollTo(0,0)}
+$("#dA").onchange=()=>{renderDuel();duelReveal()};$("#dB").onchange=()=>{renderDuel();duelReveal()};
+function duelWith(name){const other=LIST.find(p=>!same(p.name,name));closeDrawer();$("#dA").value=name;if(same($("#dB").value,name)&&other)$("#dB").value=other.name;show("duel");scrollTo(0,0)}
 
 /* ---------- player record ---------- */
 const X_ICON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M6 6l12 12M18 6L6 18"/></svg>';
@@ -670,7 +716,7 @@ function eloChart(p){const h=p.hist;if(h.length<3)return "";const W=400,H=120,pa
 function openPlayer(name){
   const p=pOf(name),d=$("#drawer");
   const recent=MATCHES.filter(m=>inSeason(m)&&(same(m.win,name)||same(m.lose,name))).slice(-8).reverse();
-  d.innerHTML=`<div class="dr-top"><span class="small">Player record${season!=="all"?` · ${esc(season)}`:" · all time"}</span><button class="iconbtn" type="button" id="drClose" aria-label="Close">${X_ICON}</button></div>
+  d.innerHTML=`${p?`<div class="ink" aria-hidden="true">${esc(p.tier)}</div>`:""}<div class="dr-top"><span class="small">${p?`File No. ${String(p.rank).padStart(3,"0")}`:"Player record"}${season!=="all"?` · ${esc(season)}`:" · all time"}</span><button class="iconbtn" type="button" id="drClose" aria-label="Close">${X_ICON}</button></div>
     <h3>${esc(p?p.name:name)}</h3><div class="sub">${p?`#${p.rank} · ${esc(p.tier)}${p.streak&&p.streak.n>=2?` · ${p.streak.n} ${p.streak.x==="w"?"wins":"losses"} in a row`:""}`:"No match this season"}</div>
     ${p?`<div class="stats"><div><b>${fmt(p.elo)}</b><span>ELO</span></div><div><b>${winRate(p)??"—"}%</b><span>Win rate</span></div><div><b>${p.w}</b><span>Wins</span></div><div><b>${p.l}</b><span>Losses</span></div></div>${eloChart(p)}`:""}
     <p class="small" style="margin:18px 0 6px">Titles (${p?p.titles.length:0})</p>
@@ -690,16 +736,51 @@ document.addEventListener("click",e=>{const b=e.target.closest("[data-bracket]")
   const el=e.target.closest("[data-p]");if(el&&!e.target.closest("#drawer"))openPlayer(el.dataset.p)});
 document.addEventListener("keydown",e=>{const el=e.target.closest&&e.target.closest("[data-p][role=button]");if(el&&(e.key==="Enter"||e.key===" ")){e.preventDefault();openPlayer(el.dataset.p)}});
 
+
+/* ---------- motion: blinds, smoke, dealt cards, tossed chips, flipped cards ---------- */
+const MOTION=!matchMedia("(prefers-reduced-motion: reduce)").matches&&!!Element.prototype.animate;
+const EASE="cubic-bezier(.2,.8,.2,1)";
+const blindsEl=document.createElement("div");blindsEl.className="blinds";blindsEl.setAttribute("aria-hidden","true");blindsEl.innerHTML="<i></i>".repeat(14);document.body.appendChild(blindsEl);
+let blindsBusy=false;
+async function throughBlinds(swap){
+  if(!MOTION||blindsBusy){swap();return}
+  blindsBusy=true;const S=[...blindsEl.children],e="cubic-bezier(.55,0,.35,1)";blindsEl.classList.add("on");
+  try{
+    await Promise.all(S.map((x,i)=>x.animate([{transform:"rotateX(88deg)",filter:"brightness(2.4)"},{transform:"rotateX(0deg)",filter:"brightness(1)"}],{duration:330,delay:i*19,easing:e,fill:"forwards"}).finished));
+    swap();await new Promise(r=>setTimeout(r,110));
+    await Promise.all(S.map((x,i)=>x.animate([{transform:"rotateX(0deg)",filter:"brightness(1)"},{transform:"rotateX(-88deg)",filter:"brightness(2.4)"}],{duration:360,delay:i*19,easing:e,fill:"forwards"}).finished));
+  }catch(err){}
+  S.forEach(x=>x.getAnimations().forEach(a=>a.cancel()));blindsEl.classList.remove("on");blindsBusy=false}
+function deal(els,o={}){if(!MOTION)return;els.slice(0,o.max||14).forEach((el,i)=>el.animate(o.kf||[{opacity:0,transform:"translateX(54px) rotate(2deg)"},{opacity:1,transform:"none"}],{duration:o.dur||430,delay:(o.wait||0)+i*(o.step||26),easing:EASE,fill:"backwards"}))}
+function swing(els){if(!MOTION)return;els.slice(0,9).forEach((el,i)=>{el.style.transformOrigin="50% -16px";el.animate([{opacity:0,transform:"translateY(-16px) rotate(-6deg)"},{opacity:1,offset:.42,transform:"rotate(2.6deg)"},{offset:.72,transform:"rotate(-1.1deg)"},{transform:"rotate(0)"}],{duration:950,delay:160+i*95,easing:"ease-out",fill:"backwards"})})}
+function countUp(el,from,to,dur=900,delay=0){if(!MOTION){el.textContent=fmt(to);return}const t0=performance.now()+delay;el.textContent=fmt(from);
+  const step=()=>{const k=Math.min(1,Math.max(0,(performance.now()-t0)/dur)),e=1-Math.pow(1-k,3);el.textContent=fmt(from+(to-from)*e);if(k<1)requestAnimationFrame(step)};requestAnimationFrame(step)}
+function tossChips(){if(!MOTION)return;["p3","p2","p1"].forEach((c,i)=>{const pod=$("#podium .pod."+c);if(!pod)return;const chip=$(".chip",pod),b=$(".pts b",pod),d=120+i*170;
+  pod.animate([{opacity:0,transform:"translateY(18px)"},{opacity:1,transform:"none"}],{duration:520,delay:i*170,easing:EASE,fill:"backwards"});
+  chip.animate([{opacity:0,transform:"translateY(-110px) rotateY(900deg) scale(1.15)"},{opacity:1,offset:.55,transform:"translateY(5px) rotateY(60deg) scale(1)"},{offset:.74,transform:"translateY(-7px) rotateY(0deg)"},{offset:.88,transform:"translateY(1px)"},{transform:"none"}],{duration:1000,delay:d,easing:"cubic-bezier(.3,.7,.3,1)",fill:"backwards"});
+  const p=LIST[+c.slice(1)-1];if(b&&p)countUp(b,START_ELO,p.elo,900,d+300)})}
+function smokeIn(pg){const wm=$(".wm",pg),head=$(".ph>div:not(.ph-r)",pg);
+  if(wm)wm.animate([{opacity:0,filter:"blur(18px)",transform:"translateY(22px) scale(1.05)"},{opacity:1,filter:"blur(0px)",transform:"none"}],{duration:1200,easing:EASE});
+  if(head)head.animate([{opacity:0,transform:"translateY(14px)"},{opacity:1,transform:"none"}],{duration:520,easing:EASE})}
+function dealIn(tab){if(!MOTION||!cover.hidden&&!blindsBusy)return;const pg=$("#p-"+tab);if(!pg)return;smokeIn(pg);if(tab==="duel")duelReveal();
+  if(tab==="rank"){tossChips();deal($$("#rows .lr"),{wait:380})}
+  else if(tab==="matches")deal($$("#mlist .mrow, #mlist .mday"),{wait:180,step:22})
+  else if(tab==="champs"){deal($$("#most button"),{kf:[{opacity:0,transform:"translateY(10px)"},{opacity:1,transform:"none"}],step:60,wait:120});swing($$("#wall .frame"))}
+  else if(tab==="info")deal($$("#p-info .gl-g"),{kf:[{opacity:0,transform:"translateY(18px)"},{opacity:1,transform:"none"}],step:80,wait:150,dur:520})}
+function duelReveal(){if(!MOTION)return;const box=$("#duel");
+  $$(".h2h .big",box).forEach((el,i)=>el.animate([{opacity:0,transform:"perspective(700px) rotateY(-115deg)"},{opacity:1,transform:"perspective(700px) rotateY(0deg)"}],{duration:680,delay:140+i*160,easing:EASE,fill:"backwards"}));
+  const g=$(".odds .bar i",box);if(g)g.animate([{width:"50%"},{width:g.style.width}],{duration:1000,delay:380,easing:EASE,fill:"backwards"});
+  deal($$(".cmp tr",box),{kf:[{opacity:0,transform:"translateX(-12px)"},{opacity:1,transform:"none"}],wait:420,step:50,dur:380});
+  $(".duel-pick .vs").animate([{opacity:0,transform:"scale(1.9) rotate(-14deg)"},{opacity:1,transform:"none"}],{duration:460,easing:"cubic-bezier(.3,1.5,.5,1)"})}
+
 /* ---------- tabs and cover ---------- */
 const PAGES=["rank","matches","champs","duel","info"];
-function show(tab){PAGES.forEach(t=>{$("#p-"+t).hidden=t!==tab;$("#tab-"+t).setAttribute("aria-selected",t===tab)});if(tab==="duel")renderDuel()}
+function show(tab){PAGES.forEach(t=>{$("#p-"+t).hidden=t!==tab;$("#tab-"+t).setAttribute("aria-selected",t===tab)});if(tab==="duel")renderDuel();dealIn(tab)}
 $$(".tab").forEach(b=>b.onclick=()=>{show(b.dataset.tab);scrollTo(0,0)});
 const cover=$("#cover"),root=document.documentElement;
-function enter(tab){show(tab);scrollTo(0,0);const done=()=>{cover.hidden=true;root.classList.remove("lock")};
-  if(matchMedia("(prefers-reduced-motion: reduce)").matches||!cover.animate){done();return}
-  cover.animate([{opacity:1},{opacity:0}],{duration:450,easing:"ease-out"}).onfinish=done}
+function enter(tab){throughBlinds(()=>{cover.hidden=true;root.classList.remove("lock");scrollTo(0,0);show(tab)})}
 $$("[data-go]").forEach(b=>b.onclick=()=>enter(b.dataset.go));
-$("#toCover").onclick=()=>{closeDrawer();cover.hidden=false;root.classList.add("lock");fitCover();cover.animate&&cover.animate([{opacity:0},{opacity:1}],{duration:350})};
+$("#toCover").onclick=()=>{closeDrawer();throughBlinds(()=>{cover.hidden=false;root.classList.add("lock");fitCover()})};
 function renderFacts(){const T=tourResults(),last=T.find(t=>t.win),n=MATCHES.filter(inSeason).length;
   $("#facts").innerHTML=`<div class="fact"><b>${LIST.length}</b><span>Ranked players${season!=="all"?` · ${esc(season)}`:""}</span></div><div class="fact"><b>${fmt(n)}</b><span>Matches played</span></div>${last?`<div class="fact champ"><b>${esc(last.win)}</b><span>Reigning champion</span></div>`:""}`}
 $$("[data-discord]").forEach(a=>{if(DISCORD_URL)a.href=DISCORD_URL;else a.hidden=true});
