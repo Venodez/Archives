@@ -147,19 +147,9 @@ const T = {};
   [c, x] = makeCanvas(256, 256); x.fillStyle = '#16161b'; x.fillRect(0, 0, 256, 256); noise(x, 256, 256, 5000, '#2a2a33', '#08080a', .3);
   x.fillStyle = 'rgba(150,150,170,.22)'; for (let i = 0; i < 256; i += 32) x.fillRect(i, 0, 1.4, 256);
   T.suit = tex(c, { repeat: [2, 2] });
-  // hat band: cream with the blue stripe at the bottom
-  [c, x] = makeCanvas(512, 64); x.fillStyle = '#e9e4d8'; x.fillRect(0, 0, 512, 64); x.fillStyle = '#2f6fe0'; x.fillRect(0, 44, 512, 20); x.fillStyle = 'rgba(0,0,0,.08)'; x.fillRect(0, 40, 512, 4);
+  // hat band: plain cream
+  [c, x] = makeCanvas(512, 64); x.fillStyle = '#e6e0d2'; x.fillRect(0, 0, 512, 64); x.fillStyle = 'rgba(0,0,0,.12)'; x.fillRect(0, 0, 512, 3); x.fillRect(0, 61, 512, 3);
   T.band = tex(c);
-  // face on the classic head (wraps around, the front is the middle of the image)
-  [c, x] = makeCanvas(2048, 630); x.fillStyle = '#fff'; x.fillRect(0, 0, 2048, 630);
-  x.fillStyle = '#251405'; x.strokeStyle = '#251405'; x.lineCap = 'round';
-  const fx = 1024;
-  x.lineWidth = 30; x.beginPath(); x.moveTo(fx - 165, 196); x.lineTo(fx - 52, 232); x.stroke(); x.beginPath(); x.moveTo(fx + 165, 196); x.lineTo(fx + 52, 232); x.stroke();
-  x.beginPath(); x.ellipse(fx - 104, 290, 44, 24, .05, 0, PI * 2); x.fill(); x.beginPath(); x.ellipse(fx + 104, 290, 44, 24, -.05, 0, PI * 2); x.fill();
-  x.fillStyle = '#fff4d0'; x.beginPath(); x.arc(fx - 92, 283, 7, 0, PI * 2); x.fill(); x.beginPath(); x.arc(fx + 116, 283, 7, 0, PI * 2); x.fill();
-  x.lineWidth = 17; x.beginPath(); x.moveTo(fx - 92, 440); x.quadraticCurveTo(fx - 10, 478, fx + 96, 424); x.stroke();
-  x.lineWidth = 9; x.beginPath(); x.moveTo(fx + 90, 426); x.lineTo(fx + 112, 410); x.stroke();
-  T.face = tex(c);
   // banknote
   [c, x] = makeCanvas(512, 236); const bg = x.createLinearGradient(0, 0, 512, 236); bg.addColorStop(0, '#cfd7b0'); bg.addColorStop(1, '#a5b182'); x.fillStyle = bg; x.fillRect(0, 0, 512, 236);
   noise(x, 512, 236, 3000, '#e8eccf', '#6d7a50', .15);
@@ -276,7 +266,7 @@ const backTex = tex(backCanvas[0], { aniso: 16 });
 /* ---------- materials ---------- */
 const M = {
   gold: new THREE.MeshStandardMaterial({ color: 0xf0bf4a, metalness: .88, roughness: .3 }),
-  head: new THREE.MeshStandardMaterial({ color: 0xf2c24e, metalness: .55, roughness: .34, map: T.face }),
+  head: new THREE.MeshStandardMaterial({ color: 0xf2c24e, metalness: .55, roughness: .34 }),
   suit: new THREE.MeshStandardMaterial({ color: 0xffffff, map: T.suit, roughness: .78, metalness: 0, envMapIntensity: .4 }),
   satin: new THREE.MeshStandardMaterial({ color: 0x1b1b21, roughness: .38, metalness: .1, envMapIntensity: .6 }),
   shirt: new THREE.MeshStandardMaterial({ color: 0xe7e1d3, roughness: .6, envMapIntensity: .4 }),
@@ -302,10 +292,6 @@ const M = {
   cigar: new THREE.MeshStandardMaterial({ color: 0x3a200f, roughness: .78 }),
   ash: new THREE.MeshStandardMaterial({ color: 0x8d8780, roughness: .95 }),
   ember: new THREE.MeshStandardMaterial({ color: 0x220800, emissive: 0xff5a14, emissiveIntensity: 3 }),
-  bird: new THREE.MeshStandardMaterial({ color: 0x2f7fe8, roughness: .45, metalness: .05 }),
-  birdDark: new THREE.MeshStandardMaterial({ color: 0x1a4fae, roughness: .5 }),
-  birdBelly: new THREE.MeshStandardMaterial({ color: 0xb9e0ff, roughness: .55 }),
-  beak: new THREE.MeshStandardMaterial({ color: 0xf2a23a, roughness: .5 }),
   white: new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: .3 }),
   black: new THREE.MeshStandardMaterial({ color: 0x050505, roughness: .3 }),
   shade: new THREE.MeshStandardMaterial({ color: 0x1b4a33, metalness: .15, roughness: .45, envMapIntensity: .22 }),
@@ -369,6 +355,7 @@ const boss = new THREE.Group(); boss.position.set(0, 0, -2.62); scene.add(boss);
 const body = new THREE.Group(); boss.add(body);
 const headPivot = new THREE.Group(); headPivot.position.set(0, 1.86, 0); body.add(headPivot);
 const cigarTip = new THREE.Object3D();
+const ARMS = {};
 {
   mesh(new RoundedBox(2, 2, 1, 4, .07), M.suit, 0, .82, 0, body);
   // shirt, lapels, tie, pocket square
@@ -382,7 +369,7 @@ const cigarTip = new THREE.Object3D();
   const sq = new THREE.Shape(); sq.moveTo(.42, 1.32); sq.lineTo(.62, 1.32); sq.lineTo(.6, 1.42); sq.lineTo(.55, 1.36); sq.lineTo(.5, 1.44); sq.lineTo(.46, 1.36); sq.closePath();
   mesh(new THREE.ShapeGeometry(sq), M.shirt, 0, 0, F + .04, body);
   [.62, .32].forEach(y => mesh(new THREE.CylinderGeometry(.035, .035, .02, 16), M.satin, .08, y, F + .012, body).rotation.x = PI / 2);
-  // classic head with the face
+  // classic head, no face: the hat keeps him a mystery
   const prof = []; const r = .62, h = 1.2, b = .16;
   prof.push([0, 0]);
   for (let k = 0; k <= 6; k++) { const a = -PI / 2 + k / 6 * PI / 2; prof.push([r - b + Math.cos(a) * b, b + Math.sin(a) * b]); }
@@ -392,7 +379,7 @@ const cigarTip = new THREE.Object3D();
   { const uv = hg.attributes.uv, p = hg.attributes.position; for (let i = 0; i < uv.count; i++) uv.setY(i, p.getY(i) / h); }
   mesh(hg, M.head, 0, 0, 0, headPivot);
   // fedora
-  const hat = new THREE.Group(); hat.position.set(0, .95, 0); hat.rotation.set(-.07, 0, .05); headPivot.add(hat);
+  const hat = new THREE.Group(); hat.position.set(0, .9, .02); hat.rotation.set(.24, .14, -.11); headPivot.add(hat);
   const crown = lathe([[.67, 0], [.662, .16], [.64, .33], [.6, .45], [.5, .53], [.32, .565], [.14, .53], [.04, .47], [0, .46]], 48);
   { const p = crown.attributes.position; for (let i = 0; i < p.count; i++) { const y = p.getY(i), z = p.getZ(i); const k = clamp((y - .22) / .34, 0, 1); if (z > 0) p.setX(i, p.getX(i) * (1 - .26 * k * k * (z / .67))); p.setZ(i, z * (1 - .05 * k)); } crown.computeVertexNormals(); }
   mesh(crown, M.hat, 0, 0, 0, hat);
@@ -407,22 +394,13 @@ const cigarTip = new THREE.Object3D();
   mesh(new THREE.CylinderGeometry(.06, .066, .07, 16), M.ash, 0, 0, .8, cg).rotation.x = PI / 2;
   const em = mesh(new THREE.CircleGeometry(.055, 16), M.ember, 0, 0, .837, cg);
   cigarTip.position.set(0, 0, .86); cg.add(cigarTip);
-  // arms: rest on the rail and the felt
-  const armGeo = new RoundedBox(1, 2, 1, 4, .08);
-  [-1, 1].forEach(sd => { const pv = new THREE.Group(); pv.position.set(sd * 1.5, 1.32, 0); pv.rotation.set(-.905, 0, sd * -.04); body.add(pv); mesh(armGeo, M.gold, 0, -.5, 0, pv); });
-  // the blue bird on his shoulder
-  const bird = new THREE.Group(); bird.position.set(-1.02, 1.83, .12); bird.rotation.y = .5; body.add(bird);
-  mesh(new THREE.SphereGeometry(.2, 20, 16), M.bird, 0, .2, 0, bird).scale.set(1.1, 1, 1.25);
-  mesh(new THREE.SphereGeometry(.13, 16, 12), M.birdBelly, 0, .15, .1, bird).scale.set(1, 1.1, .8);
-  const wing = mesh(new THREE.SphereGeometry(.16, 16, 12), M.birdDark, -.13, .22, -.04, bird); wing.scale.set(.45, .8, 1.25); wing.rotation.x = .3;
-  const wing2 = mesh(new THREE.SphereGeometry(.16, 16, 12), M.birdDark, .13, .22, -.04, bird); wing2.scale.set(.45, .8, 1.25); wing2.rotation.x = .3;
-  const tail = mesh(new THREE.ConeGeometry(.09, .34, 12), M.birdDark, 0, .17, -.3, bird); tail.rotation.x = -1.9; tail.scale.set(1.4, 1, .4);
-  const birdHead = new THREE.Group(); birdHead.position.set(0, .42, .1); bird.add(birdHead);
-  mesh(new THREE.SphereGeometry(.15, 20, 16), M.bird, 0, 0, 0, birdHead);
-  [-1, 1].forEach(sd => { mesh(new THREE.SphereGeometry(.042, 12, 10), M.white, sd * .1, .03, .085, birdHead); mesh(new THREE.SphereGeometry(.024, 10, 8), M.black, sd * .118, .034, .108, birdHead); });
-  const beak = mesh(new THREE.ConeGeometry(.045, .13, 12), M.beak, 0, -.015, .19, birdHead); beak.rotation.x = PI / 2;
-  [-1, 1].forEach(sd => mesh(new THREE.CylinderGeometry(.012, .012, .1, 6), M.beak, sd * .06, .02, .02, bird));
-  boss.userData = { bird, birdHead };
+  // arms in suit sleeves, resting on the rail
+  const sleeveGeo = new RoundedBox(1.02, 1.62, 1.02, 3, .08), cuffGeo = new RoundedBox(.97, .1, .97, 2, .03), handGeo = new RoundedBox(.93, .4, .93, 3, .1);
+  [-1, 1].forEach(sd => {
+    const pv = new THREE.Group(); pv.position.set(sd * 1.5, 1.32, 0); pv.rotation.set(-.905, 0, sd * -.04); body.add(pv);
+    mesh(sleeveGeo, M.suit, 0, -.31, 0, pv); mesh(cuffGeo, M.shirt, 0, -1.14, 0, pv); mesh(handGeo, M.gold, 0, -1.3, 0, pv);
+    ARMS[sd < 0 ? 'R' : 'L'] = { pv, rest: pv.quaternion.clone() };
+  });
 }
 shadowy(boss);
 
@@ -496,16 +474,15 @@ const P = {};
   P.cash = new THREE.Group(); props.add(P.cash);
   cash(0, 0, .12, 0, P.cash); cash(.12, .03, -.05, .175, P.cash); cash(.78, .32, -.35, 0, P.cash); bill(-.35, .6, .25, .004, P.cash); bill(.55, .78, -.4, .006, P.cash);
   P.gun = revolver(); props.add(P.gun);
-  P.glass = tumbler(); props.add(P.glass);
   P.bottle = bottle(); props.add(P.bottle);
 }
 const SPOTS = {
-  wide: { chips: [-2.95, -1.05, 0], cash: [2.5, -.82, 0], gun: [-3.05, .3, 1.0], glass: [3.05, .9, 0], bottle: [3.38, -.08, 0], deck: [0, -.98, .06] },
-  narrow: { chips: [-1.9, -1.2, .3], cash: [1.62, -1.32, -.2], gun: [1.52, .95, -.85], glass: [-1.45, .95, 0], bottle: [-.62, -1.45, 0], deck: null }
+  wide: { chips: [-2.95, -1.05, 0], cash: [2.5, -.82, 0], gun: [-3.05, .3, 1.0], bottle: [3.3, .2, 0], deck: [0, -.98, .06] },
+  narrow: { chips: [-1.95, -1.38, .3], cash: [1.62, -1.32, -.2], gun: [1.52, .95, -.85], bottle: [-1.88, -.42, 0], deck: null }
 };
 function arrangeProps(narrow) {
   const S = SPOTS[narrow ? 'narrow' : 'wide'];
-  ['chips', 'cash', 'gun', 'glass', 'bottle'].forEach(k => { const [x, z, r] = S[k]; P[k].position.set(x, 0, z); P[k].rotation.y = r; });
+  ['chips', 'cash', 'gun', 'bottle'].forEach(k => { const [x, z, r] = S[k]; P[k].position.set(x, 0, z); P[k].rotation.y = r; });
   deckGroup.visible = !!S.deck;
   if (S.deck) { deckGroup.position.set(S.deck[0], 0, S.deck[1]); deckGroup.rotation.y = S.deck[2]; deckPos.set(S.deck[0], .07, S.deck[1]); }
   else deckPos.set(0, .45, -1.25);
@@ -557,6 +534,23 @@ const glowTex = (() => { const [c, x] = makeCanvas(128, 128); const g = x.create
 function glowSprite(color, size, op) { const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: op })); s.scale.set(size, size, 1); return s; }
 const bulbGlow = glowSprite(0xffd9a0, 1.6, .55); bulbGlow.position.set(0, -.05, 0); lamp.add(bulbGlow);
 const emberGlow = glowSprite(0xff6a1a, .32, .8); scene.add(emberGlow);
+/* ---------- what he holds: a glass of whisky (right hand) and a lighter (left hand) ---------- */
+const glassG = tumbler(); body.add(glassG); shadowy(glassG);
+const whiskyMesh = glassG.children[1];
+let whiskyLevel = 1;
+const _hand = new THREE.Vector3(), _rel = new THREE.Quaternion(), _off = new THREE.Vector3(), _qi = new THREE.Quaternion();
+const handEnd = (arm, out) => out.set(0, -1.5, 0).applyQuaternion(arm.pv.quaternion).add(arm.pv.position);
+const GLASS_OFF = (() => { handEnd(ARMS.R, _hand); return new THREE.Vector3(0, -_hand.y, .3); })();
+const glassTilt = new THREE.Quaternion();
+M.chrome = new THREE.MeshStandardMaterial({ color: 0xcfcfd6, metalness: .95, roughness: .22 });
+M.flame = new THREE.MeshBasicMaterial({ color: new THREE.Color(1, .72, .32).multiplyScalar(4), transparent: true, opacity: .95, depthWrite: false });
+const lighter = new THREE.Group(); lighter.visible = false; ARMS.L.pv.add(lighter);
+mesh(new RoundedBox(.17, .25, .085, 2, .02), M.chrome, 0, .125, 0, lighter);
+const lid = mesh(new RoundedBox(.17, .085, .085, 2, .02), M.chrome, 0, 0, 0, lighter); lid.geometry.translate(.085, .0425, 0); lid.position.set(-.085, .25, 0); lid.rotation.z = 1.9;
+const flame = new THREE.Group(); flame.position.set(.02, .29, 0); lighter.add(flame);
+const flameCore = mesh(new THREE.ConeGeometry(.05, .22, 12), M.flame, 0, .11, 0, flame);
+const flameGlow = glowSprite(0xffa040, .9, 1); flameGlow.position.y = .1; flame.add(flameGlow);
+const flameLight = new THREE.PointLight(0xffa24a, 0, 2.6, 2); flameLight.position.y = .08; flame.add(flameLight);
 /* other lights */
 const hemi = new THREE.HemisphereLight(0x5a4632, 0x070504, .5); scene.add(hemi);
 const rim = new THREE.SpotLight(0x86a8ff, 70, 16, .42, .7, 2); rim.position.set(4.2, 4.2, -4.25); rim.target.position.set(-.2, 2.2, -2.6); scene.add(rim, rim.target);
@@ -585,6 +579,66 @@ const dustGeo = new THREE.BufferGeometry();
 const dust = new THREE.Points(dustGeo, new THREE.PointsMaterial({ map: T.dot, color: 0xffe2a8, size: .03, transparent: true, opacity: .55, depthWrite: false, blending: THREE.AdditiveBlending }));
 scene.add(dust);
 
+/* ---------- the contract: a sheet he slides across, which opens into the page ---------- */
+const CON_W = 1.12, CON_H = 1.5;
+const conCanvas = makeCanvas(1024, 1372);
+const conTex = tex(conCanvas[0], { aniso: 16 });
+const conGeo = new THREE.PlaneGeometry(CON_W, CON_H, 1, 12);
+{ const p = conGeo.attributes.position; for (let i = 0; i < p.count; i++) { const y = p.getY(i) / CON_H; p.setZ(i, Math.sin((y + .5) * PI) * .018 - Math.abs(y) * .01); } conGeo.computeVertexNormals(); }
+const contract = new THREE.Mesh(conGeo, new THREE.MeshStandardMaterial({ map: conTex, roughness: .86, envMapIntensity: .15 }));
+const conBack = new THREE.Mesh(conGeo, new THREE.MeshStandardMaterial({ color: 0xd8caa6, roughness: .9 })); conBack.rotation.y = PI; contract.add(conBack);
+contract.visible = false; contract.castShadow = conBack.castShadow = true; scene.add(contract);
+const safe = (n, d = '') => { try { return n(); } catch (e) { return d; } };
+function drawContract(d) {
+  const [c, x] = conCanvas, w = c.width, h = c.height;
+  let gr = x.createRadialGradient(w * .5, h * .45, h * .1, w * .5, h * .5, h * .75);
+  gr.addColorStop(0, '#f3ead3'); gr.addColorStop(.7, '#e8dbb8'); gr.addColorStop(1, '#cdb88c');
+  x.fillStyle = gr; x.fillRect(0, 0, w, h);
+  noise(x, w, h, 9000, '#fffaf0', '#9c8456', .14);
+  x.strokeStyle = 'rgba(120,90,40,.18)'; x.lineWidth = 6; x.beginPath(); x.arc(w * .78, h * .3, 70, .3, 5.6); x.stroke();
+  gr = x.createLinearGradient(0, h * .5 - 14, 0, h * .5 + 14); gr.addColorStop(0, 'rgba(0,0,0,0)'); gr.addColorStop(.5, 'rgba(90,60,20,.22)'); gr.addColorStop(.52, 'rgba(255,255,255,.35)'); gr.addColorStop(1, 'rgba(0,0,0,0)');
+  x.fillStyle = gr; x.fillRect(0, h * .5 - 14, w, 28);
+  x.strokeStyle = 'rgba(42,26,12,.75)'; x.lineWidth = 3; x.strokeRect(46, 46, w - 92, h - 92); x.lineWidth = 1.2; x.strokeRect(58, 58, w - 116, h - 116);
+  x.fillStyle = '#2a1a0c'; x.textAlign = 'center'; x.textBaseline = 'alphabetic';
+  x.font = '400 104px Limelight, Georgia, serif'; x.fillText('CONTRATTO', w / 2, 190);
+  x.font = '700 30px "Barlow Condensed", Arial, sans-serif'; x.fillStyle = '#6b4a1a';
+  const no = String(d.order || 1).padStart(3, '0');
+  x.fillText(`LA FAMIGLIA APHRITE  ·  N° ${no}`, w / 2, 240);
+  x.fillStyle = '#2a1a0c'; x.fillRect(w / 2 - 260, 268, 520, 3);
+  x.font = '400 78px Limelight, Georgia, serif'; x.fillText(d.en, w / 2, 372);
+  x.font = 'italic 500 38px Barlow, Arial, sans-serif'; x.fillStyle = '#6b4a1a'; x.fillText(d.it, w / 2, 424);
+  const lines = contractLines(d.go);
+  x.textAlign = 'left'; x.fillStyle = '#2a1a0c';
+  let y = 520;
+  lines.forEach(([a, b]) => {
+    x.font = '600 40px "Barlow Condensed", Arial, sans-serif'; x.fillText(a, 130, y);
+    if (b) { x.textAlign = 'right'; x.fillText(b, w - 130, y); x.textAlign = 'left'; }
+    x.strokeStyle = 'rgba(42,26,12,.25)'; x.lineWidth = 1.5; x.setLineDash([3, 7]); x.beginPath(); x.moveTo(130, y + 16); x.lineTo(w - 130, y + 16); x.stroke(); x.setLineDash([]);
+    y += 72;
+  });
+  // signature, wax seal and the stamp
+  x.strokeStyle = '#2a1a0c'; x.lineWidth = 2; x.beginPath(); x.moveTo(130, h - 200); x.lineTo(560, h - 200); x.stroke();
+  x.font = '600 28px "Barlow Condensed", Arial, sans-serif'; x.fillStyle = '#6b4a1a'; x.fillText('FIRMA  ·  IL CAPO', 130, h - 164);
+  x.strokeStyle = '#1d1208'; x.lineWidth = 4; x.lineCap = 'round'; x.beginPath(); x.moveTo(150, h - 214);
+  x.bezierCurveTo(200, h - 300, 250, h - 160, 300, h - 236); x.bezierCurveTo(330, h - 280, 360, h - 190, 410, h - 230); x.bezierCurveTo(440, h - 250, 480, h - 215, 540, h - 240); x.stroke();
+  x.save(); x.translate(w - 230, h - 230);
+  gr = x.createRadialGradient(-20, -20, 10, 0, 0, 92); gr.addColorStop(0, '#c4302a'); gr.addColorStop(1, '#6e0f0c');
+  x.fillStyle = gr; x.beginPath(); for (let i = 0; i < 28; i++) { const a = i / 28 * PI * 2, r = 86 + (i % 2 ? 6 : -4) + Math.sin(i * 1.7) * 4; x.lineTo(Math.cos(a) * r, Math.sin(a) * r); } x.closePath(); x.fill();
+  x.strokeStyle = 'rgba(40,0,0,.5)'; x.lineWidth = 4; x.beginPath(); x.arc(0, 0, 58, 0, PI * 2); x.stroke();
+  x.fillStyle = '#f1c9b4'; x.globalAlpha = .9; x.font = '400 76px Limelight, Georgia, serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText('A', 0, 6); x.globalAlpha = 1;
+  x.restore();
+  x.save(); x.translate(w / 2 + 10, h - 236); x.rotate(-.16); x.globalAlpha = .5; x.strokeStyle = '#9c1f18'; x.lineWidth = 6; x.strokeRect(-150, -42, 300, 84);
+  x.fillStyle = '#9c1f18'; x.font = '700 52px "Barlow Condensed", Arial, sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText('APPROVATO', 0, 4); x.restore();
+  x.textBaseline = 'alphabetic'; x.textAlign = 'left'; x.lineCap = 'butt';
+}
+function contractLines(go) {
+  const L = safe(() => LIST, []), Ms = safe(() => MATCHES, []), Ts = safe(() => tourResults(), []), F = n => safe(() => fmt(n), String(n));
+  if (go === 'rank') return L.slice(0, 6).map((p, i) => [`${i + 1}.  ${p.name}`, `${F(p.elo)} ELO`]);
+  if (go === 'matches') return Ms.slice(-6).reverse().map(m => [`${m.win}  def.  ${m.lose}`, m.score || '']);
+  if (go === 'champs') { const t = Ts.filter(t => t.win).slice(0, 6); return t.length ? t.map(t => [t.name, `♛ ${t.win}`]) : [['No champion yet.', '']]; }
+  if (go === 'duel') { const a = L[0], b = L[1]; return [['Two names. One table.', ''], a && b ? [`${a.name}  vs  ${b.name}`, `${F(a.elo)} – ${F(b.elo)}`] : ['', ''], ['Head to head, odds, form,', ''], ['and who walks away.', '']]; }
+  return [['Everyone starts at 1000 ELO.', ''], ['Beat someone above you, climb more.', ''], ['Lose, and you drop.', ''], ['Boss, Underboss, Capo, Soldier.', ''], ['The table keeps quiet.', '']];
+}
 /* ---------- the dealt cards ---------- */
 const cards = CARDS.map((d, k) => {
   const g = new THREE.Group();
@@ -697,20 +751,29 @@ canvas.addEventListener('pointermove', ev => {
   if (ev.pointerType === 'mouse' && dealt && !busy) setHover(pick(ev));
 });
 canvas.addEventListener('pointerleave', () => { pointer.in = false; setHover(-1); });
-let busy = false;
-canvas.addEventListener('click', ev => { if (busy) return; const k = pick(ev); if (k >= 0) choose(k); });
+let busy = false, anim = null, cig = 1, nextDrink = 1e9;
+canvas.addEventListener('click', ev => { if (busy || !dealt) return; const k = pick(ev); if (k >= 0) choose(k); });
 function choose(k) {
   if (busy || !cards[k]) return;
-  busy = true; hovered = k; cards[k].picked = true; cards[k].pickStart = now;
-  if (typeof say === 'function') say('', cards[k].d.say);
-  setTimeout(() => { enter(cards[k].d.go); setTimeout(() => { busy = false; cards.forEach(c => { c.picked = false; c.pick = 0; }); hovered = -1; canvas.style.cursor = ''; }, 900); }, REDUCE ? 0 : 420);
+  if (REDUCE || !dealt || typeof openPage !== 'function') { busy = true; enter(cards[k].d.go); setTimeout(resetRoom, 900); return; }
+  busy = true; hovered = k; cards[k].picked = true;
+  drawContract(cards[k].d); conTex.needsUpdate = true;
+  if (typeof say === 'function') say('Ecco.', 'Your contract.');
+  anim = { kind: 'contract', t0: now, card: k, shown: false };
+}
+function resetRoom() {
+  busy = false; anim = null; contract.visible = false; contract.scale.setScalar(1); lighter.visible = false;
+  cards.forEach(c => { c.picked = false; c.pick = 0; c.hover = 0; }); hovered = -1; canvas.style.cursor = '';
+  Object.values(ARMS).forEach(a => a.pv.quaternion.copy(a.rest));
 }
 
 /* ---------- deal ---------- */
-let now = 0, dealT0 = -99, dealWait = .6, lightT0 = 0;
+let now = 0, dealT0 = 1e9, dealWait = .6, lightT0 = 0;
 function deal(waitMs = 650) {
-  dealt = false; dealT0 = now; dealWait = REDUCE ? 0 : waitMs / 1000;
+  if (anim && anim.kind !== 'light') resetRoom();
+  busy = false; dealt = false; dealT0 = now; dealWait = REDUCE ? 0 : waitMs / 1000;
   cards.forEach(c => { c.hover = 0; c.picked = false; c.pick = 0; });
+  if (whiskyLevel < .4) whiskyLevel = 1;
   if (REDUCE) { dealt = true; if (typeof say === 'function') say(...SAY0, true); }
 }
 
@@ -721,7 +784,7 @@ const camFwd = new THREE.Vector3(), tmp = new THREE.Vector3(), tmp2 = new THREE.
 let par = { x: 0, y: 0 };
 function updateCards(dt) {
   const st = REDUCE ? 9 : now - dealT0 - dealWait;
-  if (!dealt && st > cards.length * .14 + 1.0) { dealt = true; if (typeof say === 'function') say(...SAY0); }
+  if (!dealt && st > cards.length * .14 + 1.0) { dealt = true; nextDrink = now + 7; if (typeof say === 'function') say(...SAY0); }
   cards.forEach((c, k) => {
     const want = (c.picked ? 1 : (k === hovered || k === focused) && dealt ? 1 : 0);
     c.hover = REDUCE ? want : damp(c.hover, want, 12, dt);
@@ -744,7 +807,7 @@ function updateCards(dt) {
     qx.setFromAxisAngle(AX, -PI / 2 + lean + h * .95);
     qf.setFromAxisAngle(AY, (1 - easeInOut(tFlip)) * PI);
     q.copy(qy).multiply(qx).multiply(qf);
-    if (c.picked) {
+    if (c.picked && (!anim || anim.kind !== 'contract')) {
       c.pick = Math.min(1, c.pick + dt / .38);
       const pk = easeInOut(c.pick);
       camera.getWorldDirection(camFwd);
@@ -758,6 +821,99 @@ function updateCards(dt) {
     const mat = M.card[k]; const cur = mat.color.r; const nv = REDUCE ? dim : damp(cur, dim, 10, dt); mat.color.setScalar(nv);
     mat.emissive.setRGB(.06 * h, .045 * h, .02 * h); mat.emissiveIntensity = 1;
   });
+}
+/* ---------- his moves: light the cigar, take a drink, slide the contract ---------- */
+const AZ = new THREE.Vector3(0, 0, 1), DOWN = new THREE.Vector3(0, -1, 0), _aim = new THREE.Vector3(), _qa = new THREE.Quaternion(), _bt = new THREE.Vector3();
+const _w2b = new THREE.Matrix4(), _cp = new THREE.Vector3(), _cq = new THREE.Quaternion(), _cq2 = new THREE.Quaternion(), _e = new THREE.Euler();
+function aimArm(arm, target, k) {
+  _aim.copy(target).sub(arm.pv.position).normalize();
+  _qa.setFromUnitVectors(DOWN, _aim);
+  arm.pv.quaternion.slerpQuaternions(arm.rest, _qa, clamp(k, 0, 1));
+}
+const toBody = v => { body.updateMatrixWorld(); _w2b.copy(body.matrixWorld).invert(); return v.applyMatrix4(_w2b); };
+const seg = (t, a, b) => clamp((t - a) / (b - a), 0, 1);
+const tipBody = new THREE.Vector3();
+const MOUTH = new THREE.Vector3(-.12, 2.24, .86);
+function updateMoves(dt) {
+  ARMS.R.pv.quaternion.copy(ARMS.R.rest); ARMS.L.pv.quaternion.copy(ARMS.L.rest);
+  glassTilt.identity(); lighter.visible = false; flameLight.intensity = 0;
+  let headYaw = null, headPitch = null;
+  if (!anim && dealt && !busy && hovered < 0 && focused < 0 && now > nextDrink && !REDUCE) anim = { kind: 'drink', t0: now };
+  if (anim) {
+    const t = now - anim.t0;
+    if (anim.kind === 'light') {
+      if (t < 0) { cig = 0; }
+      else {
+        cigarTip.getWorldPosition(tipBody); toBody(tipBody); tipBody.y -= .42; tipBody.x += .02; tipBody.z += .08;
+        const k = easeInOut(seg(t, 0, .75)) * (1 - easeInOut(seg(t, 1.85, 2.5)));
+        aimArm(ARMS.L, tipBody, k);
+        lighter.visible = t > .25 && t < 2.35;
+        const fire = t > .78 && t < 1.8 ? 1 : 0;
+        flame.visible = !!fire; flameLight.intensity = fire * (4 + Math.sin(now * 31) * .6 + Math.sin(now * 17) * .5);
+        flameCore.scale.set(1, 1 + Math.sin(now * 23) * .12, 1);
+        cig = easeInOut(seg(t, .95, 1.6));
+        headPitch = .1 * k; headYaw = .12 * k;
+        if (t > 2.6) anim = null;
+      }
+    } else if (anim.kind === 'drink') {
+      const up = easeInOut(seg(t, 0, .9)) * (1 - easeInOut(seg(t, 2.05, 2.9)));
+      aimArm(ARMS.R, MOUTH, up);
+      const sip = easeInOut(seg(t, .85, 1.35)) * (1 - easeInOut(seg(t, 1.75, 2.15)));
+      glassTilt.setFromAxisAngle(AX, -.95 * sip);
+      if (t > 1.3 && t < 1.8) whiskyLevel = Math.max(.25, whiskyLevel - dt * .22);
+      headPitch = -.2 * sip; headYaw = -.08 * up;
+      if (t > 3.1) { anim = null; nextDrink = now + 18 + Math.random() * 9; }
+    } else if (anim.kind === 'contract') {
+      const up = easeInOut(seg(t, 0, .55)) * (1 - easeInOut(seg(t, 1.05, 1.6)));
+      _bt.set(.78, 2.1, 1.6); aimArm(ARMS.L, _bt, up);
+      headPitch = .05; headYaw = -.08;
+      contract.visible = t > .1;
+      handEnd(ARMS.L, _cp); body.localToWorld(_cp);
+      _cp.y += CON_H * .44; _cp.z += .14; _cp.x -= .12;
+      _cq.copy(camera.quaternion).multiply(_cq2.setFromAxisAngle(AZ, -.1));
+      const show = easeOut(seg(t, .1, .5)); contract.scale.setScalar(.3 + .7 * show);
+      const fly = easeInOut(seg(t, .9, 1.45));
+      if (fly > 0) { if (!anim.pose) anim.pose = presentPose(); _cp.lerp(anim.pose.p, fly); _cq.slerp(anim.pose.q, fly); }
+      contract.position.copy(_cp); contract.quaternion.copy(_cq);
+      if (t > 1.47 && !anim.shown) { anim.shown = true; contract.scale.setScalar(1); presentContract(cards[anim.card].d.go); }
+    }
+  }
+  // glass follows the right hand
+  handEnd(ARMS.R, _hand); _rel.copy(ARMS.R.pv.quaternion).multiply(_qi.copy(ARMS.R.rest).invert());
+  _off.copy(GLASS_OFF).applyQuaternion(_rel);
+  glassG.position.copy(_hand).add(_off); glassG.quaternion.copy(glassTilt);
+  whiskyMesh.scale.y = whiskyLevel; whiskyMesh.position.y = .07 + .08 * whiskyLevel;
+  // lighter stands upright in the left hand
+  if (lighter.visible) { lighter.position.set(0, -1.62, .04); lighter.quaternion.copy(ARMS.L.pv.quaternion).invert(); }
+  return [headYaw, headPitch];
+}
+function presentPose() {
+  camera.updateMatrixWorld();
+  const c = new THREE.Vector3(0, 0, .5).unproject(camera), dir = c.sub(camera.position).normalize();
+  const fwd = new THREE.Vector3(); camera.getWorldDirection(fwd);
+  const th = Math.tan(camera.fov * PI / 360);
+  const d = Math.max(CON_H / (.78 * 2 * th), CON_W / (.86 * 2 * th * (W / H)));
+  return { p: camera.position.clone().addScaledVector(dir, d / dir.dot(fwd)), q: camera.quaternion.clone() };
+}
+function presentContract(go) {
+  contract.updateMatrixWorld();
+  const r = canvas.getBoundingClientRect(), pts = [[-1, 1], [1, 1], [1, -1], [-1, -1]].map(([a, b]) => { const v = new THREE.Vector3(a * CON_W / 2, b * CON_H / 2, 0).applyMatrix4(contract.matrixWorld); const [x, y] = proj(v.x, v.y, v.z); return [r.left + x, r.top + y]; });
+  const L = Math.min(...pts.map(p => p[0])), R = Math.max(...pts.map(p => p[0])), T = Math.min(...pts.map(p => p[1])), B = Math.max(...pts.map(p => p[1]));
+  const ov = document.createElement('div'); ov.className = 'contract-ov'; ov.setAttribute('aria-hidden', 'true');
+  ov.innerHTML = '<div class="c-bg"></div><div class="c-paper"><canvas class="c-top"></canvas><canvas class="c-bot"></canvas></div>';
+  const paper = ov.querySelector('.c-paper'); Object.assign(paper.style, { left: L + 'px', top: T + 'px', width: (R - L) + 'px', height: (B - T) + 'px' });
+  const [src] = conCanvas, hw = src.width, hh = src.height / 2;
+  ov.querySelectorAll('canvas').forEach((cv, i) => { cv.width = hw; cv.height = hh; cv.getContext('2d').drawImage(src, 0, i * hh, hw, hh, 0, 0, hw, hh); });
+  document.body.appendChild(ov);
+  const E = 'cubic-bezier(.55,0,.35,1)', SL = window.__conSlow || 1;
+  ov.querySelector('.c-bg').animate([{ opacity: 0 }, { opacity: 1 }], { duration: 240 * SL, fill: 'forwards' });
+  setTimeout(() => {
+    openPage(go);
+    const top = ov.querySelector('.c-top'), bot = ov.querySelector('.c-bot');
+    top.animate([{ transform: 'rotateX(0deg)', opacity: 1 }, { opacity: 1, offset: .55 }, { transform: 'rotateX(-104deg)', opacity: 0 }], { duration: 760 * SL, easing: E, fill: 'forwards' });
+    bot.animate([{ transform: 'rotateX(0deg)', opacity: 1 }, { opacity: 1, offset: .55 }, { transform: 'rotateX(104deg)', opacity: 0 }], { duration: 760 * SL, easing: E, fill: 'forwards' });
+    ov.querySelector('.c-bg').animate([{ opacity: 1 }, { opacity: 0 }], { duration: 640 * SL, delay: 160 * SL, easing: 'ease-out', fill: 'forwards' }).finished.then(() => { ov.remove(); resetRoom(); }).catch(() => { ov.remove(); resetRoom(); });
+  }, 560 * SL);
 }
 let last = performance.now(), running = false, frames = 0, slow = 0;
 const EMBER2 = scene.getObjectByName('ember2');
@@ -777,22 +933,21 @@ function update(dt) {
   spot.intensity = 110 * LAMP_K * on; M.bulb.color.setRGB(4 * on + .2, 3.7 * on + .15, 3 * on + .1); coneMat.uniforms.uI.value = .09 * on; M.shadeIn.emissiveIntensity = .6 * on; bulbGlow.material.opacity = .55 * on;
   if (!REDUCE) { lampPivot.rotation.z = Math.sin(t * .55) * .016; lampPivot.rotation.x = Math.sin(t * .41 + 1) * .01; }
   // cigar ember
-  const fl = .78 + .22 * Math.sin(t * 7.3) * Math.sin(t * 2.9 + 1.3);
-  M.ember.emissiveIntensity = 3 * fl; cigarTip.getWorldPosition(emberLight.position); emberLight.intensity = .6 * fl; emberGlow.position.copy(emberLight.position); emberGlow.material.opacity = .55 + .35 * fl;
+  const [mYaw, mPitch] = updateMoves(dt);
+  const fl = (.78 + .22 * Math.sin(t * 7.3) * Math.sin(t * 2.9 + 1.3)) * cig;
+  M.ember.emissiveIntensity = .05 + 3 * fl; cigarTip.getWorldPosition(emberLight.position); emberLight.intensity = .6 * fl; emberGlow.position.copy(emberLight.position); emberGlow.material.opacity = (.55 + .35 * fl) * cig;
   // breathing, head follows the card you point at or your pointer
   if (!REDUCE) body.position.y = Math.sin(t * 1.3) * .012;
   const focus = hovered >= 0 ? hovered : focused;
   let yawT = 0, pitchT = 0;
-  if (focus >= 0) { const c = cards[focus]; yawT = clamp(Math.atan2(c.rest.x, c.rest.z + 2.62) * .8, -.45, .45); pitchT = .16; }
+  if (mYaw !== null) { yawT = mYaw; pitchT = mPitch; }
+  else if (focus >= 0) { const c = cards[focus]; yawT = clamp(Math.atan2(c.rest.x, c.rest.z + 2.62) * .8, -.45, .45); pitchT = .16; }
   else if (pointer.in && FINE) { yawT = pointer.x * .22; pitchT = pointer.y * .06; }
   headPivot.rotation.y = damp(headPivot.rotation.y, yawT, 4, dt);
   headPivot.rotation.x = damp(headPivot.rotation.x, pitchT, 4, dt);
-  // the bird looks around now and then
-  const bh = boss.userData.birdHead; const ph = (t % 6.5) / 6.5;
-  bh.rotation.y = ph > .62 && ph < .84 ? Math.sin((ph - .62) / .22 * PI) * .7 : 0; bh.rotation.z = ph > .62 && ph < .84 ? Math.sin((ph - .62) / .22 * PI * 2) * .15 : 0;
   // smoke
   if (!REDUCE) {
-    smokeClock += dt; while (smokeClock > .13) { smokeClock -= .13; puff(); }
+    smokeClock += dt; while (smokeClock > .13) { smokeClock -= .13; if (cig > .6) puff(); }
     smoke.forEach(s => { if (!s.visible) return; const u = s.userData; u.life += dt; const k = u.life / u.max; if (k >= 1) { s.visible = false; s.material.opacity = 0; return; }
       s.position.x += (u.vx + Math.sin(u.life * 1.7 + s.id) * .05) * dt; s.position.y += (.32 + k * .1) * dt; s.position.z += u.vz * dt;
       const sc = .1 + k * .95; s.scale.set(sc, sc, 1); s.material.rotation += u.rot * dt; s.material.opacity = Math.min(1, k * 6) * (1 - k) * .3; });
@@ -800,7 +955,8 @@ function update(dt) {
   }
   if (EMBER2) EMBER2.material.color.setRGB(3 * (.6 + .4 * Math.sin(t * 2.1)), .9 * (.6 + .4 * Math.sin(t * 2.1)), .2);
   // camera drifts with your pointer
-  const tx = REDUCE ? 0 : (pointer.in && FINE ? pointer.x * .32 : Math.sin(t * .23) * .12), ty = REDUCE ? 0 : (pointer.in && FINE ? -pointer.y * .14 : Math.sin(t * .31) * .05);
+  const still = REDUCE || (anim && anim.kind === 'contract');
+  const tx = still ? par.x : (pointer.in && FINE ? pointer.x * .32 : Math.sin(t * .23) * .12), ty = still ? par.y : (pointer.in && FINE ? -pointer.y * .14 : Math.sin(t * .31) * .05);
   par.x = damp(par.x, tx, 2.5, dt); par.y = damp(par.y, ty, 2.5, dt);
   placeCamera(par.x, par.y);
   updateCards(dt);
@@ -831,7 +987,7 @@ if ('IntersectionObserver' in window) new IntersectionObserver(es => { onScreen 
 
 window.room3d = {
   layout, deal, start,
-  focus(k) { focused = k; if (k >= 0) hovered = -1; kick(); },
+  focus(k) { if (busy) return; focused = k; if (k >= 0) hovered = -1; kick(); },
   pick(k) { choose(k); }
 };
 async function boot() {
@@ -839,7 +995,8 @@ async function boot() {
   paintCards(); faceTex.forEach(t => t.needsUpdate = true); backTex.needsUpdate = true;
   coverEl.classList.add('r3d');
   if (typeof layoutScene === 'function') layoutScene(); else layout(false);
-  lightT0 = now; deal(900);
+  lightT0 = now; deal(REDUCE ? 0 : 2900);
+  if (!REDUCE) { cig = 0; anim = { kind: 'light', t0: now + .6 }; }
   start();
   if (document.fonts) document.fonts.ready.then(() => { paintCards(); faceTex.forEach(t => t.needsUpdate = true); });
 }
