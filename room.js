@@ -1284,7 +1284,7 @@ function placeSay(dt) {
 let frozen = false;
 let onScreen = true;
 function start() {
-  if (frozen || running || coverEl.hidden || document.hidden || !onScreen) return;
+  if (frozen || running || coverEl.hidden || !onScreen) return;
   if (REDUCE) { kick(); return; }
   running = true; last = performance.now(); requestAnimationFrame(frame);
 }
@@ -1292,7 +1292,7 @@ let kicked = false;
 function kick() { if (!REDUCE || kicked) return; kicked = true; requestAnimationFrame(() => { kicked = false; render(0); }); }
 function stop() { running = false; }
 new MutationObserver(() => { if (coverEl.hidden) stop(); else start(); }).observe(coverEl, { attributes: true, attributeFilter: ['hidden'] });
-document.addEventListener('visibilitychange', () => { if (document.hidden) { stop(); if (anim && anim.kind === 'contract') endContract(anim); } else start(); });
+document.addEventListener('visibilitychange', () => { if (document.hidden) { if (anim && anim.kind === 'contract') endContract(anim); } else start(); });
 canvas.addEventListener('webglcontextlost', e => { e.preventDefault(); stop(); frozen = true; coverEl.classList.remove('r3d'); root.classList.remove('try3d'); if (typeof layoutScene === 'function') layoutScene(); if (typeof dealCards === 'function') dealCards(200); });
 if ('IntersectionObserver' in window) new IntersectionObserver(es => { onScreen = es[es.length - 1].isIntersecting; if (onScreen) start(); else stop(); }).observe(canvas);
 
