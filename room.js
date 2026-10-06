@@ -911,6 +911,7 @@ function choose(k) {
 }
 function startContract(k) {
   const c = anim = { kind: 'contract', t0: now, card: k, go: cards[k].d.go, shown: false, from: snapPose() };
+  sfx('cards');
   // if the room stops drawing (tab in the background, scrolled away, a very slow device) the page still opens
   setTimeout(() => { if (anim === c && !c.shown) endContract(c); }, 12000 * (window.__conSlow || 1));
 }
@@ -942,6 +943,7 @@ function deal(waitMs = 650) {
   cards.forEach(c => { c.hover = 0; c.picked = false; c.pick = 0; });
   if (whiskyFill < .2) whiskyFill = .5;
   if (REDUCE) { dealt = true; if (typeof say === 'function') say(...SAY0, true); }
+  else sfx('deal', dealWait);
 }
 
 /* ---------- per-frame ---------- */
@@ -1009,6 +1011,8 @@ const seg = (t, a, b) => clamp((t - a) / (b - a), 0, 1);
 const smooth = (t, a, b) => easeInOut(seg(t, a, b));
 const bell = (t, a, b, c, d) => smooth(t, a, b) * (1 - smooth(t, c, d));
 const smoother = t => t * t * t * (t * (t * 6 - 15) + 10);
+const sfx = (n, ...x) => { if (window.aphSound) aphSound.fx(n, ...x); };
+const cue = (a, n, t, at, ...x) => { if (a && !a['_' + n] && t >= at) { a['_' + n] = 1; sfx(n, ...x); } };
 // a pose of the upper body: both arms (turn and shoulder shift), the cigar (1 in the mouth, 0 in the left hand), the glass
 const SETTLE = .35;
 const newPose = () => ({ R: { q: new THREE.Quaternion(), s: new THREE.Vector3() }, L: { q: new THREE.Quaternion(), s: new THREE.Vector3() }, cigIn: 1, held: 1, tilt: 0, yaw: null, pitch: null });
@@ -1040,6 +1044,7 @@ function armPath(p, side, keys, shifts, t) { aimArm(p, side, path(keys, t, _tp),
 const tipBody = new THREE.Vector3();
 function lightPose(t, p) {
   if (t < 0) { cig = 0; return; }
+  const a = anim; cue(a, 'lid', t, .3); cue(a, 'light', t, .74); cue(a, 'lidClose', t, 1.85);
   cigarTip.getWorldPosition(tipBody); toBody(tipBody); tipBody.y -= .42; tipBody.x += .02; tipBody.z += .08;
   const k = smooth(t, 0, .75) * (1 - smooth(t, 1.85, 2.5));
   aimArm(p, 'L', tipBody, ZERO); _qa.copy(p.L.q); p.L.q.slerpQuaternions(ARMS.L.rest, _qa, k);
@@ -1069,7 +1074,8 @@ function drinkPose(t, p, a, dt) {
   if (t > 2.05 && t < 2.75) whiskyFill = Math.max(.14, whiskyFill - dt * .11);
   p.yaw = .14 * bell(t, .3, .85, 1.0, 1.5) - .06 * bell(t, 1.5, 2.1, 2.9, 3.5) + .1 * bell(t, 4.1, 4.5, 4.8, 5.2);
   p.pitch = .06 * bell(t, .3, .85, 1.0, 1.5) - .2 * bell(t, 1.55, 2.25, 2.8, 3.45);
-  if (!a.exh && t > 1.36) { a.exh = true; exhale(); }
+  if (!a.exh && t > 1.36) { a.exh = true; exhale(); sfx('exhale'); }
+  cue(a, 'glassUp', t, .62); cue(a, 'glassDown', t, 4.22);
   if (t > 5.55) { anim = null; nextDrink = now + 16 + Math.random() * 9; }
 }
 
@@ -1156,6 +1162,7 @@ function contractScene(t, c) {
     setFold(1 - easeInOut(seg(t, T_LAND + .04, T_STOP)));
   }
   paperFlat.visible = t > T_STOP; M_paperFlat.opacity = smooth(t, T_DIVE1 - .45, T_DIVE1);
+  cue(c, 'toss', t, T_REL); cue(c, 'land', t, T_LAND); cue(c, 'unfold', t, T_LAND + .06);
   if (!c.said && t > T_LAND) { c.said = true; if (typeof say === 'function') say('Ecco.', 'Sign here.'); }
   if (!c.dove && t > T_DIVE + .2) { c.dove = true; coverEl.classList.add('dive'); }
   if (t >= T_HAND && !c.shown) { c.shown = true; presentContract(c); }
@@ -1188,6 +1195,7 @@ function presentContract(c) {
     document.body.appendChild(ov);
     const src = conCanvas[0], sig = PAPER.sigPts, n = sig.length, ink = '#0b0907';
     const TG = 380 * SL, TS = 560 * SL, TI = 900 * SL, t0 = conClock();
+    setTimeout(() => { if (!c.done) sfx('sign', TS / 1000); }, TG); setTimeout(() => { if (!c.done) sfx('ink'); }, TG + TS);
     const drops = Array.from({ length: 18 }, (_, i) => [i / 18 * PI * 2 + Math.random() * .3, 1.03 + Math.random() * .14, .01 + Math.random() * .02]);
     const step = () => {
       if (c.done) return;
