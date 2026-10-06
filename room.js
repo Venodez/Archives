@@ -751,7 +751,7 @@ canvas.addEventListener('pointermove', ev => {
   if (ev.pointerType === 'mouse' && dealt && !busy) setHover(pick(ev));
 });
 canvas.addEventListener('pointerleave', () => { pointer.in = false; setHover(-1); });
-let busy = false, anim = null, cig = 1, nextDrink = 1e9;
+let busy = false, anim = null, cig = 1, nextDrink = 1e9, sayOff = .95;
 canvas.addEventListener('click', ev => { if (busy || !dealt) return; const k = pick(ev); if (k >= 0) choose(k); });
 function choose(k) {
   if (busy || !cards[k]) return;
@@ -772,7 +772,7 @@ function endContract(c) {
   if (anim === c) resetRoom();
 }
 function resetRoom() {
-  busy = false; anim = null; contract.visible = false; contract.scale.setScalar(1); lighter.visible = false;
+  busy = false; anim = null; sayOff = .95; contract.visible = false; contract.scale.setScalar(1); lighter.visible = false;
   cards.forEach(c => { c.picked = false; c.pick = 0; c.hover = 0; }); hovered = -1; canvas.style.cursor = '';
   Object.values(ARMS).forEach(a => a.pv.quaternion.copy(a.rest));
 }
@@ -942,7 +942,7 @@ function frame(t) {
   render(dt);
   if (++frames < 90 && dt > .045) { slow++; if (slow > 25 && renderer.getPixelRatio() > 1) { renderer.setPixelRatio(1); renderer.setSize(W, H, false); } }
 }
-function render(dt) { update(dt); renderer.render(scene, camera); placeSay(); }
+function render(dt) { update(dt); renderer.render(scene, camera); placeSay(dt); }
 function update(dt) {
   now += dt;
   const t = now;
@@ -980,10 +980,12 @@ function update(dt) {
   updateCards(dt);
 }
 const HP = new THREE.Vector3();
-function placeSay() {
+function placeSay(dt) {
   if (!sayEl || stacked) { if (sayEl) sayEl.style.removeProperty('--sx'); return; }
+  const want = anim && anim.kind === 'contract' ? 1.8 : .95;
+  sayOff = dt ? damp(sayOff, want, 7, dt) : want;
   const hp = headPivot.getWorldPosition(HP);
-  const [x, y] = proj(hp.x + .95, hp.y + .78, hp.z + .2);
+  const [x, y] = proj(hp.x + sayOff, hp.y + .78, hp.z + .2);
   sayEl.style.setProperty('--sx', Math.round(x) + 'px'); sayEl.style.setProperty('--sy', Math.round(y) + 'px');
 }
 
