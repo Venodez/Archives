@@ -750,6 +750,8 @@ footer::before{content:"";position:absolute;left:0;right:0;top:0;height:14px;bac
 .frame .wins .amp{font-size:22px;color:var(--wax);opacity:.8;margin:0 10px}
 
 .mrow .tag .tm{display:block;font-style:normal;font-size:11px;letter-spacing:.04em;color:var(--gold2);opacity:.8;margin-bottom:2px}
+
+.burn-ov{position:fixed;inset:0;width:100vw;height:100vh;z-index:150;pointer-events:none}
 </style>
 </head>
 <body>
@@ -967,6 +969,9 @@ footer::before{content:"";position:absolute;left:0;right:0;top:0;height:14px;bac
     land: t => { burst(t, .12, 260, 1, .4, 'lowpass'); burst(t + .02, .2, 2200, .7, .14); },
     unfold: t => { for (let i = 0; i < 9; i++) burst(t + i * .035 + Math.random() * .02, .05, 3000 + Math.random() * 2500, 1.5, .1); },
     sign: (t, dur) => { for (let i = 0; i < 26; i++) burst(t + i * dur / 26, .05, 4200 + Math.random() * 1500, 2, .05 + Math.random() * .05); },
+    burn: (t, dur) => { for (let i = 0; i < 70; i++) { const k = i / 70; burst(t + k * dur + Math.random() * .04, .04 + Math.random() * .05, 1800 + Math.random() * 3000, 1.2, (.05 + Math.random() * .1) * (1 - k * .5)); }
+      const s = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain(); s.buffer = white; s.loop = true; f.type = 'lowpass'; f.frequency.setValueAtTime(300, t); f.frequency.linearRampToValueAtTime(1400, t + dur * .8);
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.22, t + dur * .7); g.gain.exponentialRampToValueAtTime(.0001, t + dur + .6); s.connect(f); f.connect(g); g.connect(fxBus); s.start(t); s.stop(t + dur + .7); },
     ink: t => { const o = ctx.createOscillator(), g = ctx.createGain(); o.frequency.setValueAtTime(48, t); o.frequency.linearRampToValueAtTime(36, t + 1); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.3, t + .4); g.gain.exponentialRampToValueAtTime(.0001, t + 1.2); o.connect(g); g.connect(fxBus); o.start(t); o.stop(t + 1.3);
       burst(t, 1.0, 500, .5, .14, 'lowpass', .5); }
   };
@@ -1287,8 +1292,52 @@ const cover=$("#cover"),root=document.documentElement;
 const siteInert=on=>[$("header.nav"),$("main.wrap")].forEach(e=>{if(e)e.inert=on});
 function openPage(tab){cover.hidden=true;root.classList.remove("lock");siteInert(false);scrollTo(0,0);show(tab)}
 function enter(tab){throughBlinds(()=>openPage(tab))}
+/* the way back to the table: the boss puts his lighter to the contract, it burns away and the room is behind it */
+async function throughFire(swap){
+  if(!MOTION||blindsBusy){swap();return}
+  blindsBusy=true;
+  const cv=document.createElement("canvas"),dpr=Math.min(devicePixelRatio||1,1.5),W=innerWidth,H=innerHeight;
+  cv.className="burn-ov";cv.width=W*dpr;cv.height=H*dpr;document.body.appendChild(cv);
+  const g=cv.getContext("2d");g.scale(dpr,dpr);
+  const ox=W*.93,oy=H*.94,far=Math.hypot(ox,oy),R=far*1.5,N=150,ph=[...Array(6)].map(()=>Math.random()*6.28);
+  // a ragged, flickering edge
+  const edge=(r,t)=>{const pts=[];for(let i=0;i<=N;i++){const a=Math.PI+i/N*Math.PI*.5-.25+i/N*.5,
+      n=.14*Math.sin(a*7+ph[0]+t*2)+.07*Math.sin(a*13+ph[1]-t*3)+.035*Math.sin(a*29+ph[2]+t*5)+.05*Math.sin(a*3+ph[3]);
+      pts.push([ox+Math.cos(a)*r*(1+n),oy+Math.sin(a)*r*(1+n)])}return pts};
+  const poly=(pts,grow)=>{g.beginPath();g.moveTo(W+40,H+40);pts.forEach(([x,y])=>{const dx=x-ox,dy=y-oy,l=Math.hypot(dx,dy)||1;g.lineTo(x+dx/l*grow,y+dy/l*grow)});g.closePath()};
+  const embers=[],BURN=1500,LIGHT=420,FADE=600,t0=performance.now();let swapped=false,tS=0;
+  if(window.aphSound){aphSound.fx("lid");setTimeout(()=>aphSound.fx("light"),120);setTimeout(()=>aphSound.fx("burn",BURN/1000),LIGHT)}
+  await new Promise(done=>{
+    const frame=now=>{const t=now-t0;g.clearRect(0,0,W,H);
+      // the lighter's flame at the corner
+      if(t<LIGHT+500){const k=Math.min(1,t/180)*(t>LIGHT+250?Math.max(0,1-(t-LIGHT-250)/250):1),fl=1+.12*Math.sin(t/30)+.08*Math.sin(t/17);
+        g.save();g.translate(ox,oy);g.globalAlpha=k;const gr=g.createRadialGradient(0,-14*fl,2,0,-10,46*fl);gr.addColorStop(0,"rgba(255,250,220,1)");gr.addColorStop(.25,"rgba(255,190,80,.95)");gr.addColorStop(.6,"rgba(230,90,20,.45)");gr.addColorStop(1,"rgba(200,40,0,0)");
+        g.fillStyle=gr;g.beginPath();g.ellipse(0,-16*fl,13,30*fl,0,0,6.283);g.fill();g.restore()}
+      const b=Math.max(0,Math.min(1,(t-LIGHT)/BURN)),r=R*Math.pow(b,1.6),tt=t/1000;
+      if(r>1){const pts=edge(r,tt);if(!swapped&&pts.every(([x,y])=>Math.hypot(x-ox,y-oy)>far+12||x<-40||y<-40)){swapped=true;tS=t;swap()}
+        // scorched paper ahead of the flame, the glowing line, then the hole
+        poly(pts,46);g.fillStyle="rgba(92,52,18,.28)";g.fill();
+        poly(pts,22);g.fillStyle="rgba(58,28,8,.55)";g.fill();
+        poly(pts,7);g.fillStyle="rgba(26,12,4,.92)";g.fill();
+        g.save();g.shadowColor="rgba(255,130,30,.95)";g.shadowBlur=18;g.strokeStyle="rgba(255,170,60,.95)";g.lineWidth=3.2;g.beginPath();pts.forEach(([x,y],i)=>i?g.lineTo(x,y):g.moveTo(x,y));g.stroke();
+        g.strokeStyle="rgba(255,236,170,.9)";g.lineWidth=1.2;g.shadowBlur=6;g.stroke();g.restore();
+        poly(pts,-3);g.fillStyle="#0b0806";g.fill();
+        // embers leave the edge and rise
+        if(!swapped)for(let i=0;i<5;i++){const [x,y]=pts[Math.random()*pts.length|0];if(x>-20&&x<W+20&&y>-20&&y<H+20)embers.push({x,y,vx:(Math.random()-.5)*.6,vy:-.6-Math.random()*1.6,l:1,s:1+Math.random()*2.4})}}
+      // once the page is gone, the room is behind the ashes
+      if(b>=1&&!swapped){swapped=true;tS=t;swap()}
+      const f=swapped?Math.min(1,(t-tS)/FADE):0;
+      if(f>0){g.save();g.globalCompositeOperation="destination-out";g.fillStyle=`rgba(0,0,0,${f*f})`;g.fillRect(0,0,W,H);g.restore()}
+      for(let i=embers.length-1;i>=0;i--){const e=embers[i];e.x+=e.vx+Math.sin(t/200+i)*.3;e.y+=e.vy;e.l-=.012;if(e.l<=0){embers.splice(i,1);continue}
+        g.fillStyle=`rgba(255,${150+e.l*90|0},${60*e.l|0},${e.l})`;g.beginPath();g.arc(e.x,e.y,e.s*e.l,0,6.283);g.fill()}
+      if(f>=1&&(!embers.length||t-tS>FADE+700)||t>LIGHT+BURN+FADE+1800)return done();requestAnimationFrame(frame)};
+    requestAnimationFrame(frame);
+    setTimeout(()=>{if(!swapped){swapped=true;swap()}},LIGHT+BURN+200);   // never stays stuck, even when the tab is hidden
+    setTimeout(done,LIGHT+BURN+FADE+2500)});
+  cv.remove();blindsBusy=false}
+
 $$("[data-go]").forEach(b=>b.onclick=()=>enter(b.dataset.go));
-$("#toCover").onclick=()=>{closeDrawer();throughBlinds(()=>{cover.hidden=false;root.classList.add("lock");siteInert(true);layoutScene();dealCards(380)})};
+$("#toCover").onclick=()=>{closeDrawer();throughFire(()=>{cover.hidden=false;root.classList.add("lock");siteInert(true);layoutScene();dealCards(380)})};
 function renderFacts(){const T=tourResults(),last=T.find(t=>t.win),n=MATCHES.filter(inSeason).length;
   $("#facts").innerHTML=`<div class="fact"><b>${LIST.length}</b><span>Ranked players${season!=="all"?` · ${esc(season)}`:""}</span></div><div class="fact"><b>${fmt(n)}</b><span>Matches played</span></div>${last?`<div class="fact champ"><b>${esc(last.win)}</b><span>Reigning champion</span></div>`:""}`}
 $$("[data-discord]").forEach(a=>{if(DISCORD_URL)a.href=DISCORD_URL;else a.hidden=true});
