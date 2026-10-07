@@ -877,6 +877,7 @@ function setHover(k) {
   if (k === hovered) return;
   hovered = k; kick();
   canvas.style.cursor = k >= 0 ? 'pointer' : '';
+  if (k >= 0) sfx('hover', k);
   if (typeof window.say === 'function' || typeof say === 'function') {
     if (k >= 0) { clearTimeout(setHover.t); say('', cards[k].d.say); }
     else { clearTimeout(setHover.t); setHover.t = setTimeout(() => { if (hovered < 0 && focused < 0) say(...SAY0); }, 260); }

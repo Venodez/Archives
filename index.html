@@ -971,6 +971,13 @@ footer::before{content:"";position:absolute;left:0;right:0;top:0;height:14px;bac
     burn: (t, dur) => { for (let i = 0; i < 70; i++) { const k = i / 70; burst(t + k * dur + Math.random() * .04, .04 + Math.random() * .05, 1800 + Math.random() * 3000, 1.2, (.05 + Math.random() * .1) * (1 - k * .5)); }
       const s = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain(); s.buffer = white; s.loop = true; f.type = 'lowpass'; f.frequency.setValueAtTime(300, t); f.frequency.linearRampToValueAtTime(1400, t + dur * .8);
       g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.22, t + dur * .7); g.gain.exponentialRampToValueAtTime(.0001, t + dur + .6); s.connect(f); f.connect(g); g.connect(fxBus); s.start(t); s.stop(t + dur + .7); },
+    hover: (t, k = 0) => {   // a card lifted off the felt: a short slide of paper and a soft tick
+      const now = ctx.currentTime; if (now - (FX.hover.last || 0) < .07) return; FX.hover.last = now;
+      const s = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain(); s.buffer = white; f.type = 'bandpass'; f.Q.value = 1.1;
+      const f0 = 1700 + k * 140; f.frequency.setValueAtTime(f0, t); f.frequency.exponentialRampToValueAtTime(f0 * 2.4, t + .09);
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.09, t + .02); g.gain.exponentialRampToValueAtTime(.0001, t + .13);
+      s.connect(f); f.connect(g); g.connect(fxBus); s.start(t, Math.random()); s.stop(t + .16);
+      burst(t + .005, .03, 3600 + k * 200, 2.5, .05); ping(t + .004, 2400 + k * 90, .012, .06); },
     ink: t => { const o = ctx.createOscillator(), g = ctx.createGain(); o.frequency.setValueAtTime(48, t); o.frequency.linearRampToValueAtTime(36, t + 1); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.3, t + .4); g.gain.exponentialRampToValueAtTime(.0001, t + 1.2); o.connect(g); g.connect(fxBus); o.start(t); o.stop(t + 1.3);
       burst(t, 1.0, 500, .5, .14, 'lowpass', .5); }
   };
@@ -1432,7 +1439,7 @@ function say(lead,text,instant){let i=0;const w=t=>[...t].map(ch=>`<span style="
 let sayBack=0;
 const sayCard=c=>{clearTimeout(sayBack);say("",c.dataset.say)},sayHome=()=>{clearTimeout(sayBack);sayBack=setTimeout(()=>say(...SAY0),260)};
 const is3d=()=>cover.classList.contains("r3d")&&window.room3d;
-cards.forEach((c,i)=>{c.addEventListener("mouseenter",()=>sayCard(c));c.addEventListener("focus",()=>{sayCard(c);if(is3d())room3d.focus(i)});c.addEventListener("mouseleave",sayHome);c.addEventListener("blur",()=>{sayHome();if(is3d())room3d.focus(-1)});
+cards.forEach((c,i)=>{c.addEventListener("mouseenter",()=>{sayCard(c);if(!is3d()&&window.aphSound)aphSound.fx("hover",i)});c.addEventListener("focus",()=>{sayCard(c);if(is3d())room3d.focus(i)});c.addEventListener("mouseleave",sayHome);c.addEventListener("blur",()=>{sayHome();if(is3d())room3d.focus(-1)});
   c.onclick=()=>{if(is3d()){room3d.pick(i);return}if(c.classList.contains("picked"))return;if(!MOTION){enter(c.dataset.go);return}
     c.classList.add("picked");setTimeout(()=>{enter(c.dataset.go);setTimeout(()=>c.classList.remove("picked"),900)},240)}});
 const num=(c,k)=>parseFloat(c.style.getPropertyValue(k))||0;
