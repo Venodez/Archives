@@ -752,6 +752,32 @@ footer::before{content:"";position:absolute;left:0;right:0;top:0;height:14px;bac
 .mrow .tag .tm{display:block;font-style:normal;font-size:11px;letter-spacing:.04em;color:var(--gold2);opacity:.8;margin-bottom:2px}
 
 .burn-ov{position:fixed;inset:0;width:100vw;height:100vh;z-index:150;pointer-events:none}
+
+/* live map draw */
+.draw-ov{position:fixed;inset:0;z-index:160;display:grid;grid-template-columns:minmax(0,1fr);place-items:center;padding:20px;background:rgba(6,4,2,.82);backdrop-filter:blur(3px);opacity:0;transition:opacity .35s}
+.draw-ov.on{opacity:1}
+.dr-box{position:relative;width:min(920px,100%);min-width:0;padding:30px 26px 26px;border:12px solid var(--leather);border-radius:28px;background:radial-gradient(120% 70% at 50% 0%,rgba(255,220,160,.14),transparent 60%),linear-gradient(180deg,var(--felt),var(--felt2));box-shadow:inset 0 0 0 1px rgba(212,166,76,.5),0 30px 80px -20px #000;text-align:center}
+.dr-x{position:absolute;top:12px;right:12px}
+.dr-k{margin:0;padding:0 34px;font:600 12px/1.2 var(--f-num);letter-spacing:.22em;text-transform:uppercase;color:var(--gold2)}
+.dr-vs{margin:10px 0 4px;font-family:var(--f-disp);font-size:clamp(22px,4vw,38px);color:var(--cream);display:flex;flex-wrap:wrap;justify-content:center;align-items:baseline;gap:4px 16px}
+.dr-vs i{font-size:.6em;color:var(--wax)}
+.dr-cd{min-height:22px;margin:4px 0 12px;font:600 15px var(--f-num);color:var(--cream2);letter-spacing:.06em}
+.dr-reel{position:relative;overflow:hidden;padding:18px 0;margin:0 -8px;-webkit-mask:linear-gradient(90deg,transparent,#000 14%,#000 86%,transparent);mask:linear-gradient(90deg,transparent,#000 14%,#000 86%,transparent)}
+.dr-strip{display:flex;gap:16px;will-change:transform}
+.dr-card{flex:none;position:relative;width:150px;aspect-ratio:5/7;border-radius:12px;display:flex;flex-direction:column;justify-content:flex-end;padding:12px;text-align:left;color:#f6ecd6;background:radial-gradient(120% 90% at 30% 15%,hsl(var(--h) 45% 42%),hsl(var(--h) 50% 16%) 70%),#111;box-shadow:inset 0 0 0 1px rgba(241,212,140,.35),0 14px 24px -12px #000;transition:transform .3s,box-shadow .3s}
+.dr-card::before{content:"";position:absolute;inset:7px;border:1px solid rgba(241,212,140,.3);border-radius:8px}
+.dr-ix{position:absolute;top:10px;left:14px;font:400 30px/1 var(--f-disp);color:rgba(241,212,140,.85)}
+.dr-card b{font:400 24px/1 var(--f-disp);letter-spacing:.01em}
+.dr-sub{font:600 10px var(--f-num);letter-spacing:.2em;text-transform:uppercase;color:rgba(241,212,140,.75);margin-top:4px}
+.dr-card.win{transform:translateY(-8px) scale(1.06);box-shadow:inset 0 0 0 2px var(--gold2),0 0 40px rgba(241,212,140,.35),0 20px 30px -12px #000}
+.dr-pin{position:absolute;left:50%;top:0;bottom:0;width:2px;margin-left:-1px;background:linear-gradient(180deg,var(--wax),transparent 18%,transparent 82%,var(--wax))}
+.dr-res{min-height:30px;margin:14px 0 0;font-size:15px;color:var(--cream2)}
+.dr-res b{font-family:var(--f-disp);font-size:26px;color:var(--gold2);margin-right:6px}
+.draw-ov.landed .dr-res b{animation:drpop .5s cubic-bezier(.3,1.5,.5,1)}
+@keyframes drpop{from{transform:scale(1.6);opacity:0}to{transform:none;opacity:1}}
+.bk-map{padding:3px 10px 5px;font:600 10px var(--f-num);letter-spacing:.16em;text-transform:uppercase;color:#7a5a2a;border-top:1px dashed rgba(122,90,42,.35)}
+.mrow .tag .mp{display:block;font-style:normal;font-size:11px;letter-spacing:.08em;color:var(--gold2);opacity:.75;margin-top:2px}
+@media (max-width:560px){.dr-card{width:112px}.dr-card b{font-size:18px}.dr-box{border-width:8px;padding:24px 12px 18px}}
 </style>
 </head>
 <body>
@@ -979,6 +1005,7 @@ footer::before{content:"";position:absolute;left:0;right:0;top:0;height:14px;bac
       g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.09, t + .02); g.gain.exponentialRampToValueAtTime(.0001, t + .13);
       s.connect(f); f.connect(g); g.connect(fxBus); s.start(t, Math.random()); s.stop(t + .16);
       burst(t + .005, .03, 3600 + k * 200, 2.5, .05); ping(t + .004, 2400 + k * 90, .012, .06); },
+    tick: t => { burst(t, .02, 3200, 3, .07); ping(t, 1500, .01, .03); },
     ink: t => { const o = ctx.createOscillator(), g = ctx.createGain(); o.frequency.setValueAtTime(48, t); o.frequency.linearRampToValueAtTime(36, t + 1); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.3, t + .4); g.gain.exponentialRampToValueAtTime(.0001, t + 1.2); o.connect(g); g.connect(fxBus); o.start(t); o.stop(t + 1.3);
       burst(t, 1.0, 500, .5, .14, 'lowpass', .5); }
   };
@@ -1025,7 +1052,7 @@ const avOf=n=>AV[norm(n)]||null;
 function face(n,cls=""){const a=avOf(n);return `<span class="av${cls?" "+cls:""}" aria-hidden="true">${a&&a.head?`<img src="${esc(a.head)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.remove()">`:""}</span>`}
 function skin(n,cls=""){const a=avOf(n);return `<span class="skin${cls?" "+cls:""}${a&&a.body?"":" none"}" aria-hidden="true">${a&&a.body?`<img src="${esc(a.body)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.parentNode.classList.add('none');this.remove()">`:""}</span>`}
 function setData(m,t){
-  MATCHES=m.map((r,i)=>({i,date:r[0],t:Date.parse(r[0])||0,season:r[1]||"",win:r[2],lose:r[3],score:r[4]||"",tour:r[5]||"",round:normRound(r[6])})).filter(x=>x.win&&x.lose);
+  MATCHES=m.map((r,i)=>({i,date:r[0],t:Date.parse(r[0])||0,season:r[1]||"",win:r[2],lose:r[3],score:r[4]||"",tour:r[5]||"",round:normRound(r[6]),map:r[7]||""})).filter(x=>x.win&&x.lose);
   MATCHES.sort((a,b)=>a.t-b.t||a.i-b.i);
   TOURS=t.map(r=>({date:r[0],t:Date.parse(r[0])||0,name:r[1],season:r[2]||"",prize:r[3]||"",win:r[4]||""})).filter(x=>x.name);
 }
@@ -1132,7 +1159,7 @@ function renderMatches(){
     h+=`<div class="mrow"><div class="side win">${nameBtns(m.win)}</div>
       <div class="score">${esc(m.score||"W")}</div>
       <div class="side r lose">${nameBtns(m.lose)}</div>
-      <div class="tag">${clockOf(m.date)?`<i class="tm">${esc(clockOf(m.date))}</i>`:""}${m.tour?`<b>${esc(m.tour)}</b>${esc(ROUNDS[m.round]||m.round)}`:"Friendly"}</div></div>`}
+      <div class="tag">${clockOf(m.date)?`<i class="tm">${esc(clockOf(m.date))}</i>`:""}${m.tour?`<b>${esc(m.tour)}</b>${esc(ROUNDS[m.round]||m.round)}`:"Friendly"}${mapOf(m)?`<i class="mp">${esc(mapOf(m))}</i>`:""}</div></div>`}
   $("#mlist").innerHTML=h||`<div class="empty">No match found.</div>`;
   $("#mcount").textContent=`${L.length} match${L.length===1?"":"es"}`;
   $("#mmore").hidden=L.length<=mShown;
@@ -1170,7 +1197,7 @@ function drawBracket(t,first){
   let id=0;const links=[];
   const card=(node,cls="")=>{if(!node)return `<div class="bm ghost${cls}" aria-hidden="true"></div>`;const m=node.m,[a,b]=sc(m),k=node.id=++id;
     node.kids.forEach(c=>c&&links.push([c,node]));
-    return `<div class="bm${cls}" data-k="${k}"><div class="w"><span class="nm">${esc(m.win)}</span><b>${esc(a)}</b></div><div class="l"><span class="nm">${esc(m.lose)}</span><b>${esc(b)}</b></div></div>`};
+    return `<div class="bm${cls}" data-k="${k}"><div class="w"><span class="nm">${esc(m.win)}</span><b>${esc(a)}</b></div><div class="l"><span class="nm">${esc(m.lose)}</span><b>${esc(b)}</b></div>${mapOf(m)?`<div class="bk-map">${esc(mapOf(m))}</div>`:""}</div>`};
   // place every match in its column, empty slots keep the tree straight
   const levels=(node,top)=>{const L=Array.from({length:top+1},(_,l)=>Array(2**(top-l)).fill(null));
     const put=(x,l,i)=>{L[l][i]=x;if(l>0)[0,1].forEach(j=>put(x&&x.kids[j]||null,l-1,2*i+j))};put(node,top,0);return L};
@@ -1418,6 +1445,48 @@ async function shareImage(build,name,btn){const old=btn.textContent;btn.disabled
   }catch(e){toast("Couldn't make the image")}finally{btn.disabled=false;btn.textContent=old}}
 $("#topImg").onclick=e=>shareImage(buildTop,"aphrite-top10.png",e.currentTarget);
 
+
+/* ---------- the live map draw: started from the sheet, seen by everyone at the same moment ---------- */
+let DRAWS=[];const drawSeen=new Set();
+const pairKey=(a,b)=>[team(a).map(norm).sort().join("&"),team(b).map(norm).sort().join("&")].sort().join("|");
+function mapOf(m){if(m.map)return m.map;const k=pairKey(m.win,m.lose),d=[...DRAWS].reverse().find(d=>same(d.tour,m.tour)&&pairKey(d.a,d.b)===k);return d?d.map:""}
+async function pollDraws(){if(!SHEET_URL)return;
+  try{const t=await readTab("Draws");if(!t)return;const c={t:t.col("tournament","tournoi"),r:t.col("round","phase"),a:t.col("team a","player a","a"),b:t.col("team b","player b","b"),m:t.col("map","carte"),p:t.col("pool","maps"),e:t.col("epoch","at (ms)","time (ms)"),mo:t.col("mode")};
+    const v=(r,i)=>i>=0?t.val(r[i]):"";
+    DRAWS=t.rows.map(r=>({tour:v(r,c.t),round:normRound(v(r,c.r)),roundRaw:v(r,c.r),a:v(r,c.a),b:v(r,c.b),map:v(r,c.m),pool:v(r,c.p).split(/\s*,\s*/).filter(Boolean),at:+String(v(r,c.e)).replace(/[^\d]/g,"")||0,mode:v(r,c.mo)})).filter(d=>d.map&&d.at);
+    const d=DRAWS.reduce((x,y)=>!x||y.at>x.at?y:x,null),now=Date.now();
+    if(d&&!drawSeen.has(d.at)&&now<d.at+DRAW_SPIN+60000){drawSeen.add(d.at);showDraw(d)}
+  }catch(e){}finally{clearTimeout(pollDraws.t);pollDraws.t=setTimeout(pollDraws,document.hidden?20000:4000)}}
+const DRAW_SPIN=6200;
+function showDraw(d){
+  const ov=document.createElement("div");ov.className="draw-ov";ov.setAttribute("role","dialog");ov.setAttribute("aria-label","Map draw");
+  const pool=d.pool.length?d.pool:[d.map],seq=[];for(let i=0;i<34;i++)seq.push(pool[(i*7+3)%pool.length]);seq.push(d.map,pool[0],pool[pool.length>1?1:0]);
+  const hue=n=>{let h=0;for(const ch of norm(n))h=(h*31+ch.charCodeAt(0))%360;return h};
+  const card=n=>`<div class="dr-card" style="--h:${hue(n)}"><span class="dr-ix">${esc(n[0]||"?")}</span><b>${esc(n)}</b><span class="dr-sub">${esc(d.mode||"")}</span></div>`;
+  ov.innerHTML=`<div class="dr-box"><button class="iconbtn dr-x" type="button" aria-label="Close">${X_ICON}</button>
+    <p class="dr-k">Il Sorteggio · ${esc(d.tour||"Map draw")}${d.roundRaw?` · ${esc(ROUNDS[d.round]||d.roundRaw)}`:""}</p>
+    <h3 class="dr-vs"><span>${esc(d.a)}</span><i>vs</i><span>${esc(d.b)}</span></h3>
+    <p class="dr-cd" aria-live="polite"></p>
+    <div class="dr-reel"><div class="dr-strip">${seq.map(card).join("")}</div><i class="dr-pin" aria-hidden="true"></i></div>
+    <p class="dr-res" aria-live="polite"></p></div>`;
+  document.body.appendChild(ov);requestAnimationFrame(()=>ov.classList.add("on"));
+  const close=()=>{ov.classList.remove("on");setTimeout(()=>ov.remove(),400);clearInterval(ov._t)};
+  $(".dr-x",ov).onclick=close;ov.addEventListener("click",e=>{if(e.target===ov)close()});
+  const strip=$(".dr-strip",ov),reel=$(".dr-reel",ov),cd=$(".dr-cd",ov),res=$(".dr-res",ov),target=seq.length-3;
+  const place=x=>{strip.style.transform=`translateX(${-x}px)`};
+  let cw=0,center=0;const measure=()=>{const c=strip.children[0];cw=c.offsetWidth+parseFloat(getComputedStyle(strip).gap||0);center=reel.clientWidth/2-c.offsetWidth/2};
+  measure();const end=target*cw-center;place(-center);
+  let lastIx=-1;const ease=k=>1-Math.pow(1-k,4);
+  const done=()=>{place(end);strip.children[target].classList.add("win");res.innerHTML=`<b>${esc(d.map)}</b> · played until one ${team(d.a).length>1?"team":"player"} wins`;cd.textContent="";ov.classList.add("landed");if(window.aphSound)aphSound.fx("land")};
+  const tick=()=>{const now=Date.now();
+    if(now<d.at){cd.textContent=`Draw in ${Math.ceil((d.at-now)/1000)}…`;return}
+    const k=Math.min(1,(now-d.at)/DRAW_SPIN);if(!MOTION||k>=1){clearInterval(ov._t);done();return}
+    cd.textContent="";const x=-center+(end+center)*ease(k);place(x);const ix=Math.floor((x+center)/cw+.5);if(ix!==lastIx){lastIx=ix;if(window.aphSound&&k<.97)aphSound.fx("tick")}};
+  if(Date.now()>d.at+DRAW_SPIN){done()}else{tick();ov._t=setInterval(tick,16)}
+  addEventListener("resize",()=>{measure();if(ov.classList.contains("landed"))place(target*cw-center)},{once:true});
+  setTimeout(()=>{if(ov.isConnected&&ov.classList.contains("landed"))close()},Math.max(0,d.at+DRAW_SPIN-Date.now())+45000);
+}
+
 /* ---------- Google Sheet ---------- */
 async function readTab(tab,hd=1){const m=/\/d\/([\w-]{20,})/.exec(SHEET_URL);if(!m)return null;
   const r=await fetch(`https://docs.google.com/spreadsheets/d/${m[1]}/gviz/tq?tqx=out:json&headers=${hd}&sheet=${encodeURIComponent(tab)}&t=${Date.now()}`,{cache:"no-store"});
@@ -1430,13 +1499,14 @@ async function readTab(tab,hd=1){const m=/\/d\/([\w-]{20,})/.exec(SHEET_URL);if(
 async function loadSheet(){if(!SHEET_URL)return;
   try{const st=await readTab("Settings",0);if(st)st.rows.forEach(r=>{const lab=st.val(r[0]),v=st.val(r[1]);if(/time ?zone|fuseau/i.test(lab)&&v)SHEET_TZ=v;const pm=/^points?\s*[·:\-–—]\s*(.+)$/i.exec(lab);if(pm&&v!==""&&!isNaN(+v)){const L=norm(pm[1]).replace(/[^a-z0-9]/g,"");const hit=PLACES.find(([k,l])=>norm(l).replace(/[^a-z0-9]/g,"")===L);if(hit)PTS[hit[0]]=+v}})}catch(e){}
   try{const a=await readTab("Matches"),b=await readTab("Tournaments");if(!a)throw new Error("no Matches tab");
-    const c={d:a.col("date"),s:a.col("season","saison"),w:a.col("winner","gagnant","vainqueur"),l:a.col("loser","perdant"),sc:a.col("score"),t:a.col("tournament","tournoi"),r:a.col("round","phase","manche")};
+    const c={d:a.col("date"),s:a.col("season","saison"),w:a.col("winner","gagnant","vainqueur"),l:a.col("loser","perdant"),sc:a.col("score"),t:a.col("tournament","tournoi"),r:a.col("round","phase","manche"),mp:a.col("map","carte")};
     const g=(r,i)=>i>=0?a.val(r[i]):"";
-    const M=a.rows.map(r=>[g(r,c.d),g(r,c.s),g(r,c.w),g(r,c.l),g(r,c.sc),g(r,c.t),g(r,c.r)]);
+    const M=a.rows.map(r=>[g(r,c.d),g(r,c.s),g(r,c.w),g(r,c.l),g(r,c.sc),g(r,c.t),g(r,c.r),g(r,c.mp)]);
     let T=[];if(b){const e={d:b.col("date"),n:b.col("tournament","name","tournoi"),s:b.col("season","saison"),p:b.col("prize","prix","reward"),w:b.col("winner","champion","vainqueur")};const h=(r,i)=>i>=0?b.val(r[i]):"";T=b.rows.map(r=>[h(r,e.d),h(r,e.n),h(r,e.s),h(r,e.p),h(r,e.w)])}
     try{const n=await readTab("News");if(n){const e={d:n.col("date"),t:n.col("title","titre"),x:n.col("text","texte","message")};const L=n.rows.map(r=>[e.d>=0?n.val(r[e.d]):"",e.t>=0?n.val(r[e.t]):"",e.x>=0?n.val(r[e.x]):""]).filter(u=>u[1]);if(L.length){NEWS=L.map(u=>[pretty(u[0]),u[1],u[2]]).reverse()}}}catch(e){}
     try{const pl=await readTab("Players");if(pl){const e={n:pl.col("player","name","joueur","nom"),u:pl.col("roblox","username","pseudo","user"),h:pl.col("headshot","head","photo","tete"),b:pl.col("avatar","skin","body","corps")};const v=(r,i)=>i>=0?pl.val(r[i]):"",url=x=>/^https:\/\//.test(x)?x:"";
       const A={};pl.rows.forEach(r=>{const n=v(r,e.n),u=v(r,e.u).replace(/^@/,"");if(n)A[norm(n)]={user:u,head:url(v(r,e.h)),body:url(v(r,e.b))}});AV=A}}catch(e){}
+    try{await pollDraws()}catch(e){}
     setData(M,T);DEMO=false;UPDATED=new Date().toLocaleDateString("en-US",{month:"short",day:"numeric"});season="";renderAll()}
   catch(e){console.warn("Sheet unavailable, showing the example data:",e.message)}}
 
@@ -1479,7 +1549,7 @@ addEventListener("resize",layoutScene);if(document.fonts&&document.fonts.ready)d
 function renderPts(){const d=$("#ptsList");if(d)d.innerHTML=PLACES.map(([k,l])=>`<div><dt>${l}</dt><dd><b>${PTS[k]}</b> points</dd></div>`).join("")}
 function renderAll(){buildSeasons();compute();renderPts();$("#demo").hidden=!DEMO;renderRank();renderMatches();renderChamps();fillDuel();renderDuel();renderFacts();renderTicker();renderNews();layoutScene();$$("[data-updated]").forEach(e=>e.textContent=UPDATED?`Updated ${UPDATED}`:"")}
 function no3d(){if(cover.classList.contains("r3d")||!root.classList.contains("try3d"))return;root.classList.remove("try3d");layoutScene();dealCards(200)}
-setData(DEMO_DATA.m,DEMO_DATA.t);root.classList.add("lock");siteInert(true);show("rank");renderAll();if(!root.classList.contains("try3d"))dealCards();else{setTimeout(no3d,9000);const m=document.createElement("script");m.type="module";m.src="room.js";m.onerror=no3d;document.body.appendChild(m)}loadSheet();
+setData(DEMO_DATA.m,DEMO_DATA.t);root.classList.add("lock");siteInert(true);show("rank");renderAll();if(!root.classList.contains("try3d"))dealCards();else{setTimeout(no3d,9000);const m=document.createElement("script");m.type="module";m.src="room.js";m.onerror=no3d;document.body.appendChild(m)}loadSheet().then(()=>{if(SHEET_URL&&!pollDraws.t)pollDraws()});
 </script>
 </body>
 </html>
