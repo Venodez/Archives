@@ -938,6 +938,7 @@ function resetRoom() {
 /* ---------- deal ---------- */
 let now = 0, dealT0 = 1e9, dealWait = .6, lightT0 = 0;
 function deal(waitMs = 650) {
+  if (anim && anim.kind === 'burn') endBurn(anim);
   if (anim && anim.kind !== 'light') resetRoom();
   busy = false; dealt = false; dealT0 = now; dealWait = REDUCE ? 0 : waitMs / 1000;
   cards.forEach(c => { c.hover = 0; c.picked = false; c.pick = 0; });
@@ -1101,6 +1102,7 @@ function updateMoves(dt) {
     if (a.kind === 'light') lightPose(t, pose);
     else if (a.kind === 'drink') drinkPose(t, pose, a, dt);
     else if (a.kind === 'contract') contractPose(t, pose, a);
+    else if (a.kind === 'burn') burnPose(t, pose, a);
     if (a.from && anim === a && t < SETTLE) { mixPose(poseMix, a.from, pose, smooth(t, 0, SETTLE)); copyPose(pose, poseMix); }
     if (!anim && a.rush !== undefined) startContract(a.rush);
   }
@@ -1226,6 +1228,132 @@ function presentContract(c) {
     setTimeout(() => endContract(c), TG + TS + TI + 1600 * SL);   // the sheet never stays over the page
   } catch (e) { endContract(c); }
 }
+
+/* ---------- the way back: the contract is on the table again, he puts his lighter to it, it burns, he deals again ---------- */
+const BW = 1024, burnBase = makeCanvas(BW, 640), burnCv = makeCanvas(BW, 640), burnTex = tex(burnCv[0], { aniso: 8 });
+const M_burnLit = new THREE.MeshStandardMaterial({ map: burnTex, roughness: .85, transparent: true, depthWrite: false, envMapIntensity: .15 });
+const paperLit = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), M_burnLit); paperLit.rotation.x = -PI / 2; paperLit.position.y = .004; paperLit.renderOrder = 5; paperLit.visible = false; paperLit.receiveShadow = true; paper.add(paperLit);
+const fires = Array.from({ length: 16 }, (_, i) => { const s = glowSprite(i % 3 ? 0xff8a2a : 0xffc860, .3, 0); s.visible = false; scene.add(s); return s; });
+const fireLight = new THREE.PointLight(0xff7a26, 0, 4.5, 2); scene.add(fireLight);
+const T_LIT = 1.95, T_BURN = 2.5, T_DEAL = 4.25, T_END = 5.3;
+function burnEdge(r, t, ph) {   // a ragged, moving line, out from the corner nearest to him
+  const [c] = burnCv, ox = c.width * .985, oy = c.height * .02, pts = [];
+  for (let i = 0; i <= 120; i++) { const a = PI / 2 - .3 + i / 120 * (PI / 2 + .6),
+    n = .14 * Math.sin(a * 7 + ph[0] + t * 2) + .07 * Math.sin(a * 13 + ph[1] - t * 3) + .035 * Math.sin(a * 29 + ph[2] + t * 5) + .05 * Math.sin(a * 3 + ph[3]);
+    pts.push([ox + Math.cos(a) * r * (1 + n), oy + Math.sin(a) * r * (1 + n)]); }
+  return pts;
+}
+function burnPaint(b, t, a) {
+  const [c, x] = burnCv, w = c.width, h = c.height;
+  x.globalCompositeOperation = 'source-over'; x.clearRect(0, 0, w, h); x.drawImage(burnBase[0], 0, 0, w, h);
+  if (b > 0) {
+    const r = Math.hypot(w, h) * 1.5 * Math.pow(b, 1.25), pts = a.pts = burnEdge(r, t, a.ph), ox = w * .985, oy = h * .02;
+    const ring = grow => { x.beginPath(); x.moveTo(w + 60, -60); pts.forEach(([px, py]) => { const dx = px - ox, dy = py - oy, l = Math.hypot(dx, dy) || 1; x.lineTo(px + dx / l * grow, py + dy / l * grow); }); x.closePath(); };
+    x.globalCompositeOperation = 'source-atop';
+    ring(70); x.fillStyle = 'rgba(120,70,20,.22)'; x.fill();
+    ring(30); x.fillStyle = 'rgba(70,34,10,.55)'; x.fill();
+    ring(11); x.fillStyle = 'rgba(28,12,4,.92)'; x.fill();
+    x.globalCompositeOperation = 'source-over'; x.save(); x.shadowColor = 'rgba(255,120,20,1)'; x.shadowBlur = 16;
+    x.strokeStyle = 'rgba(255,160,50,1)'; x.lineWidth = 5; x.beginPath(); pts.forEach(([px, py], i) => i ? x.lineTo(px, py) : x.moveTo(px, py)); x.stroke();
+    x.strokeStyle = 'rgba(255,240,180,1)'; x.lineWidth = 2; x.stroke(); x.restore();
+    x.globalCompositeOperation = 'destination-out'; ring(-4); x.fill(); x.globalCompositeOperation = 'source-over';
+  }
+  burnTex.needsUpdate = true;
+}
+const _fw = new THREE.Vector3();
+function burnToWorld(px, py, out) { const [c] = burnCv; return out.set((px / c.width - .5) * PAPER.w, .05, (py / c.height - .5) * PAPER.h).add(paper.position); }
+function burnPose(t, p, a) {
+  const LE = ARMS.L.restEnd;
+  if (!a.hand) { const [c] = burnCv; burnToWorld(c.width * .985, c.height * .02, _fw); _fw.x += .12; _fw.y = -.05; _fw.z -= .02; a.hand = toBody(_fw.clone()); a.hand2 = a.hand.clone().add(V(.02, .03, .04)); }
+  armPath(p, 'L', [[0, LE], [.95, LE], [1.6, a.hand], [2.7, a.hand2], [3.35, LE]], [[0, ZERO], [.95, ZERO], [1.6, V(-.06, -.3, .82)], [2.7, V(-.06, -.3, .82)], [3.35, ZERO]], t);
+  lighter.visible = t > 1.05 && t < 3.25;
+  const fire = t > 1.62 && t < 2.72 ? 1 : 0;
+  flame.visible = !!fire; flameLight.intensity = fire * (4 + Math.sin(now * 31) * .6 + Math.sin(now * 17) * .5);
+  flameCore.scale.set(1, 1 + Math.sin(now * 23) * .12, 1);
+  const k = bell(t, .8, 1.4, 3.6, 4.3); p.pitch = .24 * k; p.yaw = .1 * k; p.held = 1; p.cigIn = 1; p.tilt = 0;
+  cue(a, 'lid', t, 1.3); cue(a, 'light', t, 1.55); cue(a, 'lidClose', t, 2.85);
+}
+function burnScene(t, a) {
+  paper.visible = true; paperBase.visible = flapPivot.visible = false; paperLit.visible = true; paperFlat.visible = t < 1.6;
+  M_paperFlat.opacity = 1 - smooth(t, .35, 1.3); M_burnLit.opacity = 1;
+  const b = seg(t, T_LIT, T_LIT + T_BURN);
+  if (b > 0 && (b < 1 || !a.ash)) { burnPaint(b, now, a); if (b >= 1) a.ash = true; }
+  if (b > 0 && b < 1 && !a._burn) { a._burn = 1; sfx('burn', T_BURN); }
+  const heat = smooth(t, T_LIT, T_LIT + .35) * (1 - smooth(t, T_LIT + T_BURN - .5, T_LIT + T_BURN + .15));
+  let cx = 0, cz = 0, n = 0;
+  const on = a.pts ? a.pts.filter(([px, py]) => px > 4 && py > 4 && px < burnCv[0].width - 4 && py < burnCv[0].height - 4) : [];
+  fires.forEach((f, i) => {
+    if (!on.length || heat <= 0) { f.visible = false; return; }
+    const [px, py] = on[Math.floor((i + .5) / fires.length * on.length)];
+    burnToWorld(px, py, f.position); const fl = .7 + .3 * Math.sin(now * (9 + i) + i * 2.1) * Math.sin(now * 5.3 + i);
+    f.position.y = .05 + fl * .08; f.scale.set(.28 + fl * .18, .38 + fl * .3, 1); f.material.opacity = heat * (.55 + .45 * fl); f.visible = true;
+    cx += f.position.x; cz += f.position.z; n++;
+  });
+  if (n) fireLight.position.set(cx / n, .45, cz / n);
+  fireLight.intensity = heat * (5 + Math.sin(now * 13) * 1.2 + Math.sin(now * 7.7) * .8);
+  if (heat > .3 && on.length && Math.random() < .35) { const s = smoke.find(q => !q.visible); if (s) { const [px, py] = on[Math.random() * on.length | 0]; burnToWorld(px, py, s.position); const u = s.userData; u.life = 0; u.max = 1.8 + Math.random(); u.vx = (Math.random() - .5) * .1; u.vz = (Math.random() - .5) * .1; u.rot = (Math.random() - .5) * .6; s.material.rotation = Math.random() * PI * 2; s.visible = true; } }
+  if (!a.said && t > T_LIT + .3) { a.said = true; if (typeof say === 'function') say('Allora.', 'Pick another one.'); }
+  if (!a.dealt && t > T_DEAL) { a.dealt = true; dealT0 = now; dealWait = .05; sfx('deal', dealWait); }
+  if (t > T_END) endBurn(a);
+}
+function endBurn(a) {
+  if (!a || a.done) return; a.done = true;
+  if (a.ov) { a.ov.remove(); a.ov = null; }
+  fires.forEach(f => f.visible = false); fireLight.intensity = 0;
+  paper.visible = false; paperBase.visible = flapPivot.visible = true; paperLit.visible = false; paperFlat.visible = false; M_paperFlat.opacity = 0;
+  coverEl.classList.remove('dive'); camera.up.set(0, 1, 0); if (mode) fit();
+  if (!a.dealt) { dealT0 = now; dealWait = .05; sfx('deal', dealWait); }
+  if (anim === a) anim = null;
+  busy = false; diveE = 0;
+  if (a.done2) a.done2();
+}
+function back(go, swap, done) {
+  const plain = () => { try { swap(); } catch (e) { } deal(380); if (done) done(); };
+  if (REDUCE || frozen || typeof openPage !== 'function') return plain();
+  try {
+    const card = cards.find(c => c.d.go === go) || cards[0];
+    drawContract(card.d);
+    // the signed sheet, as it was when you entered
+    const [bc, bx] = burnBase, [cc] = conCanvas; bc.width = BW; bc.height = Math.round(BW * cc.height / cc.width); burnCv[0].width = bc.width; burnCv[0].height = bc.height;
+    bx.drawImage(cc, 0, 0, bc.width, bc.height);
+    const sig = PAPER.sigPts; bx.strokeStyle = '#1b1209'; bx.lineCap = bx.lineJoin = 'round';
+    for (let i = 1; i < sig.length; i++) { bx.lineWidth = Math.max(1.2, PAPER.sigW * bc.width) * (.75 + .45 * Math.abs(Math.sin(i * .21))); bx.beginPath(); bx.moveTo(sig[i - 1][0] * bc.width, sig[i - 1][1] * bc.height); bx.lineTo(sig[i][0] * bc.width, sig[i][1] * bc.height); bx.stroke(); }
+    burnTex.dispose(); burnPaint(0, 0, {});
+    M_paperFlat.map = burnTex; M_paperFlat.needsUpdate = true;
+    // the page turns back into the sheet
+    const ov = document.createElement('div'); ov.className = 'contract-ov'; ov.setAttribute('aria-hidden', 'true');
+    const cv = document.createElement('canvas'), dpr = Math.min(devicePixelRatio || 1, 1.5), VW = innerWidth, VH = innerHeight;
+    cv.width = Math.round(VW * dpr); cv.height = Math.round(VH * dpr); ov.appendChild(cv); document.body.appendChild(ov);
+    const g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const draw = (x0, y0, w, h) => { g.clearRect(0, 0, VW, VH); g.drawImage(bc, x0, y0, w, h); };
+    draw(0, 0, VW, VH);
+    let a = null;
+    const fin = () => { M_paperFlat.map = conTex; M_paperFlat.needsUpdate = true; if (done) done(); };
+    let watchdog = 0;   // if the room stops drawing (tab in the background, a stalled device), the table still comes back
+    const wd = () => { if (!a) { ov.remove(); fin(); plain(); return; } if (a.done) return; if (now === a.lastNow) { endBurn(a); return; } a.lastNow = now; watchdog = setTimeout(wd, 2500); };
+    watchdog = setTimeout(wd, 4000);
+    ov.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 320, easing: 'ease-out', fill: 'forwards' }).finished.then(() => {
+      swap();
+      resetRoom(); cig = 1; busy = true; dealt = false; dealT0 = now; dealWait = 99; hovered = focused = -1;
+      cards.forEach(c => { c.hover = 0; c.picked = false; c.pick = 0; });
+      M_paperFlat.map = burnTex; M_paperFlat.needsUpdate = true;
+      paper.position.set(0, .008, mode === 'narrow' ? .16 : .02); paper.quaternion.identity(); setFold(0); paperLit.scale.set(PAPER.w, PAPER.h, 1);
+      a = anim = { kind: 'burn', t0: now + .38, from: snapPose(), ov, ph: [...Array(4)].map(() => Math.random() * 6.28), done2: () => { clearTimeout(watchdog); fin(); } };
+      coverEl.classList.add('dive'); diveE = 1;
+      render(0); start();
+      // the sheet on the screen shrinks onto the sheet on the table
+      camera.updateMatrixWorld(); paper.updateMatrixWorld(true);
+      const r = canvas.getBoundingClientRect(), hw = PAPER.w / 2, hh = PAPER.h / 2;
+      const pts = [[-hw, -hh], [hw, -hh], [hw, hh], [-hw, hh]].map(([u, v]) => { const q = new THREE.Vector3(u, .006, v).applyMatrix4(paper.matrixWorld); const [px, py] = proj(q.x, q.y, q.z); return [r.left + px, r.top + py]; });
+      const L = Math.min(...pts.map(q => q[0])), R = Math.max(...pts.map(q => q[0])), T = Math.min(...pts.map(q => q[1])), B = Math.max(...pts.map(q => q[1]));
+      const t0 = performance.now(), D = 360;
+      const step = () => { if (!a.ov) return; const k = easeInOut(Math.min(1, (performance.now() - t0) / D));
+        draw(lerp(0, L, k), lerp(0, T, k), lerp(VW, R - L, k), lerp(VH, B - T, k));
+        if (k < 1) requestAnimationFrame(step); else { a.ov.remove(); a.ov = null; } };
+      requestAnimationFrame(step);
+    });
+  } catch (e) { plain(); }
+}
 let last = performance.now(), running = false, frames = 0, slow = 0;
 const EMBER2 = scene.getObjectByName('ember2');
 function frame(t) {
@@ -1267,7 +1395,7 @@ function update(dt) {
   }
   if (EMBER2) EMBER2.material.color.setRGB(3 * (.6 + .4 * Math.sin(t * 2.1)), .9 * (.6 + .4 * Math.sin(t * 2.1)), .2);
   // camera drifts with your pointer
-  const still = REDUCE || (anim && anim.kind === 'contract');
+  const still = REDUCE || (anim && (anim.kind === 'contract' || anim.kind === 'burn'));
   const tx = still ? par.x : (pointer.in && FINE ? pointer.x * .32 : Math.sin(t * .23) * .12), ty = still ? par.y : (pointer.in && FINE ? -pointer.y * .14 : Math.sin(t * .31) * .05);
   par.x = damp(par.x, tx, 2.5, dt); par.y = damp(par.y, ty, 2.5, dt);
   placeCamera(par.x, par.y);
@@ -1275,6 +1403,11 @@ function update(dt) {
     const ct = now - anim.t0; diveE = smoother(seg(ct, T_DIVE, T_DIVE1));
     if (diveE > 0) diveCamera(anim, diveE);
     body.updateMatrixWorld(); contractScene(ct, anim);
+  } else if (anim && anim.kind === 'burn') {
+    const bt = now - anim.t0; diveE = 1 - smoother(seg(bt, .2, 1.5));
+    if (diveE > 0) diveCamera(anim, diveE); else if (!anim.up) { anim.up = true; camera.up.set(0, 1, 0); if (mode) fit(); placeCamera(par.x, par.y); }
+    if (diveE < .5) coverEl.classList.remove('dive');
+    body.updateMatrixWorld(); burnScene(bt, anim);
   }
   updateCards(dt);
 }
@@ -1305,10 +1438,11 @@ canvas.addEventListener('webglcontextlost', e => { e.preventDefault(); stop(); f
 if ('IntersectionObserver' in window) new IntersectionObserver(es => { onScreen = es[es.length - 1].isIntersecting; if (onScreen) start(); else stop(); }).observe(canvas);
 
 window.room3d = {
-  layout, deal, start,
+  layout, deal, start, back,
   focus(k) { if (busy) return; focused = k; if (k >= 0) hovered = -1; kick(); },
   pick(k) { if (anim && anim.kind === 'contract') skipContract(anim); else choose(k); }
 };
+
 async function boot() {
   try { await Promise.race([Promise.all(['400 80px Limelight', 'italic 500 40px Barlow', '700 40px "Barlow Condensed"'].map(f => document.fonts.load(f))), new Promise(r => setTimeout(r, 2500))]); } catch (e) { }
   paintCards(); faceTex.forEach(t => t.needsUpdate = true); backTex.needsUpdate = true;

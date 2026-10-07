@@ -1337,7 +1337,9 @@ async function throughFire(swap){
   cv.remove();blindsBusy=false}
 
 $$("[data-go]").forEach(b=>b.onclick=()=>enter(b.dataset.go));
-$("#toCover").onclick=()=>{closeDrawer();throughFire(()=>{cover.hidden=false;root.classList.add("lock");siteInert(true);layoutScene();dealCards(380)})};
+$("#toCover").onclick=()=>{closeDrawer();const sw=()=>{cover.hidden=false;root.classList.add("lock");siteInert(true);layoutScene()};
+  if(MOTION&&!blindsBusy&&is3d()&&room3d.back){blindsBusy=true;const tab=PAGES.find(t=>!$("#p-"+t).hidden)||"rank";room3d.back(tab,sw,()=>{blindsBusy=false});return}
+  throughFire(()=>{sw();dealCards(380)})};
 function renderFacts(){const T=tourResults(),last=T.find(t=>t.win),n=MATCHES.filter(inSeason).length;
   $("#facts").innerHTML=`<div class="fact"><b>${LIST.length}</b><span>Ranked players${season!=="all"?` · ${esc(season)}`:""}</span></div><div class="fact"><b>${fmt(n)}</b><span>Matches played</span></div>${last?`<div class="fact champ"><b>${esc(last.win)}</b><span>Reigning champion</span></div>`:""}`}
 $$("[data-discord]").forEach(a=>{if(DISCORD_URL)a.href=DISCORD_URL;else a.hidden=true});
