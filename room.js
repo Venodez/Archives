@@ -143,12 +143,11 @@ const T = {};
   [c, x] = makeCanvas(256, 256); x.fillStyle = '#3b2312'; x.fillRect(0, 0, 256, 256);
   for (let k = 0; k < 60; k++) { x.strokeStyle = 'rgba(0,0,0,.25)'; x.lineWidth = rnd(.5, 1.5); x.beginPath(); const gy = rnd(0, 256); x.moveTo(0, gy); x.bezierCurveTo(80, gy + rnd(-5, 5), 170, gy + rnd(-5, 5), 256, gy + rnd(-3, 3)); x.stroke(); }
   T.woodH = tex(c, { repeat: [3, 1] });
-  // pinstripe suit
-  [c, x] = makeCanvas(256, 256); x.fillStyle = '#16161b'; x.fillRect(0, 0, 256, 256); noise(x, 256, 256, 5000, '#2a2a33', '#08080a', .3);
-  x.fillStyle = 'rgba(150,150,170,.22)'; for (let i = 0; i < 256; i += 32) x.fillRect(i, 0, 1.4, 256);
+  // plain black suit, a fine weave
+  [c, x] = makeCanvas(256, 256); x.fillStyle = '#0d0d10'; x.fillRect(0, 0, 256, 256); noise(x, 256, 256, 5000, '#1c1c22', '#050506', .25);
   T.suit = tex(c, { repeat: [2, 2] });
-  // hat band: plain cream
-  [c, x] = makeCanvas(512, 64); x.fillStyle = '#e6e0d2'; x.fillRect(0, 0, 512, 64); x.fillStyle = 'rgba(0,0,0,.12)'; x.fillRect(0, 0, 512, 3); x.fillRect(0, 61, 512, 3);
+  // hat band: black silk, a thin sheen at the edges
+  [c, x] = makeCanvas(512, 64); x.fillStyle = '#060607'; x.fillRect(0, 0, 512, 64); x.fillStyle = 'rgba(255,255,255,.08)'; x.fillRect(0, 4, 512, 2); x.fillRect(0, 58, 512, 2);
   T.band = tex(c);
   // banknote
   [c, x] = makeCanvas(512, 236); const bg = x.createLinearGradient(0, 0, 512, 236); bg.addColorStop(0, '#cfd7b0'); bg.addColorStop(1, '#a5b182'); x.fillStyle = bg; x.fillRect(0, 0, 512, 236);
@@ -266,12 +265,13 @@ const backTex = tex(backCanvas[0], { aniso: 16 });
 /* ---------- materials ---------- */
 const M = {
   gold: new THREE.MeshStandardMaterial({ color: 0xf0bf4a, metalness: .88, roughness: .3 }),
-  head: new THREE.MeshStandardMaterial({ color: 0xf2c24e, metalness: .55, roughness: .34 }),
-  suit: new THREE.MeshStandardMaterial({ color: 0xffffff, map: T.suit, roughness: .78, metalness: 0, envMapIntensity: .4 }),
-  satin: new THREE.MeshStandardMaterial({ color: 0x1b1b21, roughness: .38, metalness: .1, envMapIntensity: .6 }),
-  shirt: new THREE.MeshStandardMaterial({ color: 0xe7e1d3, roughness: .6, envMapIntensity: .4 }),
-  tie: new THREE.MeshStandardMaterial({ color: 0x7c1616, roughness: .32, metalness: .15 }),
-  hat: new THREE.MeshStandardMaterial({ color: 0x141417, roughness: .82, envMapIntensity: .5 }),
+  head: new THREE.MeshStandardMaterial({ color: 0xf5cd30, metalness: 0, roughness: .48, envMapIntensity: .5 }),
+  glove: new THREE.MeshStandardMaterial({ color: 0x0c0c0f, roughness: .45, metalness: .05, envMapIntensity: .8 }),
+  suit: new THREE.MeshStandardMaterial({ color: 0xffffff, map: T.suit, roughness: .58, metalness: 0, envMapIntensity: .7 }),
+  satin: new THREE.MeshStandardMaterial({ color: 0x0b0b0e, roughness: .3, metalness: .1, envMapIntensity: .8 }),
+  shirt: new THREE.MeshStandardMaterial({ color: 0xf2f0ea, roughness: .6, envMapIntensity: .4 }),
+  tie: new THREE.MeshStandardMaterial({ color: 0x0a0a0c, roughness: .28, metalness: .15, envMapIntensity: .9 }),
+  hat: new THREE.MeshPhysicalMaterial({ color: 0x0b0b0d, roughness: .3, clearcoat: .9, clearcoatRoughness: .25, envMapIntensity: 1 }),
   band: new THREE.MeshStandardMaterial({ map: T.band, roughness: .55 }),
   felt: new THREE.MeshStandardMaterial({ map: T.felt, roughness: .95, envMapIntensity: .2 }),
   leather: new THREE.MeshPhysicalMaterial({ color: 0x2b160b, roughness: .42, clearcoat: .5, clearcoatRoughness: .35, envMapIntensity: .7 }),
@@ -369,7 +369,6 @@ const ARMS = {};
   const tie = new THREE.Shape(); tie.moveTo(-.075, 1.76); tie.lineTo(.075, 1.76); tie.lineTo(.06, 1.62); tie.lineTo(.13, .92); tie.lineTo(0, .78); tie.lineTo(-.13, .92); tie.lineTo(-.06, 1.62); tie.closePath();
   mesh(new THREE.ExtrudeGeometry(tie, { depth: .03, bevelEnabled: true, bevelThickness: .015, bevelSize: .015, bevelSegments: 2 }), M.tie, 0, 0, F + .005, body).castShadow = true;
   const sq = new THREE.Shape(); sq.moveTo(.42, 1.32); sq.lineTo(.62, 1.32); sq.lineTo(.6, 1.42); sq.lineTo(.55, 1.36); sq.lineTo(.5, 1.44); sq.lineTo(.46, 1.36); sq.closePath();
-  mesh(new THREE.ShapeGeometry(sq), M.shirt, 0, 0, F + .04, body);
   [.62, .32].forEach(y => mesh(new THREE.CylinderGeometry(.035, .035, .02, 16), M.satin, .08, y, F + .012, body).rotation.x = PI / 2);
   // classic head, no face: the hat keeps him a mystery
   const prof = []; const r = .62, h = 1.2, b = .16;
@@ -380,6 +379,11 @@ const ARMS = {};
   const hg = lathe(prof, 64, PI);
   { const uv = hg.attributes.uv, p = hg.attributes.position; for (let i = 0; i < uv.count; i++) uv.setY(i, p.getY(i) / h); }
   mesh(hg, M.head, 0, 0, 0, headPivot);
+  // the smile, under the brim
+  { const [c, x] = makeCanvas(512, 256); x.strokeStyle = '#111'; x.lineCap = 'round'; x.lineWidth = 22;
+    x.beginPath(); x.moveTo(120, 92); x.quadraticCurveTo(256, 236, 392, 92); x.stroke();
+    const sm = new THREE.Mesh(new THREE.CylinderGeometry(r + .004, r + .004, .3, 24, 1, true, -.5, 1), new THREE.MeshStandardMaterial({ map: tex(c), transparent: true, roughness: .6, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2 }));
+    sm.position.y = .44; headPivot.add(sm); }
   // fedora
   const hat = new THREE.Group(); hat.position.set(0, .9, .02); hat.rotation.set(.24, .14, -.11); headPivot.add(hat);
   const crown = lathe([[.67, 0], [.662, .16], [.64, .33], [.6, .45], [.5, .53], [.32, .565], [.14, .53], [.04, .47], [0, .46]], 48);
@@ -400,7 +404,7 @@ const ARMS = {};
   const sleeveGeo = new RoundedBox(1.02, 1.62, 1.02, 3, .08), cuffGeo = new RoundedBox(.97, .1, .97, 2, .03), handGeo = new RoundedBox(.93, .4, .93, 3, .1);
   [-1, 1].forEach(sd => {
     const pv = new THREE.Group(); pv.position.set(sd * 1.5, 1.32, 0); pv.rotation.set(-.905, 0, sd * -.04); body.add(pv);
-    mesh(sleeveGeo, M.suit, 0, -.31, 0, pv); mesh(cuffGeo, M.shirt, 0, -1.14, 0, pv); mesh(handGeo, M.gold, 0, -1.3, 0, pv);
+    mesh(sleeveGeo, M.suit, 0, -.31, 0, pv); mesh(cuffGeo, M.satin, 0, -1.14, 0, pv); mesh(handGeo, M.glove, 0, -1.3, 0, pv);
     ARMS[sd < 0 ? 'R' : 'L'] = { pv, rest: pv.quaternion.clone() };
   });
 }
