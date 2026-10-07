@@ -832,6 +832,13 @@ footer::before{content:"";position:absolute;left:0;right:0;top:0;height:14px;bac
 .dr-res b{font-size:20px}
 @media (max-width:560px){.dr-num.big{font-size:84px}.dr-stamp{right:0;top:-14px;font-size:15px}}
 @media (prefers-reduced-motion:reduce){.draw-ov .dr-box{transform:none}}
+
+.draw-cd{position:fixed;left:50%;top:22%;transform:translateX(-50%);z-index:155;pointer-events:none;text-align:center;color:var(--gold2);text-shadow:0 0 30px rgba(241,212,140,.6),0 6px 0 #000}
+.draw-cd small{display:block;font:600 12px var(--f-num);letter-spacing:.24em;text-transform:uppercase;color:var(--cream2)}
+.draw-cd b{display:block;font:400 130px/1 var(--f-disp)}
+.draw-cd b.sm{font-size:44px}
+.draw-cd.pop b{animation:drnum2 .9s cubic-bezier(.2,1.4,.4,1)}
+@keyframes drnum2{0%{transform:scale(2.2);opacity:0}25%{opacity:1}100%{transform:scale(1)}}
 </style>
 </head>
 <body>
@@ -1522,14 +1529,24 @@ let DRAWS=[];const drawSeen=new Set();
 const pairKey=(a,b)=>[team(a).map(norm).sort().join("&"),team(b).map(norm).sort().join("&")].sort().join("|");
 function mapOf(m){if(m.map)return m.map;const k=pairKey(m.win,m.lose),d=[...DRAWS].reverse().find(d=>same(d.tour,m.tour)&&pairKey(d.a,d.b)===k);return d?d.map:""}
 async function pollDraws(){if(!SHEET_URL)return;
-  try{const t=await readTab("Draws");if(!t)return;const c={t:t.col("tournament","tournoi"),r:t.col("round","phase"),a:t.col("team a","player a","a"),b:t.col("team b","player b","b"),m:t.col("map","carte"),p:t.col("pool","maps"),e:t.col("epoch","at (ms)","time (ms)"),mo:t.col("mode")};
+  try{const t=await readTab("Draws");if(!t)return;const c={t:t.col("tournament","tournoi"),r:t.col("round","phase"),a:t.col("team a","player a","a"),b:t.col("team b","player b","b"),m:t.col("map","carte"),p:t.col("pool","maps"),e:t.col("epoch","at (ms)","time (ms)"),mo:t.col("mode"),sy:t.col("style")};
     const v=(r,i)=>i>=0?t.val(r[i]):"";
-    DRAWS=t.rows.map(r=>({tour:v(r,c.t),round:normRound(v(r,c.r)),roundRaw:v(r,c.r),a:v(r,c.a),b:v(r,c.b),map:v(r,c.m),pool:v(r,c.p).split(/\s*,\s*/).filter(Boolean),at:+String(v(r,c.e)).replace(/[^\d]/g,"")||0,mode:v(r,c.mo)})).filter(d=>d.map&&d.at);
+    DRAWS=t.rows.map(r=>({tour:v(r,c.t),round:normRound(v(r,c.r)),roundRaw:v(r,c.r),a:v(r,c.a),b:v(r,c.b),map:v(r,c.m),pool:v(r,c.p).split(/\s*,\s*/).filter(Boolean),at:+String(v(r,c.e)).replace(/[^\d]/g,"")||0,mode:v(r,c.mo),style:v(r,c.sy)})).filter(d=>d.map&&d.at);
     const d=DRAWS.reduce((x,y)=>!x||y.at>x.at?y:x,null),now=Date.now();
     if(d&&!drawSeen.has(d.at)&&now<d.at+DRAW_SPIN+60000){drawSeen.add(d.at);showDraw(d)}
   }catch(e){}finally{clearTimeout(pollDraws.t);pollDraws.t=setTimeout(pollDraws,document.hidden?20000:4000)}}
 const DRAW_SPIN=6200;
+/* at the table when the 3D room is there: he draws the map himself; otherwise the card reel */
+const DRAW_STYLES=["deck","revolver","roulette"];
 function showDraw(d){
+  const st=DRAW_STYLES.includes(norm(d.style))?norm(d.style):DRAW_STYLES[Math.floor(d.at/1000)%3];
+  try{if(MOTION&&is3d()&&room3d.drawScene&&!document.hidden&&Date.now()<d.at+room3d.drawTime(st)*1000-400){
+    closeDrawer();closeModal();if(cover.hidden){cover.hidden=false;root.classList.add("lock");siteInert(true);layoutScene()}
+    if(room3d.drawScene(d,st,()=>showReel(d,{land:true}))){drawCountdown(d);return}}}catch(e){}
+  showReel(d)}
+function drawCountdown(d){const el=document.createElement("div");el.className="draw-cd";el.setAttribute("aria-live","polite");document.body.appendChild(el);let last=0;
+  const t=setInterval(()=>{const r=d.at-Date.now();if(r<=0){clearInterval(t);el.remove();return}const n=Math.ceil(r/1000);if(n!==last){last=n;if(n<=5){el.innerHTML=`<b>${n}</b>`;el.classList.remove("pop");void el.offsetWidth;el.classList.add("pop");if(window.aphSound)aphSound.fx("beat",n)}else el.innerHTML=`<small>Map draw in</small><b class="sm">${n}</b>`}},100)}
+function showReel(d,opt={}){
   const ov=document.createElement("div");ov.className="draw-ov";ov.setAttribute("role","dialog");ov.setAttribute("aria-label","Map draw");
   const pool=d.pool.length?d.pool:[d.map],seq=[];for(let i=0;i<40;i++)seq.push(pool[(i*7+3)%pool.length]);seq.push(d.map,pool[0],pool[pool.length>1?1:0]);
   const hue=n=>{let h=0;for(const ch of norm(n))h=(h*31+ch.charCodeAt(0))%360;return h};
@@ -1567,9 +1584,10 @@ function showDraw(d){
     const k=Math.min(1,(now-d.at)/DRAW_SPIN);if(!MOTION||k>=1){done(false);return}
     num.textContent="";num.classList.remove("big");reel.classList.add("spin");const x=pos(k),v=Math.abs(x-lastX);lastX=x;place(x);strip.style.filter=`blur(${Math.min(7,v/9).toFixed(1)}px)`;
     const ix=Math.floor((x+center)/cw+.5);if(ix!==lastIx){lastIx=ix;if(window.aphSound)aphSound.fx("tick")}};
-  if(Date.now()>d.at+DRAW_SPIN)done(true);else{tick();ov._t=setInterval(tick,16)}
+  if(opt.land)done(false);else if(Date.now()>d.at+DRAW_SPIN)done(true);else{tick();ov._t=setInterval(tick,16)}
   addEventListener("resize",()=>{measure();end=target*cw-center;fit();if(ov.classList.contains("landed"))place(end)},{once:true});
   setTimeout(()=>{if(ov.isConnected&&ov.classList.contains("landed"))close()},Math.max(0,d.at+DRAW_SPIN-Date.now())+45000);
+  if(opt.land)place(end);
 }
 
 /* ---------- Google Sheet ---------- */

@@ -891,6 +891,7 @@ canvas.addEventListener('pointermove', ev => {
 canvas.addEventListener('pointerleave', () => { pointer.in = false; setHover(-1); });
 let busy = false, anim = null, cig = 1, nextDrink = 1e9, sayOff = .95, diveE = 0, gatherRank = [0, 1, 2, 3, 4];
 canvas.addEventListener('click', ev => {
+  if (anim && anim.kind === 'draw') return;
   if (anim && anim.kind === 'contract') { skipContract(anim); return; }
   if (busy || !dealt) return; const k = pick(ev); if (k >= 0) choose(k);
 });
@@ -939,6 +940,7 @@ function resetRoom() {
 let now = 0, dealT0 = 1e9, dealWait = .6, lightT0 = 0;
 function deal(waitMs = 650) {
   if (anim && anim.kind === 'burn') endBurn(anim);
+  if (anim && anim.kind === 'draw') endDraw(anim, true);
   if (anim && anim.kind !== 'light') resetRoom();
   busy = false; dealt = false; dealT0 = now; dealWait = REDUCE ? 0 : waitMs / 1000;
   cards.forEach(c => { c.hover = 0; c.picked = false; c.pick = 0; });
@@ -1115,6 +1117,7 @@ function updateMoves(dt) {
     else if (a.kind === 'drink') drinkPose(t, pose, a, dt);
     else if (a.kind === 'contract') contractPose(t, pose, a);
     else if (a.kind === 'burn') burnPose(t, pose, a);
+    else if (a.kind === 'draw') drawPose((drawClock() - a.d.at) / 1000, pose, a);
     if (a.from && anim === a && t < SETTLE) { mixPose(poseMix, a.from, pose, smooth(t, 0, SETTLE)); copyPose(pose, poseMix); }
     if (!anim && a.rush !== undefined) startContract(a.rush);
   }
@@ -1360,7 +1363,7 @@ function back(go, swap, done) {
       paper.position.set(0, .008, mode === 'narrow' ? .16 : .02); paper.quaternion.identity(); setFold(0); paperLit.scale.set(PAPER.w, PAPER.h, 1);
       a = anim = { kind: 'burn', t0: now + .38, from: snapPose(), ov, ph: [...Array(4)].map(() => Math.random() * 6.28), done2: () => { clearTimeout(watchdog); fin(); } };
       coverEl.classList.add('dive'); diveE = 1;
-      render(0); start();
+      render(0); onScreen = true; start();
       // the sheet on the screen shrinks onto the sheet on the table
       camera.updateMatrixWorld(); paper.updateMatrixWorld(true);
       const r = canvas.getBoundingClientRect(), hw = PAPER.w / 2, hh = PAPER.h / 2;
@@ -1374,6 +1377,193 @@ function back(go, swap, done) {
     });
   } catch (e) { plain(); }
 }
+
+/* ---------- the map draw at the table: three ways for him to pick the map ---------- */
+let drawClock = () => Date.now();
+const DRAW_T = { deck: 4.9, revolver: 5.3, roulette: 5.8 };   // when the map is known, seconds after the draw time
+const drawG = new THREE.Group(); scene.add(drawG); drawG.visible = false;
+const mapHue = n => { let h = 0; for (const ch of String(n).toLowerCase()) h = (h * 31 + ch.charCodeAt(0)) % 360; return h; };
+function mapFace(name, mode) {   // a card for a map, like the ones on the site
+  const [c, x] = makeCanvas(360, 504), h = mapHue(name);
+  let g = x.createRadialGradient(110, 80, 20, 180, 260, 420); g.addColorStop(0, `hsl(${h},45%,44%)`); g.addColorStop(.7, `hsl(${h},50%,16%)`); g.addColorStop(1, '#0c0a08');
+  x.fillStyle = g; roundRectPath(x, 0, 0, 360, 504, 30); x.fill(); noise(x, 360, 504, 2500, '#ffffff', '#000000', .05);
+  x.strokeStyle = 'rgba(241,212,140,.55)'; x.lineWidth = 3; roundRectPath(x, 14, 14, 332, 476, 20); x.stroke();
+  x.fillStyle = 'rgba(241,212,140,.9)'; x.font = '400 92px Limelight, serif'; x.textAlign = 'left'; x.fillText(String(name)[0] || '?', 34, 120);
+  x.fillStyle = '#f6ecd6'; x.font = fitFont(x, name, '400 #px Limelight, serif', 64, 300); x.fillText(name, 32, 430);
+  x.fillStyle = 'rgba(241,212,140,.8)'; x.font = '700 24px "Barlow Condensed", Arial, sans-serif'; x.fillText(String(mode || '').toUpperCase(), 34, 468);
+  return tex(c, { aniso: 8 });
+}
+const DCARDS = [], dQ = new THREE.Quaternion(), dQy = new THREE.Quaternion(), dQx = new THREE.Quaternion(), dQf = new THREE.Quaternion(), dV = new THREE.Vector3(), dV2 = new THREE.Vector3();
+// the roulette wheel, built for the pool it is given
+function buildWheel(pool, k) {
+  const g = new THREE.Group(), N = pool.length <= 4 ? pool.length * 3 : pool.length * 2, R = .95;
+  const [c, x] = makeCanvas(1024, 1024), cx = 512, rr = 500, seg = PI * 2 / N;
+  x.fillStyle = '#1a120a'; x.beginPath(); x.arc(cx, cx, rr + 10, 0, PI * 2); x.fill();
+  const slots = [];
+  for (let i = 0; i < N; i++) { const name = pool[i % pool.length], a0 = i * seg - seg / 2, h = mapHue(name); slots.push(name);
+    x.fillStyle = i % 2 ? `hsl(${h},48%,22%)` : `hsl(${h},52%,32%)`; x.beginPath(); x.moveTo(cx, cx); x.arc(cx, cx, rr, a0, a0 + seg); x.closePath(); x.fill();
+    x.strokeStyle = '#d4a64c'; x.lineWidth = 6; x.beginPath(); x.moveTo(cx, cx); x.lineTo(cx + Math.cos(a0) * rr, cx + Math.sin(a0) * rr); x.stroke();
+    x.save(); x.translate(cx, cx); x.rotate(i * seg); x.fillStyle = '#f6ecd6'; x.font = fitFont(x, name, '400 #px Limelight, serif', 46, 230); x.textAlign = 'right'; x.textBaseline = 'middle'; x.fillText(name, rr - 26, 0); x.restore(); }
+  x.fillStyle = '#2a1d10'; x.beginPath(); x.arc(cx, cx, 170, 0, PI * 2); x.fill(); x.strokeStyle = '#d4a64c'; x.lineWidth = 8; x.stroke();
+  x.beginPath(); x.arc(cx, cx, rr, 0, PI * 2); x.lineWidth = 12; x.stroke();
+  const top = new THREE.Mesh(new THREE.CircleGeometry(R, 96), new THREE.MeshStandardMaterial({ map: tex(c, { aniso: 16 }), roughness: .45, metalness: .1 }));
+  top.rotation.x = -PI / 2; top.position.y = .135; top.renderOrder = 2;
+  const body = new THREE.Mesh(new THREE.CylinderGeometry(R, R * 1.06, .12, 72), M.trim); body.position.y = .06;
+  const rim = new THREE.Mesh(new THREE.TorusGeometry(R * 1.02, .045, 12, 96), M.brass); rim.rotation.x = PI / 2; rim.position.y = .14;
+  const hub = new THREE.Mesh(new THREE.ConeGeometry(.16, .22, 24), M.brass); hub.position.y = .23;
+  const spin = new THREE.Group(); spin.add(top, hub); g.add(body, rim, spin);
+  const bowl = new THREE.Mesh(new THREE.CylinderGeometry(R * 1.32, R * 1.26, .2, 72, 1, true), M.leather); bowl.position.y = .1; g.add(bowl);
+  const ball = new THREE.Mesh(new THREE.SphereGeometry(.07, 18, 14), new THREE.MeshStandardMaterial({ color: 0xfaf5ea, roughness: .2, metalness: .05, emissive: 0x332a1a })); g.add(ball);
+  // a pocket that holds the drawn map
+  const picks = slots.map((s, i) => s === pool[k] ? i : -1).filter(i => i >= 0);
+  return { g, spin, ball, N, seg, R, slot: picks[0] };
+}
+// the revolver cylinder, a name engraved by each chamber
+function buildDrum(pool) {
+  const g = new THREE.Group(), N = pool.length <= 3 ? 6 : 8, R = .62;
+  const side = new THREE.Mesh(new THREE.CylinderGeometry(R, R, .5, 48), M.steelDark); side.rotation.x = PI / 2;
+  const [c, x] = makeCanvas(1024, 1024), cx = 512, cr = 470;
+  x.fillStyle = '#16181d'; x.fillRect(0, 0, 1024, 1024);
+  let gr = x.createRadialGradient(cx - 120, cx - 160, 40, cx, cx, cr); gr.addColorStop(0, '#5a5f6b'); gr.addColorStop(1, '#16181d'); x.fillStyle = gr; x.beginPath(); x.arc(cx, cx, cr, 0, PI * 2); x.fill();
+  noise(x, 1024, 1024, 6000, '#ffffff', '#000000', .04);
+  x.strokeStyle = '#8a8f99'; x.lineWidth = 10; x.beginPath(); x.arc(cx, cx, cr - 5, 0, PI * 2); x.stroke();
+  const ang = i => PI / 2 + i * PI * 2 / N;
+  for (let i = 0; i < N; i++) { const a = ang(i), hx = cx + Math.cos(a) * 270, hy = cx - Math.sin(a) * 270, name = pool[i % pool.length];
+    x.fillStyle = '#050505'; x.beginPath(); x.arc(hx, hy, 92, 0, PI * 2); x.fill(); x.strokeStyle = '#c9a24a'; x.lineWidth = 10; x.stroke();
+    x.save(); x.translate(hx, hy); x.rotate(-i * PI * 2 / N); x.fillStyle = '#e8c977'; x.font = fitFont(x, name, '400 #px Limelight, serif', 40, 150); x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(name, 0, 0); x.restore(); }
+  x.fillStyle = '#0b0c0e'; x.beginPath(); x.arc(cx, cx, 64, 0, PI * 2); x.fill(); x.strokeStyle = '#8a8f99'; x.lineWidth = 8; x.stroke();
+  const face = new THREE.Mesh(new THREE.CircleGeometry(R, 72), new THREE.MeshStandardMaterial({ map: tex(c, { aniso: 16 }), roughness: .45, metalness: .25 })); face.position.z = .252;
+  const spin = new THREE.Group(); spin.add(side, face); g.add(spin);
+  const glow = glowSprite(0xffc860, .9, 0); glow.position.set(0, R * .435, .3); g.add(glow);
+  const halo = new THREE.Mesh(new THREE.TorusGeometry(R * .26, .03, 12, 48), new THREE.MeshBasicMaterial({ color: 0xffd27a, transparent: true, opacity: 0 })); halo.position.set(0, R * .435, .27); g.add(halo);
+  const lamp = new THREE.PointLight(0xffe2b0, 0, 4, 2); lamp.position.set(.3, .4, 1.3); g.add(lamp);
+  const pin = new THREE.Mesh(new THREE.ConeGeometry(.08, .2, 3), new THREE.MeshStandardMaterial({ color: 0xa3221b, emissive: 0x5a0a06, roughness: .4 })); pin.rotation.z = PI; pin.position.set(0, R + .16, .2); g.add(pin);
+  return { g, spin, face, glow, halo, lamp, N, ang };
+}
+const _dcp = new THREE.Vector3(), _dct = new THREE.Vector3(), _dcu = new THREE.Vector3();
+function drawCamera(a, e, pos, tgt) {   // eases the camera from where it is to a close look at the draw
+  if (!a.cam) a.cam = { p: camera.position.clone(), t: camTarget.clone(), ox: view.ox || 0, oy: view.oy || 0 };
+  _dcp.lerpVectors(a.cam.p, pos, e); _dct.lerpVectors(a.cam.t, tgt, e);
+  camera.position.copy(_dcp); camera.up.set(0, 1, 0); camera.lookAt(_dct);
+  camera.setViewOffset(W, H, a.cam.ox * (1 - e), a.cam.oy * (1 - e), W, H); camera.updateProjectionMatrix();
+}
+function drawScene(d, style, onReveal) {
+  if (frozen || REDUCE) return false;
+  if (anim && anim.kind === 'contract') endContract(anim);
+  if (anim && anim.kind === 'burn') endBurn(anim);
+  endDraw(drawA, true);
+  resetRoom(); busy = true; dealt = false; dealT0 = now; dealWait = 999; hovered = focused = -1; cig = 1;
+  cards.forEach(c => { c.hover = 0; c.picked = false; c.pick = 0; });
+  const pool = d.pool && d.pool.length ? d.pool.slice() : [d.map]; if (pool.indexOf(d.map) < 0) pool.push(d.map);
+  const a = drawA = anim = { kind: 'draw', style, d, pool, from: snapPose(), onReveal, k: Math.abs(Math.floor(d.at / 7)) % pool.length };
+  // the drawn map goes in a known place, the others around it
+  a.order = pool.filter(m => m !== d.map); a.order.splice(a.k, 0, d.map);
+  cards.forEach(c => c.g.visible = false); deckGroup.visible = false;
+  drawG.visible = true; while (drawG.children.length) drawG.remove(drawG.children[0]); DCARDS.length = 0;
+  const narrow = mode === 'narrow';
+  if (style === 'deck') {
+    const n = a.order.length, gap = narrow ? .82 : .98, z = narrow ? -.55 : -.7;
+    a.order.forEach((name, i) => { const gr = new THREE.Group(); const f = new THREE.Mesh(cardGeo, new THREE.MeshStandardMaterial({ map: mapFace(name, d.mode), roughness: .55 })); f.position.z = .003;
+      const b = new THREE.Mesh(cardGeo, M.back); b.rotation.y = PI; b.position.z = -.003; f.castShadow = b.castShadow = true; gr.add(f, b); drawG.add(gr);
+      DCARDS.push({ g: gr, rest: V((i - (n - 1) / 2) * gap, .012, z), yaw: (i - (n - 1) / 2) * -.05, name }); });
+  } else if (style === 'roulette') {
+    a.w = buildWheel(a.order, a.k); a.w.g.position.set(0, 0, narrow ? .05 : -.05); a.w.g.scale.setScalar(narrow ? .85 : 1); drawG.add(a.w.g);
+  } else {
+    a.r = buildDrum(a.order); a.r.g.position.set(0, 1.05, narrow ? .25 : -.15); a.r.g.scale.setScalar(narrow ? .8 : 1); drawG.add(a.r.g);
+  }
+  if (typeof say === 'function') { const R = { qf: 'Quarter-final', sf: 'Semi-final', f: 'The final', b: 'Third place' }[d.round] || (d.roundRaw || 'The draw'); say(R + '.', `${d.a} against ${d.b}.`); }
+  onScreen = true; start(); return true;
+}
+let drawA = null;
+function endDraw(a, quiet) {
+  if (!a || a.done) return; a.done = true;
+  drawG.visible = false; while (drawG.children.length) drawG.remove(drawG.children[0]); DCARDS.length = 0;
+  cards.forEach(c => c.g.visible = true); deckGroup.visible = !!SPOTS[mode === 'narrow' ? 'narrow' : 'wide'].deck; coverEl.classList.remove('dive');
+  camera.up.set(0, 1, 0); if (mode) fit();
+  if (anim === a) anim = null;
+  busy = false; lighter.visible = false;
+  if (!quiet) { dealT0 = now; dealWait = .2; sfx('deal', dealWait); }
+}
+function drawPose(t, p, a) {
+  const RE = ARMS.R.restEnd, LE = ARMS.L.restEnd;
+  p.held = 0; p.cigIn = 1; p.tilt = 0;   // the glass stays on the table
+  if (a.style === 'deck') {
+    // his hand passes along the row, waits, comes back, and picks
+    const pts = DCARDS.map(c => toBody(c.rest.clone().add(V(0, .5, 0))));
+    if (pts.length) {
+      const k = a.k, keys = [[0, RE], [.6, pts[0]]]; let t0 = .6;
+      pts.forEach((q, i) => { t0 += i ? .5 : .1; keys.push([t0, q]); });
+      keys.push([t0 + .35, pts[Math.max(0, pts.length - 2)]]); keys.push([t0 + .9, pts[k]]); keys.push([t0 + 1.35, pts[k].clone().add(V(0, -.3, 0))]); keys.push([t0 + 1.55, pts[k]]); keys.push([t0 + 2.4, RE]);
+      a.tap = t0 + 1.35;
+      const sh = keys.map(([tt, q]) => [tt, q === RE ? ZERO : V(clamp(q.x * .45 + .25, -.3, .7), -.15, .7)]);
+      armPath(p, 'R', keys, sh, t);
+    }
+    p.yaw = t > 0 && t < 4 ? clamp((DCARDS[Math.min(DCARDS.length - 1, Math.max(0, Math.floor(t / .5)))] || { rest: V(0, 0, 0) }).rest.x * -.12, -.3, .3) : 0; p.pitch = t > -1 && t < 5 ? .22 : 0;
+  } else if (a.style === 'roulette') {
+    // he throws the ball in, then sits back and smokes
+    const w = a.w.g.position, q = toBody(V(w.x + .9, .5, w.z + .2));
+    armPath(p, 'R', [[-.6, RE], [0, q], [.12, toBody(V(w.x + .3, .4, w.z + .6))], [.9, RE]], [[-.6, ZERO], [0, V(0, -.05, .4)], [.12, V(0, -.05, .45)], [.9, ZERO]], t);
+    p.pitch = t > -1 && t < 6.5 ? .25 : 0; p.yaw = 0;
+  } else {
+    // a swipe of the hand sets the cylinder spinning
+    const c = a.r.g.position, q1 = toBody(V(c.x + .9, c.y - .4, c.z + .35)), q2 = toBody(V(c.x - .5, c.y + .55, c.z + .45));
+    armPath(p, 'R', [[-.7, RE], [-.05, q1], [.25, q2], [1.1, RE]], [[-.7, ZERO], [-.05, V(.05, 0, .4)], [.25, V(.05, 0, .45)], [1.1, ZERO]], t);
+    p.pitch = t > -1 && t < 6 ? .08 : 0; p.yaw = 0;
+  }
+}
+function drawSceneUpdate(dt) {
+  const a = anim, d = a.d, t = (drawClock() - d.at) / 1000, T = DRAW_T[a.style] || 5;
+  const narrow = mode === 'narrow', appear = smooth(t, -2.2, -.6);
+  let cp, ct;
+  if (a.style === 'deck') {
+    const n = DCARDS.length;
+    cp = narrow ? V(0, 3.6, 3.4) : V(0, 3.3, 3.3); ct = V(0, .7, narrow ? -.9 : -1.0);
+    { const e0 = smoother(smooth(t, -1.8, .2)) * (1 - smooth(t, T + 2.4, T + 3.4)); if (e0 > 0) drawCamera(a, e0, cp, ct); a.camDone = true; camera.updateMatrixWorld(); }
+    DCARDS.forEach((c, i) => {
+      const fly = easeInOut(clamp((t + 2.4 - i * .16) / .55, 0, 1)), p = dV.copy(deckPos).lerp(c.rest, fly); p.y += Math.sin(PI * fly) * .5;
+      let flip = 1, lift = 0;
+      if (i === a.k) { const u = smooth(t, (a.tap || 3.6) + .1, T); flip = 1 - u; lift = u; if (!a._sl && t > (a.tap || 3.6)) { a._sl = 1; sfx('cards'); } }
+      else flip = 1 - smooth(t, T + .9 + i * .08, T + 1.4 + i * .08);
+      dQy.setFromAxisAngle(AY, c.yaw); dQx.setFromAxisAngle(AX, -PI / 2 + lift * 1.15); dQf.setFromAxisAngle(AY, flip * PI); dQ.copy(dQy).multiply(dQx).multiply(dQf);
+      if (lift > 0) { camera.getWorldDirection(camFwd); dV2.copy(camera.position).addScaledVector(camFwd, 2.6); p.lerp(dV2, lift); p.y += Math.sin(PI * lift) * .4; dQ.slerp(camera.quaternion, lift); }
+      c.g.position.copy(p); c.g.quaternion.copy(dQ); c.g.visible = t > -2.4 + i * .16;
+      if (!c._d && fly > 0) { c._d = 1; sfx('deal', 0); }
+    });
+  } else if (a.style === 'roulette') {
+    const w = a.w; w.g.position.y = -.5 + appear * .5; w.g.visible = appear > 0;
+    const S0 = -1.4, A = PI * 2 * 3.2, th = w.slot * w.seg - PI / 2;   // the pocket ends facing you
+    const k = clamp((t - S0) / (T - S0), 0, 1), wa = th - A * Math.pow(1 - k, 3);
+    w.spin.rotation.y = wa;
+    // the ball: thrown at 0, runs the other way on the rim, drops, rattles, settles in the pocket
+    const Tb = T - .7, kb = clamp(t / Tb, 0, 1), rel = (-PI * 2 * 5.5) * Math.pow(1 - kb, 2.2);
+    const beta = (w.slot * w.seg) - wa + rel, drop = smooth(t, Tb - 1.2, Tb), r = (w.R * 1.12) * (1 - drop) + (w.R * .4) * drop;
+    const hop = t > Tb - 1.2 && t < Tb + .2 ? Math.abs(Math.sin((t - (Tb - 1.2)) * 13)) * .06 * (1 - drop * .8) : 0;
+    w.ball.visible = t > 0; w.ball.position.set(Math.cos(beta) * r, .17 + hop + (1 - drop) * .03, Math.sin(beta) * r);
+    if (t > 0 && t < Tb + .3) { const si = Math.floor(rel / w.seg); if (si !== a._si) { a._si = si; if (kb > .55) sfx('tick'); } }
+    if (!a._ld && t > Tb) { a._ld = 1; sfx('land'); }
+    if (!a._th && t > 0) { a._th = 1; sfx('toss'); }
+    const pz = w.g.position.z;
+    cp = V(0, narrow ? 4.2 : 3.6, pz + (narrow ? 4.6 : 4.0)); ct = V(0, .5, pz - .7);
+    if (t > Tb) { const z = smooth(t, Tb, T); cp.lerp(V(0, 2.0, pz + 2.2), z); ct.lerp(V(0, 0, pz + .75), z); }
+  } else {
+    const r = a.r; r.g.visible = appear > 0; r.g.scale.setScalar((narrow ? .8 : 1) * (.3 + .7 * easeOut(appear))); r.g.position.y = .4 + .65 * easeOut(appear);
+    if (!a._ap && t > -2.2) { a._ap = 1; sfx('lid'); exhale(); }
+    const steps = r.N * 3 + a.k, k = clamp(t / (T - .4), 0, 1), e = 1 - Math.pow(1 - k, 3.4);
+    const psi = -(steps * (PI * 2 / r.N)) * e;   // chamber k ends at the top
+    r.spin.rotation.z = psi;
+    const ci = Math.floor(-psi / (PI * 2 / r.N) + .5); if (ci !== a._ci && t > 0) { a._ci = ci; sfx(k > .9 ? 'lidClose' : 'tick'); }
+    if (!a._ck && t > T - .3) { a._ck = 1; sfx('lid'); }
+    const g = smooth(t, T - .2, T + .3); r.glow.material.opacity = g * (.7 + .3 * Math.sin(now * 9)); r.halo.material.opacity = g; r.halo.scale.setScalar(1 + .08 * Math.sin(now * 6) * g); r.lamp.intensity = 6 * appear;
+    const c = r.g.position; cp = V(0, c.y + .35, c.z + (narrow ? 3.4 : 2.6)); ct = c.clone();
+    if (t > T - .6) { const z = smooth(t, T - .6, T + .2); cp.lerp(V(0, c.y + .5, c.z + (narrow ? 2.3 : 1.7)), z); ct.lerp(V(0, c.y + .3, c.z), z); }
+  }
+  const e = smoother(smooth(t, -1.8, .2)) * (1 - smooth(t, T + 2.4, T + 3.4));
+  if (e > 0 && !a.camDone) drawCamera(a, e, cp, ct); a.camDone = false;
+  coverEl.classList.toggle('dive', t > -1.8 && t < T + 2.8);
+  if (!a.revealed && t >= T) { a.revealed = true; if (typeof a.onReveal === 'function') setTimeout(() => a.onReveal(), 500); }
+  if (t > T + 3.5) endDraw(a);
+}
+
 let last = performance.now(), running = false, frames = 0, slow = 0;
 const EMBER2 = scene.getObjectByName('ember2');
 function frame(t) {
@@ -1415,7 +1605,7 @@ function update(dt) {
   }
   if (EMBER2) EMBER2.material.color.setRGB(3 * (.6 + .4 * Math.sin(t * 2.1)), .9 * (.6 + .4 * Math.sin(t * 2.1)), .2);
   // camera drifts with your pointer
-  const still = REDUCE || (anim && (anim.kind === 'contract' || anim.kind === 'burn'));
+  const still = REDUCE || (anim && (anim.kind === 'contract' || anim.kind === 'burn' || anim.kind === 'draw'));
   const tx = still ? par.x : (pointer.in && FINE ? pointer.x * .32 : Math.sin(t * .23) * .12), ty = still ? par.y : (pointer.in && FINE ? -pointer.y * .14 : Math.sin(t * .31) * .05);
   par.x = damp(par.x, tx, 2.5, dt); par.y = damp(par.y, ty, 2.5, dt);
   placeCamera(par.x, par.y);
@@ -1423,6 +1613,8 @@ function update(dt) {
     const ct = now - anim.t0; diveE = smoother(seg(ct, T_DIVE, T_DIVE1));
     if (diveE > 0) diveCamera(anim, diveE);
     body.updateMatrixWorld(); contractScene(ct, anim);
+  } else if (anim && anim.kind === 'draw') {
+    body.updateMatrixWorld(); drawSceneUpdate(dt);
   } else if (anim && anim.kind === 'burn') {
     const bt = now - anim.t0; diveE = 1 - smoother(seg(bt, .2, 1.5));
     if (diveE > 0) diveCamera(anim, diveE); else if (!anim.up) { anim.up = true; camera.up.set(0, 1, 0); if (mode) fit(); placeCamera(par.x, par.y); }
@@ -1458,7 +1650,7 @@ canvas.addEventListener('webglcontextlost', e => { e.preventDefault(); stop(); f
 if ('IntersectionObserver' in window) new IntersectionObserver(es => { onScreen = es[es.length - 1].isIntersecting; if (onScreen) start(); else stop(); }).observe(canvas);
 
 window.room3d = {
-  layout, deal, start, back,
+  layout, deal, start, back, drawScene, drawTime: s => DRAW_T[s] || 5,
   focus(k) { if (busy) return; focused = k; if (k >= 0) hovered = -1; kick(); },
   pick(k) { if (anim && anim.kind === 'contract') skipContract(anim); else choose(k); }
 };
