@@ -778,6 +778,20 @@ footer::before{content:"";position:absolute;left:0;right:0;top:0;height:14px;bac
 .bk-map{padding:3px 10px 5px;font:600 10px var(--f-num);letter-spacing:.16em;text-transform:uppercase;color:#7a5a2a;border-top:1px dashed rgba(122,90,42,.35)}
 .mrow .tag .mp{display:block;font-style:normal;font-size:11px;letter-spacing:.08em;color:var(--gold2);opacity:.75;margin-top:2px}
 @media (max-width:560px){.dr-card{width:112px}.dr-card b{font-size:18px}.dr-box{border-width:8px;padding:24px 12px 18px}}
+
+/* prizes */
+.pz-h{margin:14px 0 6px;font:600 10px var(--f-num);letter-spacing:.2em;text-transform:uppercase;color:#7a5a2a}
+.prize{display:grid;gap:10px}
+.pz-row{display:grid;gap:6px}
+.pz-pl{font:600 11px var(--f-num);letter-spacing:.14em;text-transform:uppercase;color:var(--wax)}
+.pz-items{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.pz-w{margin:0;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 10px 6px;border-radius:10px;background:radial-gradient(120% 120% at 50% 0%,#2b2218,#120d08);box-shadow:inset 0 0 0 1px rgba(212,166,76,.45),0 8px 16px -10px #000;min-width:120px;flex:1 1 140px;max-width:220px}
+.pz-w img{width:100%;max-width:190px;height:46px;object-fit:contain;filter:drop-shadow(0 4px 6px rgba(0,0,0,.6))}
+.pz-w figcaption{font:600 12px var(--f-num);letter-spacing:.06em;color:var(--gold2)}
+.pz-t{display:inline-flex;align-items:center;padding:7px 12px;border-radius:999px;font:700 13px var(--f-num);color:#2a1d0c;background:linear-gradient(180deg,#f1d48c,#c9a24a);box-shadow:0 4px 10px -6px #000}
+.bk-prize{margin:10px auto 0;max-width:460px}
+.bk-prize .pz-items{justify-content:center}
+.bk-prize .pz-pl{text-align:center}
 </style>
 </head>
 <body>
@@ -1177,7 +1191,7 @@ function renderChamps(){
   $("#wall").innerHTML=groups.map(g=>`${g.s?`<h3 class="seasonhd">${esc(g.s)}</h3>`:""}<div class="wall">${g.t.map(t=>`<article class="frame">${t===T[0]?'<span class="crown" title="Latest champion">♛</span>':""}
     <span class="when">${esc(pretty(t.date))}</span><h3>${esc(t.name)}</h3>
     ${t.win?`<div class="wins">${team(t.win).map(n=>`<button class="win" type="button" data-p="${esc(n)}">${face(n,"lg")}${esc(n)}</button>`).join(`<span class="amp">&amp;</span>`)}</div><span class="lbl">Champion${t.score?` · won the final ${esc(t.score)}`:""}</span>`:`<span class="lbl">No champion yet</span>`}
-    <dl>${t.second?`<dt>Runner-up</dt><dd>${esc(t.second)}</dd>`:""}${t.third?`<dt>Third</dt><dd>${esc(t.third)}</dd>`:""}${t.semis.length?`<dt>Semi-finals</dt><dd>${t.semis.map(esc).join(", ")}</dd>`:""}${t.prize?`<dt>Prize</dt><dd>${esc(t.prize)}</dd>`:""}<dt>Players</dt><dd>${new Set(t.matches.flatMap(m=>[norm(m.win),norm(m.lose)])).size||"—"}</dd></dl>
+    <dl>${t.second?`<dt>Runner-up</dt><dd>${esc(t.second)}</dd>`:""}${t.third?`<dt>Third</dt><dd>${esc(t.third)}</dd>`:""}${t.semis.length?`<dt>Semi-finals</dt><dd>${t.semis.map(esc).join(", ")}</dd>`:""}<dt>Players</dt><dd>${new Set(t.matches.flatMap(m=>[norm(m.win),norm(m.lose)])).size||"—"}</dd></dl>${t.prize?`<p class="pz-h">${t.win?"Prize":"To win"}</p>${prizeHTML(t.prize)}`:""}
     ${t.matches.some(m=>m.round)?`<div class="acts"><button type="button" data-bracket="${esc(t.name)}">See the bracket</button></div>`:""}</article>`).join("")}</div>`).join("");
 }
 function openBracket(name){const t=tourResults().find(x=>same(x.name,name));if(!t)return;
@@ -1202,7 +1216,7 @@ function drawBracket(t,first){
   const levels=(node,top)=>{const L=Array.from({length:top+1},(_,l)=>Array(2**(top-l)).fill(null));
     const put=(x,l,i)=>{L[l][i]=x;if(l>0)[0,1].forEach(j=>put(x&&x.kids[j]||null,l-1,2*i+j))};put(node,top,0);return L};
   const head=r=>`<h4 class="bk-r">${ROUNDS[r]}</h4>`;
-  const champ=t.win?`<div class="bk-champ"><span class="crown" aria-hidden="true">♛</span><span class="lbl">Campione</span><b>${esc(t.win)}</b>${t.score?`<span class="sc">won the final ${esc(t.score)}</span>`:""}</div>`:"";
+  const champ=(t.win?`<div class="bk-champ"><span class="crown" aria-hidden="true">♛</span><span class="lbl">Campione</span><b>${esc(t.win)}</b>${t.score?`<span class="sc">won the final ${esc(t.score)}</span>`:""}</div>`:"")+(t.prize?`<div class="bk-prize">${prizeHTML(t.prize,"dark")}</div>`:"");
   const center=`<div class="bcol bk-mid">${champ}<div class="bk-fin">${head(rounds[n-1])}${card(root," final")}</div>${third?`<div class="third">${head("b")}${card({m:third,kids:[]})}</div>`:""}</div>`;
   const wide=n>=2&&wrap.clientWidth>=(2*n-2)*178+230+90&&root&&root.kids.length===2;
   let cols=[];
@@ -1445,6 +1459,20 @@ async function shareImage(build,name,btn){const old=btn.textContent;btn.disabled
   }catch(e){toast("Couldn't make the image")}finally{btn.disabled=false;btn.textContent=old}}
 $("#topImg").onclick=e=>shareImage(buildTop,"aphrite-top10.png",e.currentTarget);
 
+
+
+
+/* ---------- prizes: the weapons get their picture, money and value get a chip ---------- */
+const WEAPONS={"AWP":"awp","Dragora":"dragora","Inheritor":"inheritor","Unleashed":"unleashed","Demise":"demise","Domini":"domini","Origin & End":"origin-end","Radiance":"radiance","Kōmyō":"komyo","Kugelblitz":"kugelblitz","Mechanist":"mechanist","Zealot":"zealot","Sentinel":"sentinel","Cobwebs":"cobwebs","Type: Neo":"type-neo","Volt":"volt","Binary":"binary","Cavalry":"cavalry","Blunderbuss":"blunderbuss","Winter Troop":"winter-troop","Desolated":"desolated","Carmine":"carmine","Afterburn":"afterburn","Doomsday":"doomsday","Dune":"dune","High Voltage":"high-voltage","Geometric":"geometric","Surge":"surge","Eroder":"eroder","Entropy":"entropy","Static":"static","Goldrose":"goldrose","Scoria":"scoria","Monolith":"monolith","Fractal":"fractal","Heavy-Duty":"heavy-duty","Obelisk":"obelisk","Rebecca":"rebecca","Jetstream":"jetstream","Glass":"glass","Grimm":"grimm","Funeralist":"funeralist","Nihility":"nihility","Sub-Zero Redliner":"sub-zero-redliner","Sub-Zero Monarch":"sub-zero-monarch","Graffiti":"graffiti"};
+const flat=s=>String(s||"").normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().replace(/[^a-z0-9]/g,"");
+const WKEY=Object.entries(WEAPONS).map(([n,f])=>[flat(n),n,f]).sort((a,b)=>b[0].length-a[0].length);
+function weaponOf(txt){const k=flat(txt).replace(/^(?:x?\d+x?)/,"");if(!k)return null;const w=WKEY.find(([key])=>k===key||k.startsWith(key)||(key.startsWith(k)&&k.length>=4));return w?{name:w[1],file:w[2]}:null}
+// "1st: Dragora + 5,000 value; 2nd: Sentinel" or just "Dragora + $20"
+function prizeParts(txt){return String(txt||"").split(/\s*;\s*|\n+/).filter(Boolean).map(line=>{const m=/^\s*(1st|2nd|3rd|4th|first|second|third|1er|2e|3e|winner|champion|runner-?up|top\s*\d+)\s*[:\-–]\s*(.+)$/i.exec(line);
+  const items=(m?m[2]:line).replace(/origin\s*(?:&|and|et)\s*end/ig,"Origin ＆ End").split(/\s*(?:\+|,(?!\d{3})|&|\band\b|\bet\b)\s*/i).filter(Boolean).map(x=>{const w=weaponOf(x);return w?{w,label:x.trim()}:{text:x.trim()}});
+  return {place:m?m[1]:"",items}})}
+function prizeHTML(txt,cls=""){const P=prizeParts(txt);if(!P.length)return "";
+  return `<div class="prize${cls?" "+cls:""}">${P.map(p=>`<div class="pz-row">${p.place?`<span class="pz-pl">${esc(p.place)}</span>`:""}<div class="pz-items">${p.items.map(it=>it.w?`<figure class="pz-w"><img src="w/${it.w.file}.webp" alt="" loading="lazy" decoding="async"><figcaption>${esc(it.w.name)}</figcaption></figure>`:`<span class="pz-t">${esc(it.text)}</span>`).join("")}</div></div>`).join("")}</div>`}
 
 /* ---------- the live map draw: started from the sheet, seen by everyone at the same moment ---------- */
 let DRAWS=[];const drawSeen=new Set();
