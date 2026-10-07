@@ -770,11 +770,11 @@ function drawContract(d) {
 const safe = (n, d = '') => { try { return n(); } catch (e) { return d; } };
 function contractLines(go) {
   const L = safe(() => LIST, []), Ms = safe(() => MATCHES, []), Ts = safe(() => tourResults(), []), F = n => safe(() => fmt(n), String(n));
-  if (go === 'rank') return L.slice(0, 6).map((p, i) => [`${i + 1}.  ${p.name}`, `${F(p.elo)} ELO`]);
+  if (go === 'rank') return L.slice(0, 6).map((p, i) => [`${i + 1}.  ${p.name}`, `${F(p.elo)} pts`]);
   if (go === 'matches') return Ms.slice(-6).reverse().map(m => [`${m.win}  def.  ${m.lose}`, m.score || '']);
   if (go === 'champs') { const t = Ts.filter(t => t.win).slice(0, 6); return t.length ? t.map(t => [t.name, `♛ ${t.win}`]) : [['No champion yet.', '']]; }
-  if (go === 'duel') { const a = L[0], b = L[1]; return [['Two names. One table.', ''], a && b ? [`${a.name}  vs  ${b.name}`, `${F(a.elo)} – ${F(b.elo)}`] : ['', ''], ['Head to head, odds, form,', ''], ['and who walks away.', '']]; }
-  return [['Everyone starts at 1000 ELO.', ''], ['Beat someone above you, climb more.', ''], ['Lose, and you drop.', ''], ['Boss, Underboss, Capo, Soldier.', ''], ['The table keeps quiet.', '']];
+  if (go === 'duel') { const a = L[0], b = L[1]; return [['Two names. One table.', ''], a && b ? [`${a.name}  vs  ${b.name}`, `${F(a.elo)} – ${F(b.elo)}`] : ['', ''], ['Head to head, points, form,', ''], ['and who walks away.', '']]; }
+  return [['Points are won in tournaments.', ''], ['Go further, earn more.', ''], ['A title is worth the most.', ''], ['Boss, Underboss, Capo, Soldier.', ''], ['The table keeps quiet.', '']];
 }
 /* ---------- the dealt cards ---------- */
 const cards = CARDS.map((d, k) => {

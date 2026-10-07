@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Aphrite · Ranked Redliner</title>
-<meta name="description" content="Aphrite, the ranked Redliner community: the player ranking, every match and every tournament champion.">
+<title>Aphrite · Redliner Tournaments</title>
+<meta name="description" content="Aphrite, the home of Redliner community tournaments: brackets, champions and the tournament ranking.">
 <meta name="theme-color" content="#0c0a08">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Aphrite">
-<meta property="og:title" content="Aphrite · Ranked Redliner">
-<meta property="og:description" content="The full player ranking and every past tournament champion.">
+<meta property="og:title" content="Aphrite · Redliner Tournaments">
+<meta property="og:description" content="Every bracket, every champion, and the tournament ranking of the family.">
 <meta property="og:image" content="og.jpg">
 <meta name="twitter:card" content="summary_large_image">
 <script>try{var c=document.createElement("canvas"),g=c.getContext("webgl2");if(g&&HTMLScriptElement.supports&&HTMLScriptElement.supports("importmap"))document.documentElement.classList.add("try3d");var x=g&&g.getExtension("WEBGL_lose_context");if(x)x.loseContext()}catch(e){}</script>
@@ -772,10 +772,10 @@ footer::before{content:"";position:absolute;left:0;right:0;top:0;height:14px;bac
       </nav>
     </div>
     <div class="cv-copy">
-      <p class="kick"><b>Cosa Nostra</b>Ranked Redliner</p>
+      <p class="kick"><b>Cosa Nostra</b>Redliner Tournaments</p>
       <h1 class="disp">Aphrite</h1>
       <span class="goldline" aria-hidden="true"></span>
-      <p class="lead">Every match counts, every name is written down. The ranking of the family, every result, and every champion who ever took the table.</p>
+      <p class="lead">Every tournament, every bracket, every name written down. The champions of the family, and who stands where when the cards are dealt.</p>
       <button class="news-line" type="button" data-news hidden><b>New</b><span id="newsLine"></span><em>See all news</em></button>
       <div class="cv-facts" id="facts"></div>
     </div>
@@ -806,7 +806,7 @@ footer::before{content:"";position:absolute;left:0;right:0;top:0;height:14px;bac
   <section id="p-rank" aria-labelledby="h-rank">
     <div class="ph">
       <span class="wm" aria-hidden="true">Classifica</span>
-      <div><p class="kick"><b>Classifica</b>the ranking</p><h2 class="disp" id="h-rank">The Ranking</h2><p>Every ranked player, ordered by ELO. Win and you climb, lose and you drop, and beating someone above you is worth more. Click a name to open their record.</p></div>
+      <div><p class="kick"><b>Classifica</b>the ranking</p><h2 class="disp" id="h-rank">The Ranking</h2><p>Every player who has taken part in a tournament, ordered by points. The further you go in a tournament, the more you earn, and a title is worth the most. Click a name to open their record.</p></div>
       <div class="ph-r"><select class="seasonsel" aria-label="Season"></select><button class="btn ghost" type="button" id="topImg" style="min-height:38px;font-size:12.5px">Copy top 10 image</button><span class="small" id="updated"></span></div>
     </div>
     <div class="podium" id="podium"></div>
@@ -816,7 +816,7 @@ footer::before{content:"";position:absolute;left:0;right:0;top:0;height:14px;bac
       <span class="count" id="count"></span>
     </div>
     <div class="ledger">
-      <div class="lh" aria-hidden="true"><span>Rank</span><span>Player</span><span class="r">ELO</span><span class="r">Wins – Losses</span><span class="r">Win rate</span><span class="r">Last 5</span><span class="r">Titles</span></div>
+      <div class="lh" aria-hidden="true"><span>Rank</span><span>Player</span><span class="r">Points</span><span class="r">Wins – Losses</span><span class="r">Win rate</span><span class="r">Last 5</span><span class="r">Titles</span></div>
       <div id="rows"></div>
     </div>
   </section>
@@ -824,7 +824,7 @@ footer::before{content:"";position:absolute;left:0;right:0;top:0;height:14px;bac
   <section id="p-matches" hidden aria-labelledby="h-matches">
     <div class="ph">
       <span class="wm" aria-hidden="true">Partite</span>
-      <div><p class="kick"><b>Partite</b>the matches</p><h2 class="disp" id="h-matches">Match History</h2><p>Every ranked match, newest first, with the ELO each player won or lost.</p></div>
+      <div><p class="kick"><b>Partite</b>the matches</p><h2 class="disp" id="h-matches">Match History</h2><p>Every match, newest first. Tournament matches build the brackets and the points; friendlies are kept for the record.</p></div>
       <div class="ph-r"><select class="seasonsel" aria-label="Season"></select></div>
     </div>
     <div class="filters">
@@ -860,12 +860,13 @@ footer::before{content:"";position:absolute;left:0;right:0;top:0;height:14px;bac
       <span class="wm" aria-hidden="true">Le Regole</span>
       <div><p class="kick"><b>Le Regole</b>the rules</p><h2 class="disp" id="h-info">How it works</h2><p>What every number on the site means, and how the ranking is worked out.</p></div>
     </div>
-    <div class="gl"><section class="gl-g"><h3><b>Classifica</b>Ranking</h3><dl class="gl-l"><div><dt>ELO</dt><dd>Your score. Everyone starts a season at <b>1000</b>. Win and you gain points, lose and you drop. Beating someone ranked above you is worth more, losing to someone below you costs more. An even match moves about <b>16</b> points.</dd></div><div><dt>▲ / ▼</dt><dd>How many points the player won or lost in their last match.</dd></div><div><dt>Wins – Losses</dt><dd>Every ranked and tournament match counts.</dd></div><div><dt>Win rate</dt><dd>The share of matches won.</dd></div><div><dt>Last 5</dt><dd>The last five results: a gold dot is a win, an empty dot a loss.</dd></div><div><dt>Streak</dt><dd>Shown when someone wins 3 matches or more in a row.</dd></div></dl></section>
+    <div class="gl"><section class="gl-g"><h3><b>Classifica</b>Ranking</h3><dl class="gl-l"><div><dt>Points</dt><dd>Earned in tournaments only. Each tournament gives points for how far you went, and they add up over the season.</dd></div><div><dt>+</dt><dd>The points a player earned in their last tournament.</dd></div><div><dt>Wins – Losses</dt><dd>Tournament matches only.</dd></div><div><dt>Ties</dt><dd>Equal points: more titles first, then the best finish.</dd></div><div><dt>2v2</dt><dd>In a team tournament, both players earn the points of their team's finish.</dd></div></dl></section>
+    <section class="gl-g"><h3><b>Punti</b>Points per finish</h3><dl class="gl-l pts-list" id="ptsList"><div><dt>Champion</dt><dd><b>100</b> points</dd></div><div><dt>Runner-up</dt><dd><b>70</b> points</dd></div><div><dt>3rd place</dt><dd><b>50</b> points</dd></div><div><dt>Semi-final</dt><dd><b>45</b> points</dd></div><div><dt>4th place</dt><dd><b>40</b> points</dd></div><div><dt>Quarter-final</dt><dd><b>25</b> points</dd></div><div><dt>Round of 16</dt><dd><b>12</b> points</dd></div><div><dt>Round of 32</dt><dd><b>6</b> points</dd></div><div><dt>Round of 64</dt><dd><b>3</b> points</dd></div></dl></section>
     <section class="gl-g"><h3><b>La Famiglia</b>Ranks</h3><dl class="gl-l"><div><dt>Boss</dt><dd>Number 1 of the ranking.</dd></div><div><dt>Underboss</dt><dd>2nd and 3rd.</dd></div><div><dt>Capo</dt><dd>4th to 10th.</dd></div><div><dt>Soldier</dt><dd>11th to 25th.</dd></div><div><dt>Associate</dt><dd>Everyone after that.</dd></div></dl></section>
-    <section class="gl-g"><h3><b>Stagioni</b>Seasons</h3><dl class="gl-l"><div><dt>Season</dt><dd>Each season starts from zero: everyone back to 1000 ELO. Pick an older season in the menu to see its final ranking.</dd></div><div><dt>All time</dt><dd>Every match from every season in one ranking.</dd></div></dl></section>
+    <section class="gl-g"><h3><b>Stagioni</b>Seasons</h3><dl class="gl-l"><div><dt>Season</dt><dd>Each season starts from zero points. Pick an older season in the menu to see its final ranking.</dd></div><div><dt>All time</dt><dd>Every tournament from every season in one ranking.</dd></div></dl></section>
     <section class="gl-g"><h3><b>Campioni</b>Tournaments</h3><dl class="gl-l"><div><dt>Champion</dt><dd>The winner of the final. The runner-up and third place come from the final and the match for third.</dd></div><div><dt>Bracket</dt><dd>Open a tournament to see every round, from the first match to the final.</dd></div><div><dt>Titles ♛</dt><dd>How many tournaments a player has won.</dd></div></dl></section>
-    <section class="gl-g"><h3><b>Duello</b>Duel</h3><dl class="gl-l"><div><dt>Head to head</dt><dd>How many times each player beat the other, across all seasons.</dd></div><div><dt>Chance to win</dt><dd>Who the ELO favours in the next match between them. It's a prediction, not a promise.</dd></div></dl></section>
-    <section class="gl-g"><h3><b>Partite</b>Matches</h3><dl class="gl-l"><div><dt>+ / −</dt><dd>The ELO the winner gained and the loser lost in that match.</dd></div><div><dt>Ranked / Tournament</dt><dd>A ranked match is a normal match, a tournament match is part of a bracket. Both count for ELO.</dd></div></dl></section></div>
+    <section class="gl-g"><h3><b>Duello</b>Duel</h3><dl class="gl-l"><div><dt>Head to head</dt><dd>How many times each player beat the other, across all seasons.</dd></div><div><dt>Points bar</dt><dd>How the two players' tournament points compare.</dd></div></dl></section>
+    <section class="gl-g"><h3><b>Partite</b>Matches</h3><dl class="gl-l"><div><dt>Tournament / Friendly</dt><dd>A tournament match is part of a bracket. A friendly is any other match: it is kept in the history but earns no points.</dd></div></dl></section></div>
   </section>
 
   <footer>
@@ -1067,17 +1068,27 @@ function buildSeasons(){const s=[...new Set(MATCHES.map(m=>m.season).filter(Bool
 $$(".seasonsel").forEach(sel=>sel.onchange=()=>{season=sel.value;$$(".seasonsel").forEach(o=>o.value=season);renderAll();const open=PAGES.find(t=>!$("#p-"+t).hidden);if(open)dealIn(open)});
 const inSeason=m=>season==="all"||m.season===season;
 
-/* ---------- ELO engine ---------- */
+/* ---------- tournament points: what each finish is worth ---------- */
+const PLACES=[["champion","Champion",100],["runner","Runner-up",70],["third","3rd place",50],["sf","Semi-final",45],["fourth","4th place",40],["qf","Quarter-final",25],["r16","Round of 16",12],["r32","Round of 32",6],["r64","Round of 64",3]];
+let PTS=Object.fromEntries(PLACES.map(([k,,v])=>[k,v]));
+const placeLabel=k=>(PLACES.find(x=>x[0]===k)||[k,"Played"])[1];
+// every player's finish in one tournament, from the rounds of its bracket
+function placements(t){const P={},put=(side,k)=>team(side).forEach(n=>{const o=P[norm(n)],v=PTS[k]??PTS.r64;if(!o||v>o.pts)P[norm(n)]={name:n,key:k,pts:v}});
+  const R={f:"runner",sf:"sf",qf:"qf",r16:"r16",r32:"r32",r64:"r64"};
+  t.matches.forEach(m=>{if(m.round==="b"){put(m.win,"third");put(m.lose,"fourth")}else put(m.lose,R[m.round]||"r64")});
+  t.matches.filter(m=>m.round==="b").forEach(m=>{team(m.lose).forEach(n=>{const o=P[norm(n)];if(o)Object.assign(o,{key:"fourth",pts:PTS.fourth})})});
+  if(t.win)team(t.win).forEach(n=>P[norm(n)]={name:n,key:"champion",pts:PTS.champion});
+  return Object.values(P)}
 let STATS={},LIST=[];
 function compute(){
-  const st={},get=n=>{const k=norm(n);return st[k]||(st[k]={name:n,elo:START_ELO,w:0,l:0,res:[],hist:[{t:0,elo:START_ELO}],peak:START_ELO,titles:[],seconds:[]})};
-  for(const m of MATCHES){if(!inSeason(m))continue;const A=team(m.win).map(get),B=team(m.lose).map(get),avg=T=>T.reduce((s,p)=>s+p.elo,0)/T.length;
-    const ea=1/(1+Math.pow(10,(avg(B)-avg(A))/400)),d=K*(1-ea);m.d=d;
-    A.forEach(a=>{a.elo+=d;a.w++;a.res.push("w");a.hist.push({t:m.t,elo:a.elo,m});a.peak=Math.max(a.peak,a.elo)});
-    B.forEach(b=>{b.elo-=d;b.l++;b.res.push("l");b.hist.push({t:m.t,elo:b.elo,m})})}
-  for(const t of tourResults())if(season==="all"||t.season===season){team(t.win).forEach(n=>get(n).titles.push(t));team(t.second).forEach(n=>get(n).seconds.push(t))}
-  LIST=Object.values(st).filter(p=>p.w+p.l>0).sort((a,b)=>b.elo-a.elo||b.w-a.w||a.name.localeCompare(b.name));
-  LIST.forEach((p,i)=>{p.rank=i+1;p.tier=tierAt(i);p.streak=streakOf(p.res);p.last=p.hist.length>1?p.hist[p.hist.length-1].elo-p.hist[p.hist.length-2].elo:0});
+  const st={},get=n=>{const k=norm(n);return st[k]||(st[k]={name:n,elo:0,w:0,l:0,res:[],hist:[{t:0,elo:0}],peak:0,best:"",tours:0,podiums:0,finals:0,titles:[],seconds:[]})};
+  for(const m of MATCHES){if(!inSeason(m)||!m.tour)continue;team(m.win).map(get).forEach(a=>{a.w++;a.res.push("w")});team(m.lose).map(get).forEach(b=>{b.l++;b.res.push("l")})}
+  const T=tourResults().filter(t=>season==="all"||t.season===season).sort((a,b)=>a.t-b.t);
+  for(const t of T){for(const r of placements(t)){const p=get(r.name);p.elo+=r.pts;p.tours++;p.hist.push({t:t.t,elo:p.elo,gain:r.pts,tour:t,key:r.key});
+      if(r.pts>p.peak){p.peak=r.pts;p.best=r.key}if(["champion","runner","third"].includes(r.key))p.podiums++;if(["champion","runner"].includes(r.key))p.finals++}
+    team(t.win).forEach(n=>get(n).titles.push(t));team(t.second).forEach(n=>get(n).seconds.push(t))}
+  LIST=Object.values(st).filter(p=>p.tours>0).sort((a,b)=>b.elo-a.elo||b.titles.length-a.titles.length||b.peak-a.peak||b.w-a.w||a.name.localeCompare(b.name));
+  LIST.forEach((p,i)=>{p.rank=i+1;p.tier=tierAt(i);p.streak=streakOf(p.res);p.last=p.hist.length>1?p.hist[p.hist.length-1].gain:0});
   STATS=st}
 function streakOf(r){if(!r.length)return null;const x=r[r.length-1];let n=0;for(let i=r.length-1;i>=0&&r[i]===x;i--)n++;return {x,n}}
 const winRate=p=>p.w+p.l?Math.round(p.w/(p.w+p.l)*100):null;
@@ -1093,18 +1104,18 @@ let tierFilter="all";
 function renderRank(){
   $("#updated").textContent=UPDATED?`Updated ${UPDATED}`:"";
   const pod=LIST.slice(0,3),order=[1,0,2].filter(i=>pod[i]);
-  $("#podium").innerHTML=order.map(i=>{const p=pod[i];const cn=[["A","♠",""],["K","♥"," red"],["Q","♦"," red"]][i],cr=`${cn[0]}<i>${cn[1]}</i>`;return `<div class="pod p${i+1}" role="button" tabindex="0" data-p="${esc(p.name)}"><span class="cnr tl${cn[2]}" aria-hidden="true">${cr}</span><span class="cnr br${cn[2]}" aria-hidden="true">${cr}</span><div class="chip">${i+1}</div>${skin(p.name)}<div class="nm">${esc(p.name)}</div><div class="pts"><b>${fmt(p.elo)}</b> ELO</div><div class="tier">${esc(p.tier)} · ${p.w}–${p.l}${p.titles.length?` · ♛ ${p.titles.length}`:""}</div></div>`}).join("");
+  $("#podium").innerHTML=order.map(i=>{const p=pod[i];const cn=[["A","♠",""],["K","♥"," red"],["Q","♦"," red"]][i],cr=`${cn[0]}<i>${cn[1]}</i>`;return `<div class="pod p${i+1}" role="button" tabindex="0" data-p="${esc(p.name)}"><span class="cnr tl${cn[2]}" aria-hidden="true">${cr}</span><span class="cnr br${cn[2]}" aria-hidden="true">${cr}</span><div class="chip">${i+1}</div>${skin(p.name)}<div class="nm">${esc(p.name)}</div><div class="pts"><b>${fmt(p.elo)}</b> pts</div><div class="tier">${esc(p.tier)} · ${p.tours} tournament${p.tours>1?"s":""}${p.titles.length?` · ♛ ${p.titles.length}`:""}</div></div>`}).join("");
   const tiers=[...new Set(LIST.map(p=>p.tier))];if(!tiers.includes(tierFilter))tierFilter="all";
   $("#tiers").innerHTML=["all",...tiers].map(t=>`<button class="chipf${t===tierFilter?" on":""}" type="button" data-t="${esc(t)}">${t==="all"?"Everyone":esc(t)}</button>`).join("");
   const q=norm($("#q").value),L=LIST.filter(p=>(tierFilter==="all"||p.tier===tierFilter)&&(!q||norm(p.name).includes(q)));
   $("#rows").innerHTML=L.length?L.map(p=>{const wr=winRate(p),s=p.streak;return `<div class="lr${p.rank<=3?" top":""} t-${esc(String(p.tier).toLowerCase())}" role="button" tabindex="0" data-p="${esc(p.name)}">
     <span class="rk">${String(p.rank).padStart(2,"0")}</span>
     <span class="who">${face(p.name)}<b>${esc(p.name)}</b><span>${esc(p.tier)}${s&&s.x==="w"&&s.n>=3?`<span class="streak">${s.n} wins in a row</span>`:""}</span></span>
-    <span class="pts r">${fmt(p.elo)}${p.last?`<span class="dlt ${p.last>0?"up":"down"}">${p.last>0?"▲":"▼"}${Math.abs(Math.round(p.last))}</span>`:""}</span>
+    <span class="pts r">${fmt(p.elo)}${p.last?`<span class="dlt up" title="Points from their last tournament">+${Math.round(p.last)}</span>`:""}</span>
     <span class="wl r">${p.w} – ${p.l}</span>
     <span class="wr r">${wr==null?"—":wr+"%"}</span>
     <span class="fm r"><span class="form" aria-label="Last 5 results">${p.res.slice(-5).map(x=>`<i class="${x}" title="${x==="w"?"Win":"Loss"}"></i>`).join("")}</span></span>
-    <span class="ti r">${p.titles.length?"♛ "+p.titles.length:""}</span></div>`}).join(""):`<div class="empty">${LIST.length?`No player matches “${esc($("#q").value)}”.`:"No match played this season yet."}</div>`;
+    <span class="ti r">${p.titles.length?"♛ "+p.titles.length:""}</span></div>`}).join(""):`<div class="empty">${LIST.length?`No player matches “${esc($("#q").value)}”.`:"No tournament played this season yet."}</div>`;
   $("#count").textContent=`${L.length} of ${LIST.length} players`;
 }
 $("#q").oninput=renderRank;
@@ -1113,16 +1124,15 @@ $("#tiers").onclick=e=>{const b=e.target.closest("[data-t]");if(!b)return;tierFi
 /* ---------- MATCHES ---------- */
 let mKind="all",mShown=40;
 function renderMatches(){
-  $("#mkind").innerHTML=[["all","All"],["ranked","Ranked"],["tour","Tournament"]].map(([k,l])=>`<button class="chipf${k===mKind?" on":""}" type="button" data-k="${k}">${l}</button>`).join("");
+  $("#mkind").innerHTML=[["all","All"],["tour","Tournament"],["ranked","Friendly"]].map(([k,l])=>`<button class="chipf${k===mKind?" on":""}" type="button" data-k="${k}">${l}</button>`).join("");
   const q=norm($("#mq").value);
   const L=MATCHES.filter(m=>inSeason(m)&&(mKind==="all"||(mKind==="tour")===!!m.tour)&&(!q||norm(m.win).includes(q)||norm(m.lose).includes(q))).reverse();
   let h="",day="";
   for(const m of L.slice(0,mShown)){if(dayOf(m.date)!==day){day=dayOf(m.date);h+=`<div class="mday">${esc(day)}</div>`}
-    const d=m.d?Math.round(m.d):0;
-    h+=`<div class="mrow"><div class="side win"><span class="dlt up">+${d}</span>${nameBtns(m.win)}</div>
+    h+=`<div class="mrow"><div class="side win">${nameBtns(m.win)}</div>
       <div class="score">${esc(m.score||"W")}</div>
-      <div class="side r lose">${nameBtns(m.lose)}<span class="dlt down">−${d}</span></div>
-      <div class="tag">${clockOf(m.date)?`<i class="tm">${esc(clockOf(m.date))}</i>`:""}${m.tour?`<b>${esc(m.tour)}</b>${esc(ROUNDS[m.round]||m.round)}`:"Ranked match"}</div></div>`}
+      <div class="side r lose">${nameBtns(m.lose)}</div>
+      <div class="tag">${clockOf(m.date)?`<i class="tm">${esc(clockOf(m.date))}</i>`:""}${m.tour?`<b>${esc(m.tour)}</b>${esc(ROUNDS[m.round]||m.round)}`:"Friendly"}</div></div>`}
   $("#mlist").innerHTML=h||`<div class="empty">No match found.</div>`;
   $("#mcount").textContent=`${L.length} match${L.length===1?"":"es"}`;
   $("#mmore").hidden=L.length<=mShown;
@@ -1211,11 +1221,11 @@ function renderDuel(){
   if(A===B){box.innerHTML=`<div class="empty">Pick two different players.</div>`;return}
   const met=MATCHES.filter(m=>(inTeam(m.win,A.name)&&inTeam(m.lose,B.name))||(inTeam(m.win,B.name)&&inTeam(m.lose,A.name)));
   const aw=met.filter(m=>inTeam(m.win,A.name)).length,bw=met.length-aw;
-  const pa=Math.round(100/(1+Math.pow(10,(B.elo-A.elo)/400)));
+  const pa=A.elo+B.elo?Math.round(100*A.elo/(A.elo+B.elo)):50;
   const row=(k,a,b,hi=true)=>{const best=hi?(a>b?"a":b>a?"b":""):(a<b?"a":b<a?"b":"");return `<tr><td class="${best==="a"?"best":""}">${typeof a==="number"?fmt(a):a}</td><td class="k">${k}</td><td class="${best==="b"?"best":""}">${typeof b==="number"?fmt(b):b}</td></tr>`};
   box.innerHTML=`<div class="duo"><button type="button" data-p="${esc(A.name)}">${skin(A.name)}<b>${esc(A.name)}</b><span>#${A.rank} · ${esc(A.tier)}</span></button><button type="button" data-p="${esc(B.name)}">${skin(B.name)}<b>${esc(B.name)}</b><span>#${B.rank} · ${esc(B.tier)}</span></button></div><div class="h2h"><div class="big${aw>bw?" lead":""}">${aw}</div><div class="mid"><b>Head to head</b>${met.length?`${met.length} meeting${met.length>1?"s":""}, all seasons`:"They have never played each other"}</div><div class="big${bw>aw?" lead":""}">${bw}</div></div>
-    <div class="odds"><div class="bar"><i style="width:${pa}%"></i><i></i></div><div class="lbls"><span>${esc(A.name)} ${pa}%</span><span>Chance to win the next match, by ELO</span><span>${100-pa}% ${esc(B.name)}</span></div></div>
-    <table class="cmp">${row("Rank",`#${A.rank}`,`#${B.rank}`,false).replace(/class="best"/g,"").replace(/<td class="">/g,"<td>")}${row("ELO",A.elo,B.elo)}${row("Peak ELO",A.peak,B.peak)}${row("Wins",A.w,B.w)}${row("Win rate",(winRate(A)??0)+"%",(winRate(B)??0)+"%")}${row("Titles",A.titles.length,B.titles.length)}</table>
+    <div class="odds"><div class="bar"><i style="width:${pa}%"></i><i></i></div><div class="lbls"><span>${esc(A.name)} ${pa}%</span><span>Share of their tournament points</span><span>${100-pa}% ${esc(B.name)}</span></div></div>
+    <table class="cmp">${row("Rank",`#${A.rank}`,`#${B.rank}`,false).replace(/class="best"/g,"").replace(/<td class="">/g,"<td>")}${row("Points",A.elo,B.elo)}${row("Podiums",A.podiums,B.podiums)}${row("Wins",A.w,B.w)}${row("Win rate",(winRate(A)??0)+"%",(winRate(B)??0)+"%")}${row("Titles",A.titles.length,B.titles.length)}</table>
     ${met.length?`<p class="small" style="margin:26px 0 6px">Every meeting</p><ul class="titles">${[...met].reverse().map(m=>`<li><span><b style="color:var(--gold2)">${esc(m.win)}</b> beat ${esc(m.lose)} ${esc(m.score)}${m.tour?` · ${esc(m.tour)}`:""}</span><span>${esc(pretty(m.date))}</span></li>`).join("")}</ul>`:""}`;
   // fix rank row highlighting (lower rank number is better)
   const r=box.querySelector(".cmp tr");if(r){const c=r.children;c[A.rank<B.rank?0:2].classList.add("best")}
@@ -1229,16 +1239,16 @@ const X_ICON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-
 function eloChart(p){const h=p.hist;if(h.length<3)return "";const W=400,H=120,pad=6,min=Math.min(...h.map(x=>x.elo)),max=Math.max(...h.map(x=>x.elo)),rg=Math.max(20,max-min);
   const X=i=>pad+i/(h.length-1)*(W-pad*2),Y=v=>pad+(1-(v-min)/rg)*(H-pad*2-14);
   const pts=h.map((x,i)=>`${X(i).toFixed(1)},${Y(x.elo).toFixed(1)}`).join(" ");
-  return `<div class="elo"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="ELO over the season, from ${fmt(h[0].elo)} to ${fmt(p.elo)}"><polygon class="ar" points="${X(0)},${H-14} ${pts} ${X(h.length-1)},${H-14}"/><polyline class="ln" points="${pts}"/><text x="${pad}" y="${H-2}">Start ${fmt(h[0].elo)}</text><text x="${W-pad}" y="${H-2}" text-anchor="end">Peak ${fmt(p.peak)} · now ${fmt(p.elo)}</text></svg></div>`}
+  return `<div class="elo"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Points over the season, up to ${fmt(p.elo)}"><polygon class="ar" points="${X(0)},${H-14} ${pts} ${X(h.length-1)},${H-14}"/><polyline class="ln" points="${pts}"/><text x="${pad}" y="${H-2}">${p.tours} tournaments</text><text x="${W-pad}" y="${H-2}" text-anchor="end">Best: ${placeLabel(p.best)} · ${fmt(p.elo)} pts</text></svg></div>`}
 function openPlayer(name){
   const p=pOf(name),d=$("#drawer");
   const recent=MATCHES.filter(m=>inSeason(m)&&(inTeam(m.win,name)||inTeam(m.lose,name))).slice(-8).reverse();
   d.innerHTML=`${p?`<div class="ink" aria-hidden="true">${esc(p.tier)}</div>`:""}<div class="dr-top"><span class="small">${p?`File No. ${String(p.rank).padStart(3,"0")}`:"Player record"}${season!=="all"?` · ${esc(season)}`:" · all time"}</span><button class="iconbtn" type="button" id="drClose" aria-label="Close">${X_ICON}</button></div>
-    ${skin(p?p.name:name,"dr-skin")}<h3>${esc(p?p.name:name)}</h3>${avOf(name)&&avOf(name).user?`<div class="rbx">@${esc(avOf(name).user)}</div>`:""}<div class="sub">${p?`#${p.rank} · ${esc(p.tier)}${p.streak&&p.streak.n>=2?` · ${p.streak.n} ${p.streak.x==="w"?"wins":"losses"} in a row`:""}`:"No match this season"}</div>
-    ${p?`<div class="stats"><div><b>${fmt(p.elo)}</b><span>ELO</span></div><div><b>${winRate(p)??"—"}%</b><span>Win rate</span></div><div><b>${p.w}</b><span>Wins</span></div><div><b>${p.l}</b><span>Losses</span></div></div>${eloChart(p)}`:""}
+    ${skin(p?p.name:name,"dr-skin")}<h3>${esc(p?p.name:name)}</h3>${avOf(name)&&avOf(name).user?`<div class="rbx">@${esc(avOf(name).user)}</div>`:""}<div class="sub">${p?`#${p.rank} · ${esc(p.tier)} · best finish: ${esc(placeLabel(p.best))}${p.streak&&p.streak.n>=2?` · ${p.streak.n} ${p.streak.x==="w"?"wins":"losses"} in a row`:""}`:"No tournament this season"}</div>
+    ${p?`<div class="stats"><div><b>${fmt(p.elo)}</b><span>Points</span></div><div><b>${winRate(p)??"—"}%</b><span>Win rate</span></div><div><b>${p.w}</b><span>Wins</span></div><div><b>${p.l}</b><span>Losses</span></div></div>${eloChart(p)}`:""}
     <p class="small" style="margin:18px 0 6px">Titles (${p?p.titles.length:0})</p>
     ${p&&p.titles.length?`<ul class="titles">${p.titles.map(t=>`<li><span>♛ ${esc(t.name)}</span><span>${esc(pretty(t.date))}</span></li>`).join("")}</ul>`:`<p style="margin:0;color:var(--cream2)">No title yet.</p>`}
-    ${recent.length?`<p class="small" style="margin:20px 0 6px">Recent matches</p><ul class="titles recent">${recent.map(m=>{const w=inTeam(m.win,name),mate=team(w?m.win:m.lose).filter(x=>!same(x,name));return `<li><span>${w?"<b>W</b>":"L"} ${mate.length?`with ${esc(mate.join(" & "))} `:""}vs ${esc(w?m.lose:m.win)} ${esc(m.score)}</span><span>${w?"+":"−"}${Math.round(m.d||0)}</span></li>`}).join("")}</ul>`:""}
+    ${recent.length?`<p class="small" style="margin:20px 0 6px">Recent matches</p><ul class="titles recent">${recent.map(m=>{const w=inTeam(m.win,name),mate=team(w?m.win:m.lose).filter(x=>!same(x,name));return `<li><span>${w?"<b>W</b>":"L"} ${mate.length?`with ${esc(mate.join(" & "))} `:""}vs ${esc(w?m.lose:m.win)} ${esc(m.score)}</span><span>${esc(m.tour?(ROUNDS[m.round]||m.round||m.tour):"Friendly")}</span></li>`}).join("")}</ul>`:""}
     <div class="dr-btns"><button class="btn" type="button" id="drDuel">Duel this player</button><button class="btn ghost" type="button" id="drMatches">All their matches</button></div><div class="dr-btns" style="margin-top:8px"><button class="btn ghost" type="button" id="drImg">Copy player card</button></div>`;
   d.classList.add("on");d.setAttribute("aria-hidden","false");$("#scrim").classList.add("on");
   $("#drClose").onclick=closeDrawer;$("#drClose").focus();
@@ -1275,7 +1285,7 @@ function countUp(el,from,to,dur=900,delay=0){if(!MOTION){el.textContent=fmt(to);
 function tossChips(){if(!MOTION)return;["p3","p2","p1"].forEach((c,i)=>{const pod=$("#podium .pod."+c);if(!pod)return;const chip=$(".chip",pod),b=$(".pts b",pod),d=120+i*170;
   pod.animate([{opacity:0,transform:"translateY(18px)"},{opacity:1,transform:"none"}],{duration:520,delay:i*170,easing:EASE,fill:"backwards"});
   chip.animate([{opacity:0,transform:"translateY(-110px) rotateY(900deg) scale(1.15)"},{opacity:1,offset:.55,transform:"translateY(5px) rotateY(60deg) scale(1)"},{offset:.74,transform:"translateY(-7px) rotateY(0deg)"},{offset:.88,transform:"translateY(1px)"},{transform:"none"}],{duration:1000,delay:d,easing:"cubic-bezier(.3,.7,.3,1)",fill:"backwards"});
-  const p=LIST[+c.slice(1)-1];if(b&&p)countUp(b,START_ELO,p.elo,900,d+300)})}
+  const p=LIST[+c.slice(1)-1];if(b&&p)countUp(b,0,p.elo,900,d+300)})}
 function smokeIn(pg){const wm=$(".wm",pg),head=$(".ph>div:not(.ph-r)",pg);
   if(wm)wm.animate([{opacity:0,filter:"blur(18px)",transform:"translateY(22px) scale(1.05)"},{opacity:1,filter:"blur(0px)",transform:"none"}],{duration:1200,easing:EASE});
   if(head)head.animate([{opacity:0,transform:"translateY(14px)"},{opacity:1,transform:"none"}],{duration:520,easing:EASE})}
@@ -1354,7 +1364,7 @@ $$("[data-discord]").forEach(a=>{if(DISCORD_URL)a.href=DISCORD_URL;else a.hidden
 /* ---------- ticker (top of the ranking) ---------- */
 function renderTicker(){const top=LIST.slice(0,14);if(!top.length){$("#tick").innerHTML="";return}
   const it=(w,t)=>`<span class="ti it"><b>${w}</b><span class="n">${t}</span></span>`;
-  const item=p=>`<span class="ti"><span class="n">#${p.rank}</span><b>${esc(p.name)}</b><span class="e">${fmt(p.elo)}</span>${p.last?`<span class="${p.last>0?"up":"down"}">${p.last>0?"▲":"▼"} ${Math.abs(Math.round(p.last))}</span>`:""}</span>`;
+  const item=p=>`<span class="ti"><span class="n">#${p.rank}</span><b>${esc(p.name)}</b><span class="e">${fmt(p.elo)}</span>${p.last?`<span class="up">+${Math.round(p.last)}</span>`:""}</span>`;
   const one=it("La Famiglia","the family")+top.slice(0,7).map(item).join("")+it("Omertà","the table keeps quiet")+top.slice(7).map(item).join("");
   $("#tick").innerHTML=one+one}
 
@@ -1395,7 +1405,7 @@ async function buildCard(p){const W=1200,H=630,cv=document.createElement("canvas
   await frame(ctx,W,H,"PLAYER RECORD");
   ctx.fillStyle=C.gold;ctx.font=FT(700,22);ctx.fillText(`#${p.rank} · ${p.tier.toUpperCase()}`,56,170);
   ctx.fillStyle=C.cream;let sz=118;ctx.font=FD(900,sz,1);while(ctx.measureText(p.name).width>W-112&&sz>50){sz-=6;ctx.font=FD(900,sz,1)}ctx.fillText(p.name,52,170+sz);
-  const stats=[["ELO",fmt(p.elo)],["WINS – LOSSES",`${p.w} – ${p.l}`],["WIN RATE",(winRate(p)??0)+"%"],["TITLES",p.titles.length?"♛ "+p.titles.length:"0"]];
+  const stats=[["POINTS",fmt(p.elo)],["WINS – LOSSES",`${p.w} – ${p.l}`],["WIN RATE",(winRate(p)??0)+"%"],["TITLES",p.titles.length?"♛ "+p.titles.length:"0"]];
   stats.forEach(([k,v],i)=>{const x=56+i*272,y=430;ctx.fillStyle=C.paper;ctx.fillRect(x,y,252,104);ctx.strokeStyle=C.line;ctx.strokeRect(x+.5,y+.5,251,103);
     ctx.fillStyle=C.muted;ctx.font=FT(700,14);ctx.fillText(k,x+18,y+32);ctx.fillStyle=k==="TITLES"&&p.titles.length?C.gold2:C.cream;ctx.font=FT(700,38);ctx.fillText(v,x+18,y+80)});
   return cv}
@@ -1418,7 +1428,7 @@ async function readTab(tab,hd=1){const m=/\/d\/([\w-]{20,})/.exec(SHEET_URL);if(
     const s=String(c.f??c.v).trim(),x=/^(\d{4})-(\d\d)-(\d\d)[ T](\d{1,2})[:h](\d\d)/.exec(s);return x?sheetTime(+x[1],x[2]-1,+x[3],+x[4],+x[5]):s};
   return {rows:(j.table.rows||[]).map(r=>r.c||[]),col,val}}
 async function loadSheet(){if(!SHEET_URL)return;
-  try{const st=await readTab("Settings",0);if(st)st.rows.forEach(r=>{if(/time ?zone|fuseau/i.test(st.val(r[0]))&&st.val(r[1]))SHEET_TZ=st.val(r[1])})}catch(e){}
+  try{const st=await readTab("Settings",0);if(st)st.rows.forEach(r=>{const lab=st.val(r[0]),v=st.val(r[1]);if(/time ?zone|fuseau/i.test(lab)&&v)SHEET_TZ=v;const pm=/^points?\s*[·:\-–—]\s*(.+)$/i.exec(lab);if(pm&&v!==""&&!isNaN(+v)){const L=norm(pm[1]).replace(/[^a-z0-9]/g,"");const hit=PLACES.find(([k,l])=>norm(l).replace(/[^a-z0-9]/g,"")===L);if(hit)PTS[hit[0]]=+v}})}catch(e){}
   try{const a=await readTab("Matches"),b=await readTab("Tournaments");if(!a)throw new Error("no Matches tab");
     const c={d:a.col("date"),s:a.col("season","saison"),w:a.col("winner","gagnant","vainqueur"),l:a.col("loser","perdant"),sc:a.col("score"),t:a.col("tournament","tournoi"),r:a.col("round","phase","manche")};
     const g=(r,i)=>i>=0?a.val(r[i]):"";
@@ -1466,7 +1476,8 @@ function layoutScene(){if(cover.hidden)return;
   const lim=oy+580*s-6,T=cp.offsetTop,h=cp.offsetHeight;
   if(T+h>lim)cp.style.transform=`scale(${Math.max(.6,(lim-T)/h).toFixed(3)})`}
 addEventListener("resize",layoutScene);if(document.fonts&&document.fonts.ready)document.fonts.ready.then(layoutScene);
-function renderAll(){buildSeasons();compute();$("#demo").hidden=!DEMO;renderRank();renderMatches();renderChamps();fillDuel();renderDuel();renderFacts();renderTicker();renderNews();layoutScene();$$("[data-updated]").forEach(e=>e.textContent=UPDATED?`Updated ${UPDATED}`:"")}
+function renderPts(){const d=$("#ptsList");if(d)d.innerHTML=PLACES.map(([k,l])=>`<div><dt>${l}</dt><dd><b>${PTS[k]}</b> points</dd></div>`).join("")}
+function renderAll(){buildSeasons();compute();renderPts();$("#demo").hidden=!DEMO;renderRank();renderMatches();renderChamps();fillDuel();renderDuel();renderFacts();renderTicker();renderNews();layoutScene();$$("[data-updated]").forEach(e=>e.textContent=UPDATED?`Updated ${UPDATED}`:"")}
 function no3d(){if(cover.classList.contains("r3d")||!root.classList.contains("try3d"))return;root.classList.remove("try3d");layoutScene();dealCards(200)}
 setData(DEMO_DATA.m,DEMO_DATA.t);root.classList.add("lock");siteInert(true);show("rank");renderAll();if(!root.classList.contains("try3d"))dealCards();else{setTimeout(no3d,9000);const m=document.createElement("script");m.type="module";m.src="room.js";m.onerror=no3d;document.body.appendChild(m)}loadSheet();
 </script>
