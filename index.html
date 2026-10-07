@@ -871,11 +871,12 @@ footer::before{content:"";position:absolute;left:0;right:0;top:0;height:14px;bac
   function tick() { while (nextBar < ctx.currentTime + 1.2) { scheduleBar(nextBar); nextBar += BEAT * 4; } timer = setTimeout(tick, 300); }
   function startMusic() { if (started) return; started = true; nextBar = ctx.currentTime + .1; tick(); }
   function fade(to, sec) { const t = ctx.currentTime; master.gain.cancelScheduledValues(t); master.gain.setValueAtTime(master.gain.value, t); master.gain.linearRampToValueAtTime(to, t + sec); }
-  function wake() {   // only after a click or a key: browsers keep pages quiet until then
+  const playing = () => ctx && ctx.state === 'running' && started;
+  function wake() {   // browsers keep a page quiet until you click, tap or press a key, so the music starts on the first one
     if (!on) return;
     if (!ctx) build();
-    if (ctx.state === 'suspended') ctx.resume();
-    startMusic(); fade(document.hidden ? 0 : .9, 1.2);
+    const go = () => { if (!on) return; startMusic(); fade(.9, 1.2); };
+    if (ctx.state === 'running') go(); else ctx.resume().then(go, () => { });
   }
   // the noises of the scene
   function burst(t, dur, f, q, v, type = 'bandpass', att = .005) { const s = ctx.createBufferSource(), fl = ctx.createBiquadFilter(), g = ctx.createGain(); s.buffer = white; fl.type = type; fl.frequency.value = f; fl.Q.value = q;
@@ -907,11 +908,14 @@ footer::before{content:"";position:absolute;left:0;right:0;top:0;height:14px;bac
     if (on) wake(); else if (ctx) { fade(0, .5); setTimeout(() => { if (!on) { clearTimeout(timer); started = false; ctx.suspend(); } }, 650); }
   }
   window.aphSound = {
-    fx(name, ...a) { if (!on || !ctx || ctx.state !== 'running' || document.hidden || !FX[name]) return; try { FX[name](ctx.currentTime + .01, ...a); } catch (e) { } },
+    fx(name, ...a) { if (!on || !ctx || ctx.state !== 'running' || !FX[name]) return; try { FX[name](ctx.currentTime + .01, ...a); } catch (e) { } },
     get on() { return on; }
   };
-  document.addEventListener('click', e => { const b = e.target.closest('[data-sound]'); if (b) { e.preventDefault(); set(!on); } else wake(); }, true);
-  document.addEventListener('keydown', wake, true);
+  // the button: if the music is meant to be on but the browser held it back, the click starts it instead of turning it off
+  document.addEventListener('click', e => { const b = e.target.closest('[data-sound]'); if (!b) return; e.preventDefault(); if (on && !playing()) wake(); else set(!on); }, true);
+  ['pointerdown', 'touchend', 'keydown'].forEach(ev => document.addEventListener(ev, e => { if (!(e.target.closest && e.target.closest('[data-sound]'))) wake(); }, true));
+  // and try right away: some browsers allow it on a site you have already played
+  if (on) { try { build(); if (ctx.state === 'running') { startMusic(); fade(.9, 1.5); } } catch (e) { } }
   // quiet while you are on another tab, back when you return
   document.addEventListener('visibilitychange', () => { if (!ctx || !on) return; if (document.hidden) fade(0, .4); else { if (ctx.state === 'suspended') ctx.resume(); fade(.9, 1.2); } });
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', paint); else paint();
