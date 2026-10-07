@@ -1064,10 +1064,21 @@ const HOLD_L = V(1.8, 1.62, 1.22), HOLD_L2 = V(1.83, 1.55, 1.26);
 const SH_GRIP = V(-.06, .07, .22), SH_HOLD = V(.02, .05, .1), SH_SIP = V(.05, .07, .16);
 const _grip = new THREE.Vector3();
 function cigarGrip(out) { headPivot.updateMatrix(); return out.set(0, 0, .45).applyQuaternion(cigRestQ).add(cigRestP).applyMatrix4(headPivot.matrix); }
+// where his hand goes to take the cigar: the palm comes down flat on it, the cigar lies just under the hand, never inside
+const _gAx = new THREE.Vector3(), _gDir = new THREE.Vector3(), _gq = new THREE.Quaternion(), SH_G = new THREE.Vector3();
+function gripReach() {
+  const grip = cigarGrip(_grip);
+  _gAx.set(0, 0, 1).applyQuaternion(_gq.copy(headPivot.quaternion).multiply(cigRestQ));
+  _gDir.copy(grip).sub(ARMS.L.base); _gDir.addScaledVector(_gAx, -_gDir.dot(_gAx)).normalize();
+  SH_G.copy(grip).sub(ARMS.L.base).addScaledVector(_gDir, -(1.5 + CIG_GAP));
+  SH_GB.copy(SH_G).addScaledVector(_gDir, -.32);   // the hand comes in (and goes away) along its own line, clear of the cigar
+  return grip;
+}
+const CIG_GAP = .1, SH_GB = new THREE.Vector3();
 function drinkPose(t, p, a, dt) {
-  const grip = cigarGrip(_grip), LE = ARMS.L.restEnd, RE = ARMS.R.restEnd;
-  armPath(p, 'L', [[0, LE], [.72, grip], [1.0, grip], [1.75, HOLD_L], [3.95, HOLD_L2], [4.55, grip], [4.95, grip], [5.65, LE]],
-    [[0, ZERO], [.72, SH_GRIP], [1.0, SH_GRIP], [1.75, SH_HOLD], [3.95, SH_HOLD], [4.55, SH_GRIP], [4.95, SH_GRIP], [5.65, ZERO]], t);
+  const grip = gripReach(), LE = ARMS.L.restEnd, RE = ARMS.R.restEnd;
+  armPath(p, 'L', [[0, LE], [.5, grip], [.76, grip], [1.0, grip], [1.75, HOLD_L], [3.95, HOLD_L2], [4.55, grip], [4.95, grip], [5.2, grip], [5.75, LE]],
+    [[0, ZERO], [.5, SH_GB], [.76, SH_G], [1.0, SH_G], [1.75, SH_HOLD], [3.95, SH_HOLD], [4.55, SH_G], [4.95, SH_G], [5.2, SH_GB], [5.75, ZERO]], t);
   armPath(p, 'R', [[0, RE], [.55, RE], [1.72, SIP_R], [3.05, SIP_R2], [4.3, RE]], [[0, ZERO], [.55, ZERO], [1.72, SH_SIP], [3.05, SH_SIP], [4.3, ZERO]], t);
   p.cigIn = 1 - smooth(t, .9, 1.3) + smooth(t, 4.5, 4.9);
   cigSide = smooth(t, 1.12, 2.0) * (1 - smooth(t, 3.35, 4.4));   // he turns it out to the side as his hand moves away, and back on the way to his mouth
@@ -1078,7 +1089,7 @@ function drinkPose(t, p, a, dt) {
   p.pitch = .06 * bell(t, .3, .85, 1.0, 1.5) - .2 * bell(t, 1.55, 2.25, 2.8, 3.45);
   if (!a.exh && t > 1.36) { a.exh = true; exhale(); sfx('exhale'); }
   cue(a, 'glassUp', t, .62); cue(a, 'glassDown', t, 4.22);
-  if (t > 5.7) { anim = null; nextDrink = now + 16 + Math.random() * 9; }
+  if (t > 5.8) { anim = null; nextDrink = now + 16 + Math.random() * 9; }
 }
 
 // the contract: his right hand calls the cards back, his left hand finds the papers under the table and tosses them over
@@ -1140,8 +1151,8 @@ function placeHeld() {
   if (!cigHold.on) { cigHold.on = true; _hqi.copy(hq).invert(); cigHold.p.copy(_mp).sub(_hp).applyQuaternion(_hqi); cigHold.q.copy(_hqi).multiply(_mq); cigHold.d0 = _hp.distanceTo(cigarGrip(_grip)); }
   _rp.copy(cigHold.p).applyQuaternion(hq).add(_hp); _rq.copy(hq).multiply(cigHold.q);
   // away from the mouth he turns it out to the side, so you can see it
-  _ax.set(1, 0, 0).applyQuaternion(hq).multiplyScalar(.9); _ax.y += .2; _ax.z += .35; _ax.normalize();   // out to the side, a little up and toward you
-  _gp.copy(_hp).addScaledVector(_n, .06).addScaledVector(_ax, .44);   // held at the edge of the hand, most of it sticking out
+  _ax.set(1, 0, 0).applyQuaternion(hq).multiplyScalar(.9); _ax.y += .2; _ax.z += .35; _ax.addScaledVector(_n, -_ax.dot(_n)).normalize();   // flat under the palm   // out to the side, a little up and toward you
+  _gp.copy(_hp).addScaledVector(_n, CIG_GAP).addScaledVector(_ax, .44);   // held at the edge of the hand, most of it sticking out
   _cqh.setFromUnitVectors(AZ, _ax); _cph.copy(_gp).addScaledVector(_ax, -.12);
   const away = cigSide;
   _rp.lerp(_cph, away); _rq.slerp(_cqh, away);
