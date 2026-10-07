@@ -379,11 +379,6 @@ const ARMS = {};
   const hg = lathe(prof, 64, PI);
   { const uv = hg.attributes.uv, p = hg.attributes.position; for (let i = 0; i < uv.count; i++) uv.setY(i, p.getY(i) / h); }
   mesh(hg, M.head, 0, 0, 0, headPivot);
-  // the smile, under the brim
-  { const [c, x] = makeCanvas(512, 256); x.strokeStyle = '#111'; x.lineCap = 'round'; x.lineWidth = 22;
-    x.beginPath(); x.moveTo(120, 92); x.quadraticCurveTo(256, 236, 392, 92); x.stroke();
-    const sm = new THREE.Mesh(new THREE.CylinderGeometry(r + .004, r + .004, .3, 24, 1, true, -.5, 1), new THREE.MeshStandardMaterial({ map: tex(c), transparent: true, roughness: .6, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2 }));
-    sm.position.y = .44; headPivot.add(sm); }
   // fedora
   const hat = new THREE.Group(); hat.position.set(0, .9, .02); hat.rotation.set(.24, .14, -.11); headPivot.add(hat);
   const crown = lathe([[.67, 0], [.662, .16], [.64, .33], [.6, .45], [.5, .53], [.32, .565], [.14, .53], [.04, .47], [0, .46]], 48);
