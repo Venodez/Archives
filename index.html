@@ -748,6 +748,8 @@ footer::before{content:"";position:absolute;left:0;right:0;top:0;height:14px;bac
 .mrow .side{flex-wrap:wrap}
 .frame .wins{display:flex;flex-wrap:wrap;align-items:center;gap:6px 0}
 .frame .wins .amp{font-size:22px;color:var(--wax);opacity:.8;margin:0 10px}
+
+.mrow .tag .tm{display:block;font-style:normal;font-size:11px;letter-spacing:.04em;color:var(--gold2);opacity:.8;margin-bottom:2px}
 </style>
 </head>
 <body>
@@ -1027,7 +1029,14 @@ const team=s=>String(s||"").split(/\s*(?:&|\+|\/)\s*/).map(x=>x.trim()).filter(B
 const inTeam=(side,n)=>team(side).some(x=>same(x,n));
 const sameTeam=(a,b)=>team(a).map(norm).sort().join("&")===team(b).map(norm).sort().join("&");
 const nameBtns=(side,cls="n")=>team(side).map(n=>`<button class="${cls}" type="button" data-p="${esc(n)}">${esc(n)}</button>`).join(`<span class="amp">&amp;</span>`);
-const pretty=d=>{const t=Date.parse(d);return t?new Date(t).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}):d};
+/* dates: a day stays that day for everyone, a day with a time is shown in each visitor's own time zone */
+let SHEET_TZ="Europe/Paris";
+const timed=d=>/T\d\d:\d\d/.test(d||"");
+const pretty=d=>{const t=Date.parse(d);if(!t)return d;return timed(d)?new Date(t).toLocaleString("en-US",{month:"short",day:"numeric",year:"numeric",hour:"numeric",minute:"2-digit",timeZoneName:"short"}):new Date(t).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric",timeZone:"UTC"})};
+const dayOf=d=>{const t=Date.parse(d);if(!t)return d;return new Date(t).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric",...(timed(d)?{}:{timeZone:"UTC"})})};
+const clockOf=d=>timed(d)?new Date(Date.parse(d)).toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit",timeZoneName:"short"}):"";
+function tzOff(ts,tz){const p={};new Intl.DateTimeFormat("en-US",{timeZone:tz,hourCycle:"h23",year:"numeric",month:"numeric",day:"numeric",hour:"numeric",minute:"numeric",second:"numeric"}).formatToParts(ts).forEach(x=>p[x.type]=x.value);return Date.UTC(+p.year,p.month-1,+p.day,+p.hour%24,+p.minute,+p.second)-ts}
+function sheetTime(y,mo,d,h,mi){const u=Date.UTC(y,mo,d,h,mi);try{let t=u-tzOff(u,SHEET_TZ);t=u-tzOff(t,SHEET_TZ);return new Date(t).toISOString()}catch(e){return new Date(u).toISOString()}}
 const ROUNDS={r64:"Round of 64",r32:"Round of 32",r16:"Round of 16",qf:"Quarter-finals",sf:"Semi-finals",b:"Third place",f:"Final"};
 const RORDER=["r64","r32","r16","qf","sf","f"];
 function normRound(r){const s=norm(r).replace(/\s+/g,"");if(!s)return "";
@@ -1097,12 +1106,12 @@ function renderMatches(){
   const q=norm($("#mq").value);
   const L=MATCHES.filter(m=>inSeason(m)&&(mKind==="all"||(mKind==="tour")===!!m.tour)&&(!q||norm(m.win).includes(q)||norm(m.lose).includes(q))).reverse();
   let h="",day="";
-  for(const m of L.slice(0,mShown)){if(m.date!==day){day=m.date;h+=`<div class="mday">${esc(pretty(m.date))}</div>`}
+  for(const m of L.slice(0,mShown)){if(dayOf(m.date)!==day){day=dayOf(m.date);h+=`<div class="mday">${esc(day)}</div>`}
     const d=m.d?Math.round(m.d):0;
     h+=`<div class="mrow"><div class="side win"><span class="dlt up">+${d}</span>${nameBtns(m.win)}</div>
       <div class="score">${esc(m.score||"W")}</div>
       <div class="side r lose">${nameBtns(m.lose)}<span class="dlt down">−${d}</span></div>
-      <div class="tag">${m.tour?`<b>${esc(m.tour)}</b>${esc(ROUNDS[m.round]||m.round)}`:"Ranked match"}</div></div>`}
+      <div class="tag">${clockOf(m.date)?`<i class="tm">${esc(clockOf(m.date))}</i>`:""}${m.tour?`<b>${esc(m.tour)}</b>${esc(ROUNDS[m.round]||m.round)}`:"Ranked match"}</div></div>`}
   $("#mlist").innerHTML=h||`<div class="empty">No match found.</div>`;
   $("#mcount").textContent=`${L.length} match${L.length===1?"":"es"}`;
   $("#mmore").hidden=L.length<=mShown;
@@ -1343,13 +1352,16 @@ async function shareImage(build,name,btn){const old=btn.textContent;btn.disabled
 $("#topImg").onclick=e=>shareImage(buildTop,"aphrite-top10.png",e.currentTarget);
 
 /* ---------- Google Sheet ---------- */
-async function readTab(tab){const m=/\/d\/([\w-]{20,})/.exec(SHEET_URL);if(!m)return null;
-  const r=await fetch(`https://docs.google.com/spreadsheets/d/${m[1]}/gviz/tq?tqx=out:json&headers=1&sheet=${encodeURIComponent(tab)}&t=${Date.now()}`,{cache:"no-store"});
+async function readTab(tab,hd=1){const m=/\/d\/([\w-]{20,})/.exec(SHEET_URL);if(!m)return null;
+  const r=await fetch(`https://docs.google.com/spreadsheets/d/${m[1]}/gviz/tq?tqx=out:json&headers=${hd}&sheet=${encodeURIComponent(tab)}&t=${Date.now()}`,{cache:"no-store"});
   const t=await r.text(),j=JSON.parse(t.slice(t.indexOf("{"),t.lastIndexOf("}")+1));if(j.status==="error")return null;
   const H=j.table.cols.map(c=>norm(c.label)),col=(...n)=>H.findIndex(h=>n.some(x=>h===x||h.startsWith(x)));
-  const val=c=>{if(!c||c.v==null)return "";const d=/^Date\((\d+),(\d+),(\d+)/.exec(String(c.v));return d?`${d[1]}-${String(+d[2]+1).padStart(2,"0")}-${String(d[3]).padStart(2,"0")}`:String(c.f??c.v).trim()};
+  const val=c=>{if(!c||c.v==null)return "";const v=String(c.v),d=/^Date\((\d+),(\d+),(\d+)(?:,(\d+),(\d+))?/.exec(v);
+    if(d)return d[4]!=null&&(+d[4]||+d[5])?sheetTime(+d[1],+d[2],+d[3],+d[4],+d[5]):`${d[1]}-${String(+d[2]+1).padStart(2,"0")}-${String(d[3]).padStart(2,"0")}`;
+    const s=String(c.f??c.v).trim(),x=/^(\d{4})-(\d\d)-(\d\d)[ T](\d{1,2})[:h](\d\d)/.exec(s);return x?sheetTime(+x[1],x[2]-1,+x[3],+x[4],+x[5]):s};
   return {rows:(j.table.rows||[]).map(r=>r.c||[]),col,val}}
 async function loadSheet(){if(!SHEET_URL)return;
+  try{const st=await readTab("Settings",0);if(st)st.rows.forEach(r=>{if(/time ?zone|fuseau/i.test(st.val(r[0]))&&st.val(r[1]))SHEET_TZ=st.val(r[1])})}catch(e){}
   try{const a=await readTab("Matches"),b=await readTab("Tournaments");if(!a)throw new Error("no Matches tab");
     const c={d:a.col("date"),s:a.col("season","saison"),w:a.col("winner","gagnant","vainqueur"),l:a.col("loser","perdant"),sc:a.col("score"),t:a.col("tournament","tournoi"),r:a.col("round","phase","manche")};
     const g=(r,i)=>i>=0?a.val(r[i]):"";
