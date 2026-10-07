@@ -528,6 +528,158 @@ html{scrollbar-color:var(--line2) var(--ink)}
 .odds .bar i:last-child{flex:1}
 /* toast is dealt like a card */
 @keyframes toastIn{from{opacity:0;transform:translate(-50%,26px) rotate(-5deg)}}
+
+/* ============ the pages, dressed like the back room: felt tables with leather rails, playing cards, contracts and wax ============ */
+:root{
+  --felt:#0d3524;--felt2:#0a2a1d;--leather:#2a160b;--leather2:#3a2010;
+  --paper1:#f6eedb;--paper2:#e7d8b5;--pink:#24170b;--sepia:#6b4a1a;--wax:#a3221b;--wax2:#6e0f0c;
+  --noise:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .22 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  --rope:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='42' height='42' viewBox='0 0 42 42'%3E%3Cg fill='none' stroke-width='.8'%3E%3Crect x='.6' y='.6' width='40.8' height='40.8' stroke='%233b2a17' stroke-width='1.2'/%3E%3Crect x='13.4' y='13.4' width='15.2' height='15.2' stroke='%233b2a17'/%3E%3Cpath d='M14 4c2 6 5 6 7 0s5-6 7 0M14 9c2-6 5-6 7 0s5 6 7 0' stroke='%237c582a'/%3E%3Cpath d='M14 38c2-6 5-6 7 0s5 6 7 0M14 33c2 6 5 6 7 0s5-6 7 0' stroke='%237c582a'/%3E%3Cpath d='M4 14c6 2 6 5 0 7s-6 5 0 7M9 14c-6 2-6 5 0 7s6 5 0 7' stroke='%23526248'/%3E%3Cpath d='M38 14c-6 2-6 5 0 7s6 5 0 7M33 14c6 2 6 5 0 7s-6 5 0 7' stroke='%23526248'/%3E%3Ccircle cx='6.5' cy='6.5' r='4' stroke='%233b2a17'/%3E%3Ccircle cx='35.5' cy='6.5' r='4' stroke='%233b2a17'/%3E%3Ccircle cx='6.5' cy='35.5' r='4' stroke='%233b2a17'/%3E%3Ccircle cx='35.5' cy='35.5' r='4' stroke='%233b2a17'/%3E%3Ccircle cx='6.5' cy='6.5' r='1.3' fill='%237a5a2c'/%3E%3Ccircle cx='35.5' cy='6.5' r='1.3' fill='%237a5a2c'/%3E%3Ccircle cx='6.5' cy='35.5' r='1.3' fill='%237a5a2c'/%3E%3Ccircle cx='35.5' cy='35.5' r='1.3' fill='%237a5a2c'/%3E%3C/g%3E%3C/svg%3E");
+  --orn:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='280' height='14' viewBox='0 0 280 14'%3E%3Cg fill='%23d4a64c'%3E%3Crect x='6' y='6.5' width='118' height='1'/%3E%3Crect x='156' y='6.5' width='118' height='1'/%3E%3Cpath d='M140 0l7 7-7 7-7-7z'/%3E%3Ccircle cx='3' cy='7' r='2'/%3E%3Ccircle cx='277' cy='7' r='2'/%3E%3C/g%3E%3C/svg%3E");
+}
+/* the room around the pages: wood panels in the dark and one lamp above */
+body{background:radial-gradient(1100px 620px at 50% -140px,rgba(241,212,140,.13),rgba(241,212,140,.03) 55%,transparent 75%),repeating-linear-gradient(90deg,rgba(255,214,150,.022) 0 2px,transparent 2px 132px),var(--ink)}
+.nav{background:linear-gradient(180deg,rgba(26,17,10,.94),rgba(13,10,7,.94));border-bottom:1px solid rgba(212,166,76,.35);box-shadow:0 1px 0 #000,0 14px 30px -20px #000}
+
+/* page heads: set like the top of the contract */
+.ph{border-bottom:0;padding-bottom:34px}
+.ph::before{content:"";position:absolute;z-index:0;left:-10%;top:-60%;width:70%;height:180%;background:radial-gradient(closest-side,rgba(241,212,140,.12),transparent);pointer-events:none}
+.ph::after{content:"";position:absolute;left:0;right:0;bottom:0;height:14px;background:var(--orn) center/280px 14px no-repeat,linear-gradient(90deg,transparent,rgba(212,166,76,.45) 20%,transparent 46%,transparent 54%,rgba(212,166,76,.45) 80%,transparent) center/100% 1px no-repeat}
+.ph .kick{display:flex;align-items:center;gap:12px;font:700 11.5px/1 var(--f-num);letter-spacing:.32em;text-transform:uppercase;color:var(--muted)}
+.ph .kick b{font-size:21px;letter-spacing:.02em;text-transform:none;color:var(--gold)}
+.ph .wm{-webkit-text-stroke:1px rgba(212,166,76,.12)}
+
+/* a card table: green felt, the gold line and a leather rail */
+.podium,.ledger,.mlist,.h2h,.cmp,.bracket{background:radial-gradient(120% 70% at 50% 0%,rgba(255,220,160,.16),transparent 60%),var(--noise),linear-gradient(180deg,var(--felt),var(--felt2));background-size:auto,180px 180px,auto}
+.podium,.ledger,.mlist{position:relative;border:12px solid var(--leather);border-radius:30px;box-shadow:inset 0 0 0 1px rgba(212,166,76,.5),inset 0 0 0 7px rgba(0,0,0,.18),inset 0 18px 40px -20px rgba(0,0,0,.7),0 0 0 1px #000,0 0 0 2px rgba(212,166,76,.25),0 30px 60px -30px #000}
+.podium::before,.ledger::before,.mlist::before{content:"";position:absolute;inset:12px;border:1px solid rgba(201,162,74,.28);border-radius:18px;pointer-events:none}
+
+/* the top three: three cards face up on the felt */
+.podium{padding:40px 6% 34px;gap:clamp(12px,3vw,40px);margin:34px 0 26px}
+.pod{min-height:250px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:26px 16px 22px;border:0;border-radius:14px;color:var(--pink);background:radial-gradient(130% 100% at 28% 16%,#fdf7e8 0%,#f1e6cb 55%,#dfcca2 100%);box-shadow:0 1px 0 rgba(255,255,255,.6) inset,0 3px 0 -1px rgba(0,0,0,.35),0 26px 34px -16px rgba(0,0,0,.85);transition:transform .35s var(--ease),box-shadow .35s}
+.pod::before{content:"";position:absolute;inset:8px;border:1px solid rgba(160,112,32,.5);border-radius:9px;pointer-events:none}
+.pod.p2{transform:rotate(-4deg)}.pod.p3{transform:rotate(4deg)}
+.pod.p1{min-height:290px;background:radial-gradient(130% 100% at 28% 16%,#fffaf0 0%,#f4e9cf 55%,#e3cf9f 100%);border:0;transform:translateY(-10px)}
+.pod:hover{transform:translateY(-14px) rotate(0);box-shadow:0 0 0 2px rgba(241,212,140,.85),0 0 40px rgba(241,212,140,.3),0 36px 44px -18px rgba(0,0,0,.9)}
+.pod .cnr{position:absolute;display:flex;flex-direction:column;align-items:center;font:400 30px/.9 var(--f-disp);color:var(--pink)}
+.pod .cnr i{font-style:normal;font-size:22px;line-height:1.1}
+.pod .cnr.tl{left:14px;top:14px}.pod .cnr.br{right:14px;bottom:14px;transform:rotate(180deg)}
+.pod .cnr.red{color:var(--wax)}
+.pod .nm{color:#17110b}.pod.p1 .nm{color:#17110b}
+.pod .pts{color:var(--sepia)}.pod .pts b{color:var(--pink)}
+.pod .tier{color:#8a6a3a}
+.pod .chip{box-shadow:inset 0 0 0 4px rgba(0,0,0,.25),inset 0 0 0 7px var(--c),inset 0 0 0 9px rgba(255,255,255,.45),0 6px 10px -4px rgba(0,0,0,.5)}
+
+/* the ranking: the family sits at the table */
+.filters{background:linear-gradient(180deg,var(--ink),rgba(11,9,7,.96));border-bottom:1px solid rgba(212,166,76,.25)}
+.chipf{border-radius:999px;border-style:dashed;border-color:rgba(212,166,76,.45)}
+.chipf.on{border-style:solid}
+.ledger{margin-top:18px;padding:10px 18px 14px;overflow:hidden}
+.ledger .lh{color:rgba(237,226,200,.55);border-bottom:1px solid rgba(201,162,74,.3)}
+.lr{border-bottom:1px dashed rgba(237,226,200,.12)}
+.lr:last-child{border-bottom:0}
+.lr:hover,.lr:focus-visible{background:rgba(241,212,140,.07)}
+.lr .who span{color:rgba(237,226,200,.55)}
+.lr .wl,.lr .wr{color:var(--cream2)}
+.lr .rk{--cc:#5b5248;--ce:#d8cfbd;--ct:#f3ead6;width:44px;height:44px;display:grid;place-items:center;border-radius:50%;font:700 15px/1 var(--f-num);color:var(--ct);background:radial-gradient(circle,var(--cc) 0 52%,transparent 53%),var(--cc);border:3px dashed var(--ce);box-shadow:0 0 0 2px var(--cc),0 4px 8px -2px rgba(0,0,0,.6)}
+.lr.t-boss .rk{--cc:#c9962f;--ce:#fbe7b0;--ct:#1a1206}
+.lr.t-underboss .rk{--cc:#a3221a;--ce:#efe6d0}
+.lr.t-capo .rk{--cc:#1d4fb3;--ce:#efe6d0}
+.lr.t-soldier .rk{--cc:#151515;--ce:#d4a64c;--ct:#f1d48c}
+.form i{background:rgba(0,0,0,.35)}
+.form i.w{background:var(--gold);box-shadow:0 0 0 1.5px rgba(0,0,0,.3)}
+.form i.l{box-shadow:inset 0 0 0 1.5px rgba(237,226,200,.5)}
+.empty{color:rgba(237,226,200,.6)}
+
+/* the matches: the evening's games, one paper tag per day */
+.mlist{margin-top:18px;padding:6px 22px 18px}
+.mday{width:fit-content;margin:22px 0 6px;padding:5px 12px 4px;border:0;border-radius:2px;background:linear-gradient(180deg,var(--paper1),var(--paper2));color:var(--pink);font:700 12px/1.2 var(--f-num);letter-spacing:.12em;text-transform:uppercase;transform:rotate(-1.2deg);box-shadow:0 6px 12px -6px rgba(0,0,0,.8)}
+.mrow{border-bottom:1px dashed rgba(237,226,200,.12)}
+.mrow .lose button.n{color:rgba(237,226,200,.55)}
+.mrow .score{justify-self:center;min-width:58px;padding:5px 8px;border-radius:999px;background:rgba(0,0,0,.35);border:1px solid rgba(212,166,76,.55);font-size:15px}
+.mrow .tag{color:rgba(237,226,200,.55)}
+.mrow .tag b{position:relative;padding-left:16px}
+.mrow .tag b::before{content:"";position:absolute;left:0;top:50%;width:10px;height:10px;margin-top:-6px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#d9473a,var(--wax) 55%,var(--wax2));box-shadow:0 1px 2px rgba(0,0,0,.6)}
+
+/* the champions: every title is a contract on the wall */
+.most button{border-radius:999px;border:1px dashed rgba(212,166,76,.55);background:radial-gradient(circle at 30% 30%,rgba(241,212,140,.12),transparent 70%),#15100b;padding:10px 18px}
+.seasonhd{display:flex;align-items:center;gap:16px;color:var(--cream)}
+.seasonhd::after{content:"";flex:1;height:14px;background:var(--orn) left center/280px 14px no-repeat}
+.wall{gap:28px}
+.frame{padding:34px 30px 30px;border:14px solid transparent;border-image:var(--rope) 14 round;background:radial-gradient(120% 100% at 50% 40%,var(--paper1),var(--paper2) 80%,#d2bd91);color:var(--pink);box-shadow:0 30px 50px -24px rgba(0,0,0,.95);transform:rotate(-.6deg)}
+.wall .frame:nth-child(2n){transform:rotate(.7deg)}
+.frame .when{color:var(--sepia);font:700 11.5px/1 var(--f-num);letter-spacing:.2em;text-transform:uppercase}
+.frame h3{color:var(--pink);font:400 21px/1.15 var(--f-disp)}
+.frame .win{color:#7d1410;font-size:clamp(34px,3.8vw,46px)}
+.frame .win:hover{color:var(--wax)}
+.frame .lbl{color:var(--sepia)}
+.frame dl{border-top:1px dashed rgba(36,23,11,.3)}
+.frame dt{color:var(--sepia)}
+.frame dd{color:var(--pink);font-weight:600}
+.frame .acts button{color:#7d1410}
+.frame .crown{color:var(--wax);top:22px;right:24px}
+.frame::after{content:"A";position:absolute;right:20px;bottom:18px;width:58px;height:58px;display:grid;place-items:center;border-radius:50%;font:400 26px/1 var(--f-disp);color:rgba(255,200,180,.55);text-shadow:1px 1px 0 rgba(70,6,4,.7);background:radial-gradient(circle at 35% 30%,#d9473a,var(--wax) 55%,var(--wax2));box-shadow:inset 0 0 0 5px rgba(60,8,6,.35),0 4px 8px -2px rgba(40,10,5,.6);transform:rotate(-12deg)}
+
+/* the duel: two names across the table */
+.duel-pick select{border:1px solid rgba(212,166,76,.55);box-shadow:inset 0 0 0 4px var(--paper),inset 0 0 0 5px rgba(212,166,76,.25);border-radius:4px}
+.h2h{border:12px solid var(--leather);border-radius:30px;box-shadow:inset 0 0 0 1px rgba(212,166,76,.5),0 0 0 1px #000,0 30px 60px -30px #000}
+.h2h .mid{color:rgba(237,226,200,.6)}
+.odds .bar{border-radius:999px;overflow:hidden;background:rgba(0,0,0,.4)}
+.cmp{border-collapse:separate;border-spacing:0;border:12px solid var(--leather);border-radius:30px;overflow:hidden;box-shadow:inset 0 0 0 1px rgba(212,166,76,.5),0 0 0 1px #000,0 30px 60px -30px #000}
+.cmp td{border-bottom:1px dashed rgba(237,226,200,.12);padding:13px 10px}
+.cmp tr:last-child td{border-bottom:0}
+.cmp td.k{color:rgba(237,226,200,.6);font:700 11.5px var(--f-num);letter-spacing:.2em;text-transform:uppercase}
+
+/* the rules: the contract itself */
+.gl{position:relative;margin-top:30px;padding:clamp(26px,5vw,56px) clamp(22px,5vw,64px) clamp(70px,8vw,96px);border:14px solid transparent;border-image:var(--rope) 14 round;background:radial-gradient(120% 90% at 50% 35%,var(--paper1),var(--paper2) 80%,#d2bd91);color:var(--pink);box-shadow:0 40px 70px -30px rgba(0,0,0,.95)}
+.gl::after{content:"A";position:absolute;right:clamp(20px,4vw,46px);bottom:clamp(18px,3vw,30px);width:76px;height:76px;display:grid;place-items:center;border-radius:50%;font:400 34px/1 var(--f-disp);color:rgba(255,200,180,.55);text-shadow:1px 1px 0 rgba(70,6,4,.7);background:radial-gradient(circle at 35% 30%,#d9473a,var(--wax) 55%,var(--wax2));box-shadow:inset 0 0 0 6px rgba(60,8,6,.35),0 5px 10px -2px rgba(40,10,5,.6);transform:rotate(-12deg)}
+.gl::before{content:"Firma · Il Capo";position:absolute;left:clamp(22px,5vw,64px);bottom:clamp(22px,3vw,34px);width:min(260px,45%);padding-top:6px;border-top:1.5px solid var(--pink);font:700 11px/1 var(--f-num);letter-spacing:.24em;text-transform:uppercase;color:var(--sepia)}
+.gl-g h3{border-bottom:1px solid rgba(36,23,11,.45);color:var(--sepia)}
+.gl-g h3 b{color:var(--pink)}
+.gl-l>div{border-bottom:1px dashed rgba(36,23,11,.25)}
+.gl-l dt{color:var(--pink)}
+.gl-l dd{color:#4a3a26}
+.gl-l dd b{color:#7d1410}
+
+/* the bracket: cards on the felt under the lamp */
+.bm{border:0;border-radius:8px;background:radial-gradient(130% 100% at 28% 16%,#fdf7e8,#f1e6cb 55%,#dfcca2);box-shadow:0 14px 20px -12px rgba(0,0,0,.85)}
+.bm div+div{border-top:1px dashed rgba(36,23,11,.25)}
+.bm .w{color:var(--pink)}.bm .l{color:#8a6a3a}
+.bcol h4{color:rgba(237,226,200,.7);letter-spacing:.2em;text-transform:uppercase;font-size:11px}
+.bcol.final .bm{box-shadow:0 0 0 2px var(--gold),0 0 34px -6px rgba(212,166,76,.7)}
+.bcol.final .bm .w b{color:#7d1410}
+.bcol.final .third .bm .w b{color:var(--pink)}
+
+/* the footer motto under a last rule */
+footer{border-top:0;position:relative;padding-top:30px}
+footer::before{content:"";position:absolute;left:0;right:0;top:0;height:14px;background:var(--orn) center/280px 14px no-repeat,linear-gradient(90deg,transparent,rgba(212,166,76,.35) 20%,transparent 46%,transparent 54%,rgba(212,166,76,.35) 80%,transparent) center/100% 1px no-repeat}
+.motto{border-bottom-color:rgba(212,166,76,.2)}
+
+@media (max-width:720px){
+  .podium{padding:26px 10px 22px;border-width:9px;border-radius:22px}
+  .pod{min-height:170px;padding:22px 6px 14px;border-radius:10px}
+  .pod.p1{min-height:196px}
+  .pod .cnr{font-size:18px}.pod .cnr i{font-size:14px}
+  .pod .cnr.tl{left:7px;top:7px}.pod .cnr.br{right:7px;bottom:7px}
+  .pod::before{inset:5px}
+  .ledger,.mlist{border-width:9px;border-radius:22px;padding-left:8px;padding-right:8px}
+  .lr .rk{width:36px;height:36px;font-size:13px;border-width:2px}
+  .frame{padding:26px 20px 24px}
+  .h2h,.cmp{border-width:9px;border-radius:22px}
+}
+
+.lr.top .rk{color:var(--ct)}
+.lr .ti{display:block;padding:0;border:0;gap:0}
+/* duel: each side's wins sit on a playing card */
+.h2h .big{position:relative;justify-self:center;width:clamp(96px,14vw,150px);aspect-ratio:5/7;display:grid;place-items:center;border-radius:12px;color:var(--pink);background:radial-gradient(130% 100% at 28% 16%,#fdf7e8,#f1e6cb 55%,#dfcca2);box-shadow:0 3px 0 -1px rgba(0,0,0,.35),0 24px 30px -14px rgba(0,0,0,.85);font-size:clamp(48px,7vw,84px)}
+.h2h .big::before{content:"";position:absolute;inset:7px;border:1px solid rgba(160,112,32,.5);border-radius:8px}
+.h2h .big::after{content:"A\A♠";white-space:pre;position:absolute;left:10px;top:9px;font:400 clamp(15px,2vw,22px)/.95 var(--f-disp);text-align:center;color:var(--pink)}
+.h2h .big:last-child::after{content:"A\A♥";color:var(--wax)}
+.h2h .big:first-child{transform:rotate(-5deg)}.h2h .big:last-child{transform:rotate(5deg)}
+.h2h .big.lead{color:#7d1410;box-shadow:0 0 0 2px rgba(241,212,140,.85),0 0 36px rgba(241,212,140,.3),0 24px 30px -14px rgba(0,0,0,.85)}
+.h2h{padding:30px 24px}
+/* the boss signs the rules */
+.gl::before{background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 50'%3E%3Cpath d='M8 38c6-30 14-34 16-20s-8 22 2 14 12-18 18-10-4 14 6 8 10-14 16-6-2 12 8 6 9-12 15-5 0 10 10 4 10-9 16-3c4 4 12 0 22-2 14-3 30-2 44 2' fill='none' stroke='%231b1209' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") 4px 0/190px 46px no-repeat,linear-gradient(var(--pink),var(--pink)) 0 48px/100% 1.5px no-repeat;border-top:0;padding-top:58px}
 </style>
 </head>
 <body>
@@ -840,11 +992,11 @@ let tierFilter="all";
 function renderRank(){
   $("#updated").textContent=UPDATED?`Updated ${UPDATED}`:"";
   const pod=LIST.slice(0,3),order=[1,0,2].filter(i=>pod[i]);
-  $("#podium").innerHTML=order.map(i=>{const p=pod[i];return `<div class="pod p${i+1}" role="button" tabindex="0" data-p="${esc(p.name)}"><div class="chip">${i+1}</div><div class="nm">${esc(p.name)}</div><div class="pts"><b>${fmt(p.elo)}</b> ELO</div><div class="tier">${esc(p.tier)} · ${p.w}–${p.l}${p.titles.length?` · ♛ ${p.titles.length}`:""}</div></div>`}).join("");
+  $("#podium").innerHTML=order.map(i=>{const p=pod[i];const cn=[["A","♠",""],["K","♥"," red"],["Q","♦"," red"]][i],cr=`${cn[0]}<i>${cn[1]}</i>`;return `<div class="pod p${i+1}" role="button" tabindex="0" data-p="${esc(p.name)}"><span class="cnr tl${cn[2]}" aria-hidden="true">${cr}</span><span class="cnr br${cn[2]}" aria-hidden="true">${cr}</span><div class="chip">${i+1}</div><div class="nm">${esc(p.name)}</div><div class="pts"><b>${fmt(p.elo)}</b> ELO</div><div class="tier">${esc(p.tier)} · ${p.w}–${p.l}${p.titles.length?` · ♛ ${p.titles.length}`:""}</div></div>`}).join("");
   const tiers=[...new Set(LIST.map(p=>p.tier))];if(!tiers.includes(tierFilter))tierFilter="all";
   $("#tiers").innerHTML=["all",...tiers].map(t=>`<button class="chipf${t===tierFilter?" on":""}" type="button" data-t="${esc(t)}">${t==="all"?"Everyone":esc(t)}</button>`).join("");
   const q=norm($("#q").value),L=LIST.filter(p=>(tierFilter==="all"||p.tier===tierFilter)&&(!q||norm(p.name).includes(q)));
-  $("#rows").innerHTML=L.length?L.map(p=>{const wr=winRate(p),s=p.streak;return `<div class="lr${p.rank<=3?" top":""}" role="button" tabindex="0" data-p="${esc(p.name)}">
+  $("#rows").innerHTML=L.length?L.map(p=>{const wr=winRate(p),s=p.streak;return `<div class="lr${p.rank<=3?" top":""} t-${esc(String(p.tier).toLowerCase())}" role="button" tabindex="0" data-p="${esc(p.name)}">
     <span class="rk">${String(p.rank).padStart(2,"0")}</span>
     <span class="who"><b>${esc(p.name)}</b><span>${esc(p.tier)}${s&&s.x==="w"&&s.n>=3?`<span class="streak">${s.n} wins in a row</span>`:""}</span></span>
     <span class="pts r">${fmt(p.elo)}${p.last?`<span class="dlt ${p.last>0?"up":"down"}">${p.last>0?"▲":"▼"}${Math.abs(Math.round(p.last))}</span>`:""}</span>
