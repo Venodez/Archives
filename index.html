@@ -761,7 +761,6 @@ footer::before{content:"";position:absolute;left:0;right:0;top:0;height:14px;bac
 .dr-k{margin:0;padding:0 34px;font:600 12px/1.2 var(--f-num);letter-spacing:.22em;text-transform:uppercase;color:var(--gold2)}
 .dr-vs{margin:10px 0 4px;font-family:var(--f-disp);font-size:clamp(22px,4vw,38px);color:var(--cream);display:flex;flex-wrap:wrap;justify-content:center;align-items:baseline;gap:4px 16px}
 .dr-vs i{font-size:.6em;color:var(--wax)}
-.dr-cd{min-height:22px;margin:4px 0 12px;font:600 15px var(--f-num);color:var(--cream2);letter-spacing:.06em}
 .dr-reel{position:relative;overflow:hidden;padding:18px 0;margin:0 -8px;-webkit-mask:linear-gradient(90deg,transparent,#000 14%,#000 86%,transparent);mask:linear-gradient(90deg,transparent,#000 14%,#000 86%,transparent)}
 .dr-strip{display:flex;gap:16px;will-change:transform}
 .dr-card{flex:none;position:relative;width:150px;aspect-ratio:5/7;border-radius:12px;display:flex;flex-direction:column;justify-content:flex-end;padding:12px;text-align:left;color:#f6ecd6;background:radial-gradient(120% 90% at 30% 15%,hsl(var(--h) 45% 42%),hsl(var(--h) 50% 16%) 70%),#111;box-shadow:inset 0 0 0 1px rgba(241,212,140,.35),0 14px 24px -12px #000;transition:transform .3s,box-shadow .3s}
@@ -771,7 +770,7 @@ footer::before{content:"";position:absolute;left:0;right:0;top:0;height:14px;bac
 .dr-sub{font:600 10px var(--f-num);letter-spacing:.2em;text-transform:uppercase;color:rgba(241,212,140,.75);margin-top:4px}
 .dr-card.win{transform:translateY(-8px) scale(1.06);box-shadow:inset 0 0 0 2px var(--gold2),0 0 40px rgba(241,212,140,.35),0 20px 30px -12px #000}
 .dr-pin{position:absolute;left:50%;top:0;bottom:0;width:2px;margin-left:-1px;background:linear-gradient(180deg,var(--wax),transparent 18%,transparent 82%,var(--wax))}
-.dr-res{min-height:30px;margin:14px 0 0;font-size:15px;color:var(--cream2)}
+.dr-res{min-height:30px;margin:8px 0 0;font-size:15px;color:var(--cream2)}
 .dr-res b{font-family:var(--f-disp);font-size:26px;color:var(--gold2);margin-right:6px}
 .draw-ov.landed .dr-res b{animation:drpop .5s cubic-bezier(.3,1.5,.5,1)}
 @keyframes drpop{from{transform:scale(1.6);opacity:0}to{transform:none;opacity:1}}
@@ -792,6 +791,47 @@ footer::before{content:"";position:absolute;left:0;right:0;top:0;height:14px;bac
 .bk-prize{margin:10px auto 0;max-width:460px}
 .bk-prize .pz-items{justify-content:center}
 .bk-prize .pz-pl{text-align:center}
+
+/* the draw, louder */
+.dr-beam{position:absolute;inset:0;pointer-events:none;background:radial-gradient(40% 60% at 50% 45%,rgba(255,214,140,.16),transparent 70%);opacity:0;transition:opacity .8s}
+.draw-ov.on .dr-beam{opacity:1}
+.draw-ov .dr-box{transform:scale(.9) translateY(18px);transition:transform .55s cubic-bezier(.2,1.3,.4,1)}
+.draw-ov.on .dr-box{transform:none}
+.dr-fx{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:3}
+.dr-stage{position:relative;margin-top:10px}
+.dr-num{position:absolute;left:50%;top:-14px;transform:translateX(-50%);z-index:2;font:400 15px var(--f-num);color:var(--cream2);letter-spacing:.08em;pointer-events:none;text-align:center}
+.dr-num small{display:block;font-size:11px;letter-spacing:.2em;text-transform:uppercase;opacity:.7}
+.dr-num.big{top:50%;transform:translate(-50%,-50%);font:400 120px/1 var(--f-disp);color:var(--gold2);text-shadow:0 0 30px rgba(241,212,140,.6),0 6px 0 #000}
+.dr-num.pop{animation:drnum .9s cubic-bezier(.2,1.4,.4,1)}
+@keyframes drnum{0%{transform:translate(-50%,-50%) scale(2.2);opacity:0}25%{opacity:1}100%{transform:translate(-50%,-50%) scale(1);opacity:.9}}
+.dr-reel{transition:filter .4s}
+.dr-num.big~.dr-reel{filter:brightness(.45) blur(1px)}
+.dr-reel.spin{box-shadow:inset 0 0 60px rgba(241,212,140,.12)}
+.dr-reel.spin .dr-pin{box-shadow:0 0 18px 2px rgba(220,60,40,.8)}
+.dr-pin{z-index:2}
+.dr-pin::before,.dr-pin::after{content:"";position:absolute;left:50%;width:0;height:0;border:9px solid transparent;transform:translateX(-50%)}
+.dr-pin::before{top:0;border-top-color:var(--wax)}.dr-pin::after{bottom:0;border-bottom-color:var(--wax)}
+.draw-ov.landed .dr-card:not(.win){opacity:.28;filter:grayscale(.6);transition:opacity .6s,filter .6s}
+.draw-ov.landed .dr-card.win{transform:translateY(-6px) scale(1.14);z-index:1;animation:drglow 1.6s ease-in-out .6s infinite alternate}
+@keyframes drglow{to{box-shadow:inset 0 0 0 2px var(--gold2),0 0 70px rgba(241,212,140,.55),0 20px 30px -12px #000}}
+.dr-reveal{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;opacity:0;z-index:2;min-height:clamp(84px,13vw,128px);margin-top:4px}
+.draw-ov.landed .dr-reveal{opacity:1}
+.dr-rk{font:600 11px var(--f-num);letter-spacing:.3em;text-transform:uppercase;color:var(--cream2);margin-bottom:6px}
+.dr-reveal b{font:400 clamp(44px,9vw,88px)/1 var(--f-disp);color:#fff7e2;text-shadow:0 0 40px rgba(241,212,140,.7),0 4px 0 #2a1a08,0 10px 30px #000}
+.draw-ov.boom .dr-reveal b{animation:drbig 1s cubic-bezier(.2,1.3,.4,1)}
+@keyframes drbig{0%{transform:scale(2.6);letter-spacing:.4em;opacity:0;filter:blur(8px)}60%{opacity:1;filter:none}100%{transform:scale(1);letter-spacing:0}}
+.dr-stamp{position:absolute;right:8%;top:-6px;padding:6px 14px;border:3px solid var(--wax);border-radius:6px;font:400 22px var(--f-disp);color:var(--wax);text-transform:uppercase;transform:rotate(-12deg);opacity:0;background:rgba(243,234,214,.08)}
+.draw-ov.landed .dr-stamp{opacity:.95}
+.draw-ov.boom .dr-stamp{animation:drstamp .45s .45s cubic-bezier(.3,1.6,.5,1) backwards}
+@keyframes drstamp{from{transform:rotate(-12deg) scale(3);opacity:0}to{transform:rotate(-12deg) scale(1);opacity:.95}}
+.dr-flash{position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 50% 50%,#fff8e0,rgba(255,220,150,.4) 40%,transparent 70%);opacity:0}
+.draw-ov.boom .dr-flash{animation:drflash .7s ease-out}
+@keyframes drflash{0%{opacity:.9}100%{opacity:0}}
+.draw-ov.boom .dr-box{animation:drshake .5s cubic-bezier(.36,.07,.19,.97)}
+@keyframes drshake{10%,90%{transform:translate(-2px,1px)}20%,80%{transform:translate(4px,-2px)}30%,50%,70%{transform:translate(-7px,3px)}40%,60%{transform:translate(7px,-2px)}}
+.dr-res b{font-size:20px}
+@media (max-width:560px){.dr-num.big{font-size:84px}.dr-stamp{right:0;top:-14px;font-size:15px}}
+@media (prefers-reduced-motion:reduce){.draw-ov .dr-box{transform:none}}
 </style>
 </head>
 <body>
@@ -1020,6 +1060,9 @@ footer::before{content:"";position:absolute;left:0;right:0;top:0;height:14px;bac
       s.connect(f); f.connect(g); g.connect(fxBus); s.start(t, Math.random()); s.stop(t + .16);
       burst(t + .005, .03, 3600 + k * 200, 2.5, .05); ping(t + .004, 2400 + k * 90, .012, .06); },
     tick: t => { burst(t, .02, 3200, 3, .07); ping(t, 1500, .01, .03); },
+    beat: (t, n = 3) => { const o = ctx.createOscillator(), g = ctx.createGain(); o.frequency.setValueAtTime(90 + (5 - n) * 8, t); o.frequency.exponentialRampToValueAtTime(45, t + .25); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.5, t + .01); g.gain.exponentialRampToValueAtTime(.0001, t + .35); o.connect(g); g.connect(fxBus); o.start(t); o.stop(t + .4); burst(t, .05, 900, 1, .08, 'lowpass'); },
+    hit: t => { const o = ctx.createOscillator(), g = ctx.createGain(); o.type = 'triangle'; o.frequency.setValueAtTime(120, t); o.frequency.exponentialRampToValueAtTime(38, t + .6); g.gain.setValueAtTime(.7, t); g.gain.exponentialRampToValueAtTime(.0001, t + .9); o.connect(g); g.connect(fxBus); o.start(t); o.stop(t + 1);
+      burst(t, .5, 600, .6, .35, 'lowpass', .004); burst(t, .25, 3000, .8, .18); [523, 659, 784, 1047].forEach((f, i) => ping(t + .03 + i * .045, f, .05, 1.4)); },
     ink: t => { const o = ctx.createOscillator(), g = ctx.createGain(); o.frequency.setValueAtTime(48, t); o.frequency.linearRampToValueAtTime(36, t + 1); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.3, t + .4); g.gain.exponentialRampToValueAtTime(.0001, t + 1.2); o.connect(g); g.connect(fxBus); o.start(t); o.stop(t + 1.3);
       burst(t, 1.0, 500, .5, .14, 'lowpass', .5); }
   };
@@ -1488,30 +1531,44 @@ async function pollDraws(){if(!SHEET_URL)return;
 const DRAW_SPIN=6200;
 function showDraw(d){
   const ov=document.createElement("div");ov.className="draw-ov";ov.setAttribute("role","dialog");ov.setAttribute("aria-label","Map draw");
-  const pool=d.pool.length?d.pool:[d.map],seq=[];for(let i=0;i<34;i++)seq.push(pool[(i*7+3)%pool.length]);seq.push(d.map,pool[0],pool[pool.length>1?1:0]);
+  const pool=d.pool.length?d.pool:[d.map],seq=[];for(let i=0;i<40;i++)seq.push(pool[(i*7+3)%pool.length]);seq.push(d.map,pool[0],pool[pool.length>1?1:0]);
   const hue=n=>{let h=0;for(const ch of norm(n))h=(h*31+ch.charCodeAt(0))%360;return h};
   const card=n=>`<div class="dr-card" style="--h:${hue(n)}"><span class="dr-ix">${esc(n[0]||"?")}</span><b>${esc(n)}</b><span class="dr-sub">${esc(d.mode||"")}</span></div>`;
-  ov.innerHTML=`<div class="dr-box"><button class="iconbtn dr-x" type="button" aria-label="Close">${X_ICON}</button>
+  ov.innerHTML=`<div class="dr-beam" aria-hidden="true"></div><div class="dr-box"><canvas class="dr-fx" aria-hidden="true"></canvas><button class="iconbtn dr-x" type="button" aria-label="Close">${X_ICON}</button>
     <p class="dr-k">Il Sorteggio · ${esc(d.tour||"Map draw")}${d.roundRaw?` · ${esc(ROUNDS[d.round]||d.roundRaw)}`:""}</p>
     <h3 class="dr-vs"><span>${esc(d.a)}</span><i>vs</i><span>${esc(d.b)}</span></h3>
-    <p class="dr-cd" aria-live="polite"></p>
+    <div class="dr-stage"><div class="dr-num" aria-live="polite"></div>
     <div class="dr-reel"><div class="dr-strip">${seq.map(card).join("")}</div><i class="dr-pin" aria-hidden="true"></i></div>
-    <p class="dr-res" aria-live="polite"></p></div>`;
+    <div class="dr-reveal" aria-live="polite"><span class="dr-rk">La mappa</span><b></b><span class="dr-stamp">Scelta</span></div></div>
+    <p class="dr-res"></p></div><div class="dr-flash" aria-hidden="true"></div>`;
   document.body.appendChild(ov);requestAnimationFrame(()=>ov.classList.add("on"));
-  const close=()=>{ov.classList.remove("on");setTimeout(()=>ov.remove(),400);clearInterval(ov._t)};
+  const close=()=>{ov.classList.remove("on");setTimeout(()=>ov.remove(),450);clearInterval(ov._t);cancelAnimationFrame(ov._fx)};
   $(".dr-x",ov).onclick=close;ov.addEventListener("click",e=>{if(e.target===ov)close()});
-  const strip=$(".dr-strip",ov),reel=$(".dr-reel",ov),cd=$(".dr-cd",ov),res=$(".dr-res",ov),target=seq.length-3;
+  const box=$(".dr-box",ov),strip=$(".dr-strip",ov),reel=$(".dr-reel",ov),num=$(".dr-num",ov),res=$(".dr-res",ov),rev=$(".dr-reveal",ov),target=seq.length-3;
   const place=x=>{strip.style.transform=`translateX(${-x}px)`};
   let cw=0,center=0;const measure=()=>{const c=strip.children[0];cw=c.offsetWidth+parseFloat(getComputedStyle(strip).gap||0);center=reel.clientWidth/2-c.offsetWidth/2};
-  measure();const end=target*cw-center;place(-center);
-  let lastIx=-1;const ease=k=>1-Math.pow(1-k,4);
-  const done=()=>{place(end);strip.children[target].classList.add("win");res.innerHTML=`<b>${esc(d.map)}</b> · played until one ${team(d.a).length>1?"team":"player"} wins`;cd.textContent="";ov.classList.add("landed");if(window.aphSound)aphSound.fx("land")};
+  measure();let end=target*cw-center;place(-center);
+  // fast, then a long crawl, a last card that nearly passes, and back
+  const pos=k=>{const e=1-Math.pow(1-k,5),bump=k>.82?Math.sin(Math.PI*Math.min(1,(k-.82)/.18))*.42:0;return -center+(end+center)*e+bump*cw};
+  // sparks
+  const cv=$(".dr-fx",ov),g=cv.getContext("2d"),P=[];
+  const fit=()=>{const r=box.getBoundingClientRect(),dp=Math.min(devicePixelRatio||1,2);cv.width=r.width*dp;cv.height=r.height*dp;g.setTransform(dp,0,0,dp,0,0)};fit();
+  const burst=()=>{const r=box.getBoundingClientRect(),c=strip.children[target].getBoundingClientRect(),cx=c.left+c.width/2-r.left,cy=c.top+c.height/2-r.top;
+    for(let i=0;i<150;i++){const a=Math.random()*Math.PI*2,v=3+Math.random()*9;P.push({x:cx,y:cy,vx:Math.cos(a)*v,vy:Math.sin(a)*v-3,l:1,s:1.5+Math.random()*3.5,c:Math.random()<.7?"241,212,140":Math.random()<.5?"255,255,240":"220,70,50"})}
+    const step=()=>{g.clearRect(0,0,cv.width,cv.height);for(let i=P.length-1;i>=0;i--){const p=P[i];p.x+=p.vx;p.y+=p.vy;p.vy+=.22;p.vx*=.985;p.l-=.013;if(p.l<=0){P.splice(i,1);continue}
+      g.fillStyle=`rgba(${p.c},${p.l})`;g.beginPath();g.arc(p.x,p.y,p.s*p.l,0,7);g.fill()}if(P.length)ov._fx=requestAnimationFrame(step)};step()};
+  let lastIx=-1,lastX=-center,lastN=0;
+  const done=late=>{clearInterval(ov._t);num.classList.remove("big");place(end);strip.style.filter="";reel.classList.remove("spin");strip.children[target].classList.add("win");num.textContent="";
+    rev.querySelector("b").textContent=d.map;res.innerHTML=`Played on <b>${esc(d.map)}</b> until one ${team(d.a).length>1?"team":"player"} wins`;ov.classList.add("landed");
+    if(late||!MOTION)return;ov.classList.add("boom");burst();if(window.aphSound){aphSound.fx("hit");setTimeout(()=>aphSound.fx("ink"),380)}};
   const tick=()=>{const now=Date.now();
-    if(now<d.at){cd.textContent=`Draw in ${Math.ceil((d.at-now)/1000)}…`;return}
-    const k=Math.min(1,(now-d.at)/DRAW_SPIN);if(!MOTION||k>=1){clearInterval(ov._t);done();return}
-    cd.textContent="";const x=-center+(end+center)*ease(k);place(x);const ix=Math.floor((x+center)/cw+.5);if(ix!==lastIx){lastIx=ix;if(window.aphSound&&k<.97)aphSound.fx("tick")}};
-  if(Date.now()>d.at+DRAW_SPIN){done()}else{tick();ov._t=setInterval(tick,16)}
-  addEventListener("resize",()=>{measure();if(ov.classList.contains("landed"))place(target*cw-center)},{once:true});
+    if(now<d.at){const n=Math.ceil((d.at-now)/1000);if(n!==lastN){lastN=n;num.textContent=n<=5?n:"";num.classList.toggle("big",n<=5);if(n<=5){num.classList.remove("pop");void num.offsetWidth;num.classList.add("pop");if(window.aphSound)aphSound.fx("beat",n)}
+      if(n>5)num.innerHTML=`<small>Draw in</small>${n}`}return}
+    const k=Math.min(1,(now-d.at)/DRAW_SPIN);if(!MOTION||k>=1){done(false);return}
+    num.textContent="";num.classList.remove("big");reel.classList.add("spin");const x=pos(k),v=Math.abs(x-lastX);lastX=x;place(x);strip.style.filter=`blur(${Math.min(7,v/9).toFixed(1)}px)`;
+    const ix=Math.floor((x+center)/cw+.5);if(ix!==lastIx){lastIx=ix;if(window.aphSound)aphSound.fx("tick")}};
+  if(Date.now()>d.at+DRAW_SPIN)done(true);else{tick();ov._t=setInterval(tick,16)}
+  addEventListener("resize",()=>{measure();end=target*cw-center;fit();if(ov.classList.contains("landed"))place(end)},{once:true});
   setTimeout(()=>{if(ov.isConnected&&ov.classList.contains("landed"))close()},Math.max(0,d.at+DRAW_SPIN-Date.now())+45000);
 }
 
