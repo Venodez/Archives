@@ -742,6 +742,12 @@ footer::before{content:"";position:absolute;left:0;right:0;top:0;height:14px;bac
 .duo button:hover b{color:var(--gold2)}
 :root{--sil:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cg fill='%23d4a64c' fill-opacity='.42'%3E%3Cpath d='M18 100c0-20 14-33 32-33s32 13 32 33z'/%3E%3Ccircle cx='50' cy='46' r='16'/%3E%3Cpath d='M22 34c8-3 18-4 28-4s20 1 28 4c-3 3-14 5-28 5s-25-2-28-5z'/%3E%3Cpath d='M34 32c0-10 3-17 7-19 3-1 6 2 9 2s6-3 9-2c4 2 7 9 7 19z'/%3E%3C/g%3E%3Cpath d='M34 28h32v4H34z' fill='%23a3221b' fill-opacity='.55'/%3E%3C/svg%3E")}
 @media (max-width:560px){.av{width:36px;height:36px}.lr .who{column-gap:9px}.pod .skin{max-width:86px}.pod.p1 .skin{max-width:100px}.dr-skin{width:100px}.duo .skin{max-width:130px}}
+
+/* 2v2 teams */
+.amp{opacity:.55;margin:0 .3em;font-style:normal}
+.mrow .side{flex-wrap:wrap}
+.frame .wins{display:flex;flex-wrap:wrap;align-items:center;gap:6px 0}
+.frame .wins .amp{font-size:22px;color:var(--wax);opacity:.8;margin:0 10px}
 </style>
 </head>
 <body>
@@ -1016,6 +1022,11 @@ const esc=s=>String(s??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"
 const fmt=n=>n==null?"—":Math.round(n).toLocaleString("en-US");
 const norm=s=>String(s||"").trim().toLowerCase();
 const same=(a,b)=>norm(a)===norm(b);
+/* 2v2: "Venodez & Katch" (also + or /) is a team, every member plays */
+const team=s=>String(s||"").split(/\s*(?:&|\+|\/)\s*/).map(x=>x.trim()).filter(Boolean);
+const inTeam=(side,n)=>team(side).some(x=>same(x,n));
+const sameTeam=(a,b)=>team(a).map(norm).sort().join("&")===team(b).map(norm).sort().join("&");
+const nameBtns=(side,cls="n")=>team(side).map(n=>`<button class="${cls}" type="button" data-p="${esc(n)}">${esc(n)}</button>`).join(`<span class="amp">&amp;</span>`);
 const pretty=d=>{const t=Date.parse(d);return t?new Date(t).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}):d};
 const ROUNDS={r64:"Round of 64",r32:"Round of 32",r16:"Round of 16",qf:"Quarter-finals",sf:"Semi-finals",b:"Third place",f:"Final"};
 const RORDER=["r64","r32","r16","qf","sf","f"];
@@ -1040,11 +1051,11 @@ const inSeason=m=>season==="all"||m.season===season;
 let STATS={},LIST=[];
 function compute(){
   const st={},get=n=>{const k=norm(n);return st[k]||(st[k]={name:n,elo:START_ELO,w:0,l:0,res:[],hist:[{t:0,elo:START_ELO}],peak:START_ELO,titles:[],seconds:[]})};
-  for(const m of MATCHES){if(!inSeason(m))continue;const a=get(m.win),b=get(m.lose);
-    const ea=1/(1+Math.pow(10,(b.elo-a.elo)/400)),d=K*(1-ea);
-    a.elo+=d;b.elo-=d;a.w++;b.l++;a.res.push("w");b.res.push("l");m.d=d;
-    a.hist.push({t:m.t,elo:a.elo,m});b.hist.push({t:m.t,elo:b.elo,m});a.peak=Math.max(a.peak,a.elo)}
-  for(const t of tourResults())if(season==="all"||t.season===season){if(t.win)get(t.win).titles.push(t);if(t.second)get(t.second).seconds.push(t)}
+  for(const m of MATCHES){if(!inSeason(m))continue;const A=team(m.win).map(get),B=team(m.lose).map(get),avg=T=>T.reduce((s,p)=>s+p.elo,0)/T.length;
+    const ea=1/(1+Math.pow(10,(avg(B)-avg(A))/400)),d=K*(1-ea);m.d=d;
+    A.forEach(a=>{a.elo+=d;a.w++;a.res.push("w");a.hist.push({t:m.t,elo:a.elo,m});a.peak=Math.max(a.peak,a.elo)});
+    B.forEach(b=>{b.elo-=d;b.l++;b.res.push("l");b.hist.push({t:m.t,elo:b.elo,m})})}
+  for(const t of tourResults())if(season==="all"||t.season===season){team(t.win).forEach(n=>get(n).titles.push(t));team(t.second).forEach(n=>get(n).seconds.push(t))}
   LIST=Object.values(st).filter(p=>p.w+p.l>0).sort((a,b)=>b.elo-a.elo||b.w-a.w||a.name.localeCompare(b.name));
   LIST.forEach((p,i)=>{p.rank=i+1;p.tier=tierAt(i);p.streak=streakOf(p.res);p.last=p.hist.length>1?p.hist[p.hist.length-1].elo-p.hist[p.hist.length-2].elo:0});
   STATS=st}
@@ -1088,9 +1099,9 @@ function renderMatches(){
   let h="",day="";
   for(const m of L.slice(0,mShown)){if(m.date!==day){day=m.date;h+=`<div class="mday">${esc(pretty(m.date))}</div>`}
     const d=m.d?Math.round(m.d):0;
-    h+=`<div class="mrow"><div class="side win"><span class="dlt up">+${d}</span><button class="n" type="button" data-p="${esc(m.win)}">${esc(m.win)}</button></div>
+    h+=`<div class="mrow"><div class="side win"><span class="dlt up">+${d}</span>${nameBtns(m.win)}</div>
       <div class="score">${esc(m.score||"W")}</div>
-      <div class="side r lose"><button class="n" type="button" data-p="${esc(m.lose)}">${esc(m.lose)}</button><span class="dlt down">−${d}</span></div>
+      <div class="side r lose">${nameBtns(m.lose)}<span class="dlt down">−${d}</span></div>
       <div class="tag">${m.tour?`<b>${esc(m.tour)}</b>${esc(ROUNDS[m.round]||m.round)}`:"Ranked match"}</div></div>`}
   $("#mlist").innerHTML=h||`<div class="empty">No match found.</div>`;
   $("#mcount").textContent=`${L.length} match${L.length===1?"":"es"}`;
@@ -1102,13 +1113,13 @@ $("#mmore").onclick=()=>{mShown+=60;renderMatches()};
 
 /* ---------- CHAMPIONS ---------- */
 function renderChamps(){
-  const T=tourResults(),count={};T.forEach(t=>{if(t.win)count[t.win]=(count[t.win]||0)+1});
+  const T=tourResults(),count={};T.forEach(t=>team(t.win).forEach(n=>count[n]=(count[n]||0)+1));
   $("#most").innerHTML=Object.entries(count).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0])).map(([n,c])=>`<button type="button" data-p="${esc(n)}"><b>${esc(n)}</b><span>${"♛".repeat(Math.min(c,5))} ${c} title${c>1?"s":""}</span></button>`).join("");
   if(!T.length){$("#wall").innerHTML=`<div class="empty">No tournament yet.</div>`;return}
   const groups=[];for(const t of T){const g=groups.find(x=>x.s===t.season);g?g.t.push(t):groups.push({s:t.season,t:[t]})}
   $("#wall").innerHTML=groups.map(g=>`${g.s?`<h3 class="seasonhd">${esc(g.s)}</h3>`:""}<div class="wall">${g.t.map(t=>`<article class="frame">${t===T[0]?'<span class="crown" title="Latest champion">♛</span>':""}
     <span class="when">${esc(pretty(t.date))}</span><h3>${esc(t.name)}</h3>
-    ${t.win?`<button class="win" type="button" data-p="${esc(t.win)}">${face(t.win,"lg")}${esc(t.win)}</button><span class="lbl">Champion${t.score?` · won the final ${esc(t.score)}`:""}</span>`:`<span class="lbl">No champion yet</span>`}
+    ${t.win?`<div class="wins">${team(t.win).map(n=>`<button class="win" type="button" data-p="${esc(n)}">${face(n,"lg")}${esc(n)}</button>`).join(`<span class="amp">&amp;</span>`)}</div><span class="lbl">Champion${t.score?` · won the final ${esc(t.score)}`:""}</span>`:`<span class="lbl">No champion yet</span>`}
     <dl>${t.second?`<dt>Runner-up</dt><dd>${esc(t.second)}</dd>`:""}${t.third?`<dt>Third</dt><dd>${esc(t.third)}</dd>`:""}${t.semis.length?`<dt>Semi-finals</dt><dd>${t.semis.map(esc).join(", ")}</dd>`:""}${t.prize?`<dt>Prize</dt><dd>${esc(t.prize)}</dd>`:""}<dt>Players</dt><dd>${new Set(t.matches.flatMap(m=>[norm(m.win),norm(m.lose)])).size||"—"}</dd></dl>
     ${t.matches.some(m=>m.round)?`<div class="acts"><button type="button" data-bracket="${esc(t.name)}">See the bracket</button></div>`:""}</article>`).join("")}</div>`).join("");
 }
@@ -1123,7 +1134,7 @@ function drawBracket(t,first){
   const md=$("#modal"),box=$(".bracket",md),wrap=$(".bwrap",md);if(!box)return;
   const rounds=RORDER.filter(r=>t.matches.some(m=>m.round===r)),third=t.matches.find(m=>m.round==="b"),n=rounds.length;
   const fin=t.matches.find(m=>m.round===rounds[n-1]),used=new Set();
-  const build=(m,ri)=>{used.add(m);return {m,kids:ri>0?[m.win,m.lose].map(p=>{const x=t.matches.find(x=>x.round===rounds[ri-1]&&!used.has(x)&&same(x.win,p));return x?build(x,ri-1):null}):[]}};
+  const build=(m,ri)=>{used.add(m);return {m,kids:ri>0?[m.win,m.lose].map(p=>{const x=t.matches.find(x=>x.round===rounds[ri-1]&&!used.has(x)&&sameTeam(x.win,p));return x?build(x,ri-1):null}):[]}};
   const root=fin?build(fin,n-1):null;
   const sc=m=>{const p=(m.score||"").split(/[-–:]/);return [p[0]||"W",p[1]||""]};
   let id=0;const links=[];
@@ -1178,8 +1189,8 @@ function renderDuel(){
   const A=pOf($("#dA").value),B=pOf($("#dB").value),box=$("#duel");
   if(!A||!B){box.innerHTML=`<div class="empty">Not enough players this season.</div>`;return}
   if(A===B){box.innerHTML=`<div class="empty">Pick two different players.</div>`;return}
-  const met=MATCHES.filter(m=>(same(m.win,A.name)&&same(m.lose,B.name))||(same(m.win,B.name)&&same(m.lose,A.name)));
-  const aw=met.filter(m=>same(m.win,A.name)).length,bw=met.length-aw;
+  const met=MATCHES.filter(m=>(inTeam(m.win,A.name)&&inTeam(m.lose,B.name))||(inTeam(m.win,B.name)&&inTeam(m.lose,A.name)));
+  const aw=met.filter(m=>inTeam(m.win,A.name)).length,bw=met.length-aw;
   const pa=Math.round(100/(1+Math.pow(10,(B.elo-A.elo)/400)));
   const row=(k,a,b,hi=true)=>{const best=hi?(a>b?"a":b>a?"b":""):(a<b?"a":b<a?"b":"");return `<tr><td class="${best==="a"?"best":""}">${typeof a==="number"?fmt(a):a}</td><td class="k">${k}</td><td class="${best==="b"?"best":""}">${typeof b==="number"?fmt(b):b}</td></tr>`};
   box.innerHTML=`<div class="duo"><button type="button" data-p="${esc(A.name)}">${skin(A.name)}<b>${esc(A.name)}</b><span>#${A.rank} · ${esc(A.tier)}</span></button><button type="button" data-p="${esc(B.name)}">${skin(B.name)}<b>${esc(B.name)}</b><span>#${B.rank} · ${esc(B.tier)}</span></button></div><div class="h2h"><div class="big${aw>bw?" lead":""}">${aw}</div><div class="mid"><b>Head to head</b>${met.length?`${met.length} meeting${met.length>1?"s":""}, all seasons`:"They have never played each other"}</div><div class="big${bw>aw?" lead":""}">${bw}</div></div>
@@ -1201,13 +1212,13 @@ function eloChart(p){const h=p.hist;if(h.length<3)return "";const W=400,H=120,pa
   return `<div class="elo"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="ELO over the season, from ${fmt(h[0].elo)} to ${fmt(p.elo)}"><polygon class="ar" points="${X(0)},${H-14} ${pts} ${X(h.length-1)},${H-14}"/><polyline class="ln" points="${pts}"/><text x="${pad}" y="${H-2}">Start ${fmt(h[0].elo)}</text><text x="${W-pad}" y="${H-2}" text-anchor="end">Peak ${fmt(p.peak)} · now ${fmt(p.elo)}</text></svg></div>`}
 function openPlayer(name){
   const p=pOf(name),d=$("#drawer");
-  const recent=MATCHES.filter(m=>inSeason(m)&&(same(m.win,name)||same(m.lose,name))).slice(-8).reverse();
+  const recent=MATCHES.filter(m=>inSeason(m)&&(inTeam(m.win,name)||inTeam(m.lose,name))).slice(-8).reverse();
   d.innerHTML=`${p?`<div class="ink" aria-hidden="true">${esc(p.tier)}</div>`:""}<div class="dr-top"><span class="small">${p?`File No. ${String(p.rank).padStart(3,"0")}`:"Player record"}${season!=="all"?` · ${esc(season)}`:" · all time"}</span><button class="iconbtn" type="button" id="drClose" aria-label="Close">${X_ICON}</button></div>
     ${skin(p?p.name:name,"dr-skin")}<h3>${esc(p?p.name:name)}</h3>${avOf(name)&&avOf(name).user?`<div class="rbx">@${esc(avOf(name).user)}</div>`:""}<div class="sub">${p?`#${p.rank} · ${esc(p.tier)}${p.streak&&p.streak.n>=2?` · ${p.streak.n} ${p.streak.x==="w"?"wins":"losses"} in a row`:""}`:"No match this season"}</div>
     ${p?`<div class="stats"><div><b>${fmt(p.elo)}</b><span>ELO</span></div><div><b>${winRate(p)??"—"}%</b><span>Win rate</span></div><div><b>${p.w}</b><span>Wins</span></div><div><b>${p.l}</b><span>Losses</span></div></div>${eloChart(p)}`:""}
     <p class="small" style="margin:18px 0 6px">Titles (${p?p.titles.length:0})</p>
     ${p&&p.titles.length?`<ul class="titles">${p.titles.map(t=>`<li><span>♛ ${esc(t.name)}</span><span>${esc(pretty(t.date))}</span></li>`).join("")}</ul>`:`<p style="margin:0;color:var(--cream2)">No title yet.</p>`}
-    ${recent.length?`<p class="small" style="margin:20px 0 6px">Recent matches</p><ul class="titles recent">${recent.map(m=>{const w=same(m.win,name);return `<li><span>${w?"<b>W</b>":"L"} vs ${esc(w?m.lose:m.win)} ${esc(m.score)}</span><span>${w?"+":"−"}${Math.round(m.d||0)}</span></li>`}).join("")}</ul>`:""}
+    ${recent.length?`<p class="small" style="margin:20px 0 6px">Recent matches</p><ul class="titles recent">${recent.map(m=>{const w=inTeam(m.win,name),mate=team(w?m.win:m.lose).filter(x=>!same(x,name));return `<li><span>${w?"<b>W</b>":"L"} ${mate.length?`with ${esc(mate.join(" & "))} `:""}vs ${esc(w?m.lose:m.win)} ${esc(m.score)}</span><span>${w?"+":"−"}${Math.round(m.d||0)}</span></li>`}).join("")}</ul>`:""}
     <div class="dr-btns"><button class="btn" type="button" id="drDuel">Duel this player</button><button class="btn ghost" type="button" id="drMatches">All their matches</button></div><div class="dr-btns" style="margin-top:8px"><button class="btn ghost" type="button" id="drImg">Copy player card</button></div>`;
   d.classList.add("on");d.setAttribute("aria-hidden","false");$("#scrim").classList.add("on");
   $("#drClose").onclick=closeDrawer;$("#drClose").focus();
