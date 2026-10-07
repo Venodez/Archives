@@ -1066,10 +1066,11 @@ const _grip = new THREE.Vector3();
 function cigarGrip(out) { headPivot.updateMatrix(); return out.set(0, 0, .45).applyQuaternion(cigRestQ).add(cigRestP).applyMatrix4(headPivot.matrix); }
 function drinkPose(t, p, a, dt) {
   const grip = cigarGrip(_grip), LE = ARMS.L.restEnd, RE = ARMS.R.restEnd;
-  armPath(p, 'L', [[0, LE], [.72, grip], [1.0, grip], [1.75, HOLD_L], [3.95, HOLD_L2], [4.5, grip], [4.78, grip], [5.5, LE]],
-    [[0, ZERO], [.72, SH_GRIP], [1.0, SH_GRIP], [1.75, SH_HOLD], [3.95, SH_HOLD], [4.5, SH_GRIP], [4.78, SH_GRIP], [5.5, ZERO]], t);
+  armPath(p, 'L', [[0, LE], [.72, grip], [1.0, grip], [1.75, HOLD_L], [3.95, HOLD_L2], [4.55, grip], [4.95, grip], [5.65, LE]],
+    [[0, ZERO], [.72, SH_GRIP], [1.0, SH_GRIP], [1.75, SH_HOLD], [3.95, SH_HOLD], [4.55, SH_GRIP], [4.95, SH_GRIP], [5.65, ZERO]], t);
   armPath(p, 'R', [[0, RE], [.55, RE], [1.72, SIP_R], [3.05, SIP_R2], [4.3, RE]], [[0, ZERO], [.55, ZERO], [1.72, SH_SIP], [3.05, SH_SIP], [4.3, ZERO]], t);
-  p.cigIn = 1 - smooth(t, .98, 1.32) + smooth(t, 4.48, 4.76);
+  p.cigIn = 1 - smooth(t, .9, 1.3) + smooth(t, 4.5, 4.9);
+  cigSide = smooth(t, 1.12, 2.0) * (1 - smooth(t, 3.35, 4.4));   // he turns it out to the side as his hand moves away, and back on the way to his mouth
   p.held = 1;
   p.tilt = .95 * bell(t, 1.45, 2.4, 2.75, 3.4);
   if (t > 2.05 && t < 2.75) whiskyFill = Math.max(.14, whiskyFill - dt * .11);
@@ -1077,7 +1078,7 @@ function drinkPose(t, p, a, dt) {
   p.pitch = .06 * bell(t, .3, .85, 1.0, 1.5) - .2 * bell(t, 1.55, 2.25, 2.8, 3.45);
   if (!a.exh && t > 1.36) { a.exh = true; exhale(); sfx('exhale'); }
   cue(a, 'glassUp', t, .62); cue(a, 'glassDown', t, 4.22);
-  if (t > 5.55) { anim = null; nextDrink = now + 16 + Math.random() * 9; }
+  if (t > 5.7) { anim = null; nextDrink = now + 16 + Math.random() * 9; }
 }
 
 // the contract: his right hand calls the cards back, his left hand finds the papers under the table and tosses them over
@@ -1094,7 +1095,7 @@ function contractPose(t, p, c) {
 }
 function updateMoves(dt) {
   if (!anim && dealt && !busy && hovered < 0 && focused < 0 && now > nextDrink && !REDUCE) anim = { kind: 'drink', t0: now, from: snapPose() };
-  restPose(pose); lighter.visible = false; flameLight.intensity = 0;
+  restPose(pose); lighter.visible = false; flameLight.intensity = 0; cigSide = 0;
   const a = anim;
   if (a) {
     if (a.rush !== undefined) a.t0 -= dt * 3;   // hurrying the rest of the drink
@@ -1115,6 +1116,8 @@ function updateMoves(dt) {
 const GLASS_TABLE = new THREE.Vector3(), MOUTH_B = V(0, 2.2, .66);
 const _hp = new THREE.Vector3(), _n = new THREE.Vector3(), _gu = new THREE.Vector3(), _gm = new THREE.Vector3(), _gax = new THREE.Vector3(), _gc = new THREE.Vector3(), _go = new THREE.Vector3(), _lv = new THREE.Vector3();
 const _ax = new THREE.Vector3(), _gp = new THREE.Vector3(), _cph = new THREE.Vector3(), _cqh = new THREE.Quaternion(), _mp = new THREE.Vector3(), _mq = new THREE.Quaternion(), _hqi = new THREE.Quaternion();
+let cigSide = 0;
+const cigHold = { on: false, p: new THREE.Vector3(), q: new THREE.Quaternion(), d0: 0 }, _rp = new THREE.Vector3(), _rq = new THREE.Quaternion();
 function glassFoot(out, tilt) {
   const arm = ARMS.R; handEnd(arm, _hp); _n.copy(DOWN).applyQuaternion(arm.pv.quaternion);
   _gu.set(0, 1, 0);
@@ -1130,13 +1133,19 @@ function placeHeld() {
   glassG.updateMatrixWorld(true);
   _lv.set(0, .072 + whiskyFill * .318, 0).applyMatrix4(glassG.matrixWorld); liquidPlane.constant = _lv.y;
   const w = 1 - lastPose.cigIn;
-  if (w < .001) { cigarG.position.copy(cigRestP); cigarG.quaternion.copy(cigRestQ); return; }
-  const arm = ARMS.L; handEnd(arm, _hp); _n.copy(DOWN).applyQuaternion(arm.pv.quaternion);
-  _ax.set(1, 0, 0).applyQuaternion(arm.pv.quaternion).multiplyScalar(.9); _ax.y += .2; _ax.z += .35; _ax.normalize();   // out to the side, a little up and toward you
+  if (w < .001) { cigarG.position.copy(cigRestP); cigarG.quaternion.copy(cigRestQ); cigHold.on = false; return; }
+  const arm = ARMS.L, hq = arm.pv.quaternion; handEnd(arm, _hp); _n.copy(DOWN).applyQuaternion(hq);
+  headPivot.updateMatrix(); _mp.copy(cigRestP).applyMatrix4(headPivot.matrix); _mq.copy(headPivot.quaternion).multiply(cigRestQ);
+  // the moment his fingers close on it, the cigar is fixed in the hand as it was in the mouth: no jump, no spin
+  if (!cigHold.on) { cigHold.on = true; _hqi.copy(hq).invert(); cigHold.p.copy(_mp).sub(_hp).applyQuaternion(_hqi); cigHold.q.copy(_hqi).multiply(_mq); cigHold.d0 = _hp.distanceTo(cigarGrip(_grip)); }
+  _rp.copy(cigHold.p).applyQuaternion(hq).add(_hp); _rq.copy(hq).multiply(cigHold.q);
+  // away from the mouth he turns it out to the side, so you can see it
+  _ax.set(1, 0, 0).applyQuaternion(hq).multiplyScalar(.9); _ax.y += .2; _ax.z += .35; _ax.normalize();   // out to the side, a little up and toward you
   _gp.copy(_hp).addScaledVector(_n, .06).addScaledVector(_ax, .44);   // held at the edge of the hand, most of it sticking out
   _cqh.setFromUnitVectors(AZ, _ax); _cph.copy(_gp).addScaledVector(_ax, -.12);
-  headPivot.updateMatrix(); _mp.copy(cigRestP).applyMatrix4(headPivot.matrix); _mq.copy(headPivot.quaternion).multiply(cigRestQ);
-  _mp.lerp(_cph, w); _mq.slerp(_cqh, w);
+  const away = cigSide;
+  _rp.lerp(_cph, away); _rq.slerp(_cqh, away);
+  _mp.lerp(_rp, w); _mq.slerp(_rq, w);
   _hqi.copy(headPivot.quaternion).invert();
   cigarG.position.copy(_mp).sub(headPivot.position).applyQuaternion(_hqi);
   cigarG.quaternion.copy(_hqi).multiply(_mq);
