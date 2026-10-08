@@ -1391,8 +1391,8 @@ fxGeo.setAttribute('uv', new THREE.Float32BufferAttribute([0, 0, 2, 0, 0, 2], 2)
 const fxQuad = new THREE.Mesh(fxGeo); fxQuad.frustumCulled = false; fxScene.add(fxQuad);
 const FX_VS = 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0., 1.); }';
 const fxMat = (frag, uniforms, toneMapped = false) => new THREE.ShaderMaterial({ vertexShader: FX_VS, fragmentShader: frag, uniforms, depthTest: false, depthWrite: false, toneMapped });
-const brightMat = fxMat(`uniform sampler2D tex; uniform float thr; varying vec2 vUv;
-  void main(){ vec3 c = texture2D(tex, vUv).rgb; float l = max(c.r, max(c.g, c.b)); gl_FragColor = vec4(c * smoothstep(thr, thr + .9, l), 1.); }`, { tex: { value: null }, thr: { value: .75 } });
+const brightMat = fxMat(`uniform sampler2D tex; uniform float thr; varying vec2 vUv; /* bright parts only */
+  void main(){ vec3 c = texture2D(tex, vUv).rgb; float l = max(c.r, max(c.g, c.b)); gl_FragColor = vec4(c * smoothstep(thr, thr + .9, l), 1.); }`, { tex: { value: null }, thr: { value: .95 } });
 const blurMat = fxMat(`uniform sampler2D tex; uniform vec2 dir; varying vec2 vUv;
   void main(){ vec3 c = texture2D(tex, vUv).rgb * .227;
     c += (texture2D(tex, vUv + dir * 1.385).rgb + texture2D(tex, vUv - dir * 1.385).rgb) * .316;
@@ -1448,136 +1448,51 @@ function renderFrame() {
   renderer.render(scene, camera);
 }
 
-/* ---------- the map draw: black, then the boss walking down a dark alley under the sign ---------- */
+/* ---------- the map draw: he flips a gold coin, slaps it on his hand, and the map is on it ---------- */
 let drawClock = () => Date.now();
-const DRAW_T = { alley: 7.6 };   // when the sign is in full view, seconds after the draw time
-// legs with knees and feet, out of sight under the table until he walks
-const LEGS = [-1, 1].map(sd => {
-  const hip = new THREE.Group(); hip.position.set(sd * .5, -.12, 0); body.add(hip);
-  const thigh = new THREE.Mesh(new RoundedBox(.96, 1.02, .96, 3, .07), M.suit); thigh.position.y = -.5; hip.add(thigh);
-  const knee = new THREE.Group(); knee.position.y = -1.0; hip.add(knee);
-  const shin = new THREE.Mesh(new RoundedBox(.92, .9, .92, 3, .07), M.suit); shin.position.y = -.45; knee.add(shin);
-  const foot = new THREE.Group(); foot.position.y = -.88; knee.add(foot);
-  const shoe = new THREE.Mesh(new RoundedBox(1.0, .2, 1.18, 2, .06), M.satin); shoe.position.set(0, -.08, .1); foot.add(shoe);
-  [thigh, shin, shoe].forEach(m => m.castShadow = true);
-  return { hip, knee, foot };
-});
-function legsRest() { LEGS.forEach(l => { l.hip.rotation.set(0, 0, 0); l.knee.rotation.set(0, 0, 0); l.foot.rotation.set(0, 0, 0); }); }
-// a walk cycle: phase 0..2PI is two steps; w fades it in and out
-function legsWalk(ph, w) {
-  LEGS.forEach((l, i) => {
-    const p = ph + i * PI, swing = Math.sin(p);
-    const th = -.48 * swing * w;                                   // thigh forward / back
-    const kn = (.12 + .85 * Math.max(0, Math.sin(p - 1.1)) ** 1.4) * w;   // the knee folds as the leg comes through
-    l.hip.rotation.x = th; l.knee.rotation.x = kn;
-    l.foot.rotation.x = -(th + kn) * .75 + .18 * w * Math.max(0, -Math.cos(p));   // heel strike, toe off
-  });
-}
-// a black curtain in front of the camera for the cut
-scene.add(camera);
-const blackMat = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0, depthTest: false, depthWrite: false, fog: false });
-const blackPlane = new THREE.Mesh(new THREE.PlaneGeometry(4, 4), blackMat); blackPlane.position.z = -.2; blackPlane.renderOrder = 999; blackPlane.visible = false; camera.add(blackPlane);
-const ROOM = { fog: scene.fog, bg: scene.background, hemi: hemi.intensity };
-
-/* the alley: built the first time it is needed, far from the room, the same for everyone */
-const AO = new THREE.Vector3(400, 0, 0), GROUND = -1.87, AW = 4.6;   // AW: half the width of the alley
-let ALLEY = null;
-function aRand(s) { return () => { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; }; }
-function brickTex(r) {
-  const [c, x] = makeCanvas(512, 512); x.fillStyle = '#1a0f0c'; x.fillRect(0, 0, 512, 512);
-  for (let row = 0; row < 16; row++) for (let col = -1; col < 9; col++) {
-    const X = col * 64 + (row % 2) * 32 + 2, Y = row * 32 + 2, l = 22 + r() * 16;
-    x.fillStyle = `hsl(${8 + r() * 14},${30 + r() * 20}%,${l}%)`; x.fillRect(X, Y, 60, 28);
-    if (r() < .25) { x.fillStyle = 'rgba(0,0,0,.25)'; x.fillRect(X, Y + 14, 60, 14); }
+const DRAW_T = { coin: 4.7 };   // when the coin is uncovered, seconds after the draw time
+const COIN_LAND = 2.4;            // when it lands on the back of his hand
+// the coin: the map engraved on one face, a star on the other
+function coinFace(name, star) {
+  const [c, x] = makeCanvas(512, 512), cx = 256;
+  let g = x.createRadialGradient(190, 170, 20, cx, cx, 270); g.addColorStop(0, '#d9ad52'); g.addColorStop(.5, '#a8772a'); g.addColorStop(1, '#5c3a0c');
+  x.fillStyle = g; x.beginPath(); x.arc(cx, cx, 256, 0, PI * 2); x.fill();
+  x.strokeStyle = 'rgba(110,64,8,.8)'; x.lineWidth = 10; x.beginPath(); x.arc(cx, cx, 226, 0, PI * 2); x.stroke();
+  for (let i = 0; i < 72; i++) { x.save(); x.translate(cx, cx); x.rotate(i * PI / 36); x.fillStyle = 'rgba(120,72,10,.55)'; x.fillRect(-3, -252, 6, 18); x.restore(); }
+  x.textAlign = 'center'; x.textBaseline = 'middle';
+  const engrave = (txt, y, font) => { x.font = font; x.fillStyle = 'rgba(255,236,170,.9)'; x.fillText(txt, cx + 3, y + 4); x.fillStyle = '#241302'; x.fillText(txt, cx, y); };
+  if (star) {
+    x.save(); x.translate(cx, cx); x.fillStyle = '#7a4a0c'; x.beginPath();
+    for (let i = 0; i < 10; i++) { const r = i % 2 ? 50 : 120, a = -PI / 2 + i * PI / 5; x.lineTo(Math.cos(a) * r, Math.sin(a) * r); } x.closePath(); x.fill(); x.restore();
+    engrave('APHRITE', 410, '400 46px Limelight, serif');
+  } else {
+    const t = String(name).toUpperCase(); fitFont(x, t, '400 #px Limelight, serif', 118, 370); const f = x.font;
+    engrave(t, cx + 6, f);
+    engrave('★  APHRITE  ★', 120, '700 34px "Barlow Condensed", Arial, sans-serif');
+    engrave('THE DRAW', 396, '700 30px "Barlow Condensed", Arial, sans-serif');
   }
-  noise(x, 512, 512, 9000, '#ffffff', '#000000', .06);
-  for (let i = 0; i < 26; i++) { const X = r() * 512, gr = x.createLinearGradient(0, 0, 0, 512); gr.addColorStop(0, 'rgba(0,0,0,.45)'); gr.addColorStop(1, 'rgba(0,0,0,0)'); x.fillStyle = gr; x.fillRect(X, 0, 6 + r() * 24, 200 + r() * 312); }
-  const t = tex(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; return t;
+  return tex(c, { aniso: 16 });
 }
-function groundTex(r) {
-  const [c, x] = makeCanvas(512, 512); x.fillStyle = '#121214'; x.fillRect(0, 0, 512, 512); noise(x, 512, 512, 14000, '#3a3a40', '#000000', .25);
-  for (let i = 0; i < 9; i++) { x.fillStyle = 'rgba(0,0,0,.35)'; x.beginPath(); x.ellipse(r() * 512, r() * 512, 30 + r() * 70, 14 + r() * 30, r() * 3, 0, PI * 2); x.fill(); }
-  const t = tex(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; return t;
-}
-const ZSTOP = -9;   // where he stops, along the alley
-function buildAlley() {
-  const g = new THREE.Group(), r = aRand(911); g.position.copy(AO);
-  const bt = brickTex(r), L = 70, H = 34, z0 = 16;
-  const wallMat = new THREE.MeshStandardMaterial({ map: bt, roughness: .85, color: 0x9a8a84 });
-  const plane = (w, h, rx, ry) => { const geo = new THREE.PlaneGeometry(w, h), uv = geo.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * w / rx, uv.getY(i) * h / ry); return geo; };
-  [-1, 1].forEach(s => { const w = new THREE.Mesh(plane(L, H, 6, 6), wallMat); w.rotation.y = -s * PI / 2; w.position.set(s * AW, GROUND + H / 2, z0 - L / 2); w.receiveShadow = true; g.add(w); });
-  const end = new THREE.Mesh(plane(AW * 2, H, 6, 6), wallMat); end.position.set(0, GROUND + H / 2, z0 - L); g.add(end);
-  const back = new THREE.Mesh(plane(AW * 2, H, 6, 6), wallMat); back.rotation.y = PI; back.position.set(0, GROUND + H / 2, z0); g.add(back);
-  const gt = groundTex(r); gt.repeat.set(2, 14);
-  const ground = new THREE.Mesh(new THREE.PlaneGeometry(AW * 2, L), new THREE.MeshStandardMaterial({ map: gt, roughness: .22, metalness: .55, color: 0x8a8a90 }));
-  ground.rotation.x = -PI / 2; ground.position.set(0, GROUND, z0 - L / 2); ground.receiveShadow = true; g.add(ground);
-  const pud = new THREE.MeshStandardMaterial({ color: 0x0a0c12, roughness: .02, metalness: .9 });
-  for (let i = 0; i < 9; i++) { const p = new THREE.Mesh(new THREE.CircleGeometry(1, 24), pud); p.scale.set(.8 + r() * 1.4, .5 + r() * .8, 1); p.rotation.x = -PI / 2; p.position.set((r() - .5) * AW * 1.3, GROUND + .01, z0 - 4 - r() * 44); g.add(p); }
-  // pipes, a fire escape, bins, crates
-  const dark = new THREE.MeshStandardMaterial({ color: 0x1b1d22, roughness: .5, metalness: .7 });
-  const rust = new THREE.MeshStandardMaterial({ color: 0x3a2318, roughness: .8, metalness: .3 });
-  const add = (geo, mat, x, y, z) => { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); m.castShadow = m.receiveShadow = true; g.add(m); return m; };
-  [[-AW + .25, 6], [AW - .25, -3], [-AW + .25, -20], [AW - .25, -30]].forEach(([x, z]) => add(new THREE.CylinderGeometry(.16, .16, H, 8), dark, x, GROUND + H / 2, z));
-  for (let k = 0; k < 4; k++) {   // fire escape on the right wall
-    const y = GROUND + 9 + k * 5.5, z = 1;
-    add(new THREE.BoxGeometry(1.6, .12, 7), dark, AW - .8, y, z);
-    add(new THREE.BoxGeometry(.06, 1.2, 7), dark, AW - 1.6, y + .6, z);
-    for (let j = 0; j < 9; j++) add(new THREE.BoxGeometry(.05, 1.2, .05), dark, AW - 1.6, y + .6, z - 3.4 + j * .85);
-  }
-  const bin = add(new RoundedBox(2.4, 1.9, 1.6, 2, .08), new THREE.MeshStandardMaterial({ color: 0x1c3326, roughness: .6, metalness: .4 }), -AW + 1.1, GROUND + .95, 1);
-  bin.rotation.y = PI / 2;
-  [[AW - 1.0, 3.2, .1], [AW - 1.2, 1.9, .4], [-AW + .9, -16, .2], [-AW + 1.0, -17.4, -.3]].forEach(([x, z, ry]) => { const c = add(new THREE.BoxGeometry(1.3, 1.3, 1.3), rust, x, GROUND + .65, z); c.rotation.y = ry; });
-  // a caged lamp on the wall where he comes in, flickering
-  const lampP = V(-AW + .5, GROUND + 6.2, 7);
-  add(new THREE.CylinderGeometry(.22, .3, .4, 12), dark, lampP.x, lampP.y + .2, lampP.z);
-  const bulb = new THREE.Mesh(new THREE.SphereGeometry(.16, 12, 10), new THREE.MeshBasicMaterial({ color: 0xffd9a0, toneMapped: false })); bulb.position.copy(lampP); g.add(bulb);
-  const lampGlow = glowSprite(0xffc070, 3.2, .8); lampGlow.position.copy(lampP); g.add(lampGlow);
-  const lamp = new THREE.PointLight(0xffb870, 40, 22, 1.5); lamp.position.copy(lampP).add(V(.4, -.3, 0)); g.add(lamp);
-  // steam from a grate
-  const steam = []; const stTex = glowTex;
-  for (let i = 0; i < 10; i++) { const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: stTex, color: 0x8a96a8, transparent: true, opacity: 0, depthWrite: false })); s.userData.o = i / 10; g.add(s); steam.push(s); }
-  const grate = add(new THREE.BoxGeometry(1.6, .04, 1.0), dark, 2.4, GROUND + .02, 9);
-  // rain
-  const N = 1100, rp = new Float32Array(N * 6), seed = [];
-  for (let i = 0; i < N; i++) seed.push([(r() * 2 - 1) * AW, r() * 16, -r() * 30, .6 + r() * .5]);
-  const rg = new THREE.BufferGeometry(); rg.setAttribute('position', new THREE.BufferAttribute(rp, 3));
-  const rain = new THREE.LineSegments(rg, new THREE.LineBasicMaterial({ color: 0x9fb0cc, transparent: true, opacity: .3 })); rain.frustumCulled = false; g.add(rain);
-  const moon = new THREE.HemisphereLight(0x2a3a66, 0x050302, .5); g.add(moon);
-  const flash = new THREE.DirectionalLight(0xc8d6ff, 0); flash.position.set(-10, 60, -20); flash.target.position.set(0, 0, -10); g.add(flash, flash.target);
+function buildCoin(name) {
+  const R = .4, TH = .07, g = new THREE.Group();
+  const edge = new THREE.MeshStandardMaterial({ color: 0xd9a63a, metalness: 1, roughness: .28, envMapIntensity: 1.4 });
+  const top = new THREE.MeshStandardMaterial({ map: coinFace(name, false), metalness: .45, roughness: .55, envMapIntensity: .8, emissive: 0x3a2200, emissiveIntensity: .15 });
+  const bot = new THREE.MeshStandardMaterial({ map: coinFace(name, true), metalness: .5, roughness: .5, envMapIntensity: .9, emissive: 0x3a2200, emissiveIntensity: .5 });
+  const m = new THREE.Mesh(new THREE.CylinderGeometry(R, R, TH, 64, 1, true), edge); m.castShadow = true; g.add(m);
+  const f1 = new THREE.Mesh(new THREE.CircleGeometry(R, 64), top); f1.rotation.x = -PI / 2; f1.position.y = TH / 2; g.add(f1);
+  const f2 = new THREE.Mesh(new THREE.CircleGeometry(R, 64), bot); f2.rotation.x = PI / 2; f2.position.y = -TH / 2; g.add(f2);
+  const glint = glowSprite(0xffe2a0, 1.1, 0); g.add(glint);
+  const light = new THREE.PointLight(0xffcf70, 0, 3, 2); light.position.y = .4; g.add(light);
   g.visible = false; scene.add(g);
-  return { g, rain, rp, seed, lamp, lampGlow, bulb, steam, grate, flash, moon };
-}
-// the sign: the map name in red neon, high up at the end of the alley
-function buildSign(name, vertical) {
-  const g = new THREE.Group(), txt = String(name).toUpperCase(), n = [...txt].length;
-  const cw = vertical ? 512 : 2048, ch = vertical ? Math.max(1024, n * 230 + 160) : 640;
-  const [c, x] = makeCanvas(cw, ch), t = tex(c, { aniso: 16 });
-  const sw = vertical ? 2.4 : 8.2, sh = sw * ch / cw;
-  const board = new THREE.Mesh(new THREE.BoxGeometry(sw + .5, sh + .5, .3), new THREE.MeshStandardMaterial({ color: 0x14100e, roughness: .5, metalness: .5 })); board.position.z = -.2; g.add(board);
-  const trim = new THREE.Mesh(new THREE.BoxGeometry(sw + .7, sh + .7, .2), M.brass); trim.position.z = -.3; g.add(trim);
-  const face = new THREE.Mesh(new THREE.PlaneGeometry(sw, sh), new THREE.MeshBasicMaterial({ map: t, transparent: true, toneMapped: false, fog: false, depthWrite: false })); g.add(face);
-  const bulbs = [], per = 2 * (sw + sh), nb = Math.round(per / .5);
-  for (let i = 0; i < nb; i++) { let d = i / nb * per, px, py;
-    if (d < sw) { px = -sw / 2 + d; py = sh / 2 + .12; } else if ((d -= sw) < sh) { px = sw / 2 + .12; py = sh / 2 - d; } else if ((d -= sh) < sw) { px = sw / 2 - d; py = -sh / 2 - .12; } else { d -= sw; px = -sw / 2 - .12; py = -sh / 2 + d; }
-    const b = new THREE.Mesh(new THREE.SphereGeometry(.08, 8, 6), new THREE.MeshBasicMaterial({ color: 0x3a2a10, toneMapped: false })); b.position.set(px, py, .05); g.add(b); bulbs.push(b); }
-  const glow = glowSprite(0xff3a5c, 10, 0); glow.position.z = .4; glow.scale.set(vertical ? 5 : 13, vertical ? sh + 4 : 6, 1); glow.material.fog = false; g.add(glow);
-  const light = new THREE.PointLight(0xff3d60, 0, 30, 1.3); light.position.set(0, -sh / 2 - 1, 2); g.add(light);
-  // brackets to the wall
-  [-1, 1].forEach(s => { const b = new THREE.Mesh(new THREE.BoxGeometry(.1, .1, 1.2), M.steelDark); b.position.set(s * sw * .4, sh / 2 + .2, -.8); g.add(b); });
-  const letters = []; let fs;
-  if (vertical) { fs = 200; letters.push(...[...txt].map((L, i) => ({ L, x: cw / 2, y: 120 + (i + .5) * (ch - 240) / n }))); }
-  else { fs = 300; x.font = `400 ${fs}px Limelight, serif`; while (x.measureText(txt).width > cw - 220 && fs > 80) { fs *= .94; x.font = `400 ${fs}px Limelight, serif`; }
-    const tw = x.measureText(txt).width; let cx = (cw - tw) / 2; [...txt].forEach(L => { const w = x.measureText(L).width; letters.push({ L, x: cx + w / 2, y: ch / 2 + 10 }); cx += w; }); }
-  const draw = lv => {
-    x.clearRect(0, 0, cw, ch); x.font = `400 ${fs}px Limelight, serif`; x.textAlign = 'center'; x.textBaseline = 'middle'; x.lineJoin = 'round';
-    letters.forEach((o, i) => { const k = lv[i] || 0; if (k <= .02) return;
-      x.globalAlpha = k; x.shadowColor = '#ff2a50'; x.shadowBlur = fs * .25; x.strokeStyle = '#ff4a6a'; x.lineWidth = fs * .07; x.strokeText(o.L, o.x, o.y);
-      x.shadowBlur = fs * .08; x.strokeStyle = '#ffe2ea'; x.lineWidth = fs * .025; x.strokeText(o.L, o.x, o.y); x.globalAlpha = 1; });
-    t.needsUpdate = true; };
-  draw([]);
-  return { g, draw, n, bulbs, glow, light, sw, sh, key: '' };
+  return { g, m, glint, light, TH, top };
 }
 
+// lying on the back of his hand, the top of the text towards him so it reads upright for us
+function coinRest(up) {
+  const Y = up.clone().normalize(), Zt = V(0, 0, -1); Zt.addScaledVector(Y, -Zt.dot(Y)).normalize();   // towards the boss
+  const Z = Zt.clone().negate(), X = new THREE.Vector3().crossVectors(Y, Z).normalize();
+  return new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(X, Y, Z));
+}
 const _dcp = new THREE.Vector3(), _dct = new THREE.Vector3();
 function drawCamera(a, e, pos, tgt) {   // eases the camera from where it is to the shot
   if (!a.cam) a.cam = { p: camera.position.clone(), t: camTarget.clone(), ox: view.ox || 0, oy: view.oy || 0 };
@@ -1591,112 +1506,93 @@ function drawScene(d, style, onReveal) {
   if (anim && anim.kind === 'burn') endBurn(anim);
   endDraw(drawA, true);
   resetRoom(); busy = true; dealt = false; dealT0 = now; dealWait = 999; hovered = focused = -1; cig = 1;
-  cards.forEach(c => { c.hover = 0; c.picked = false; c.pick = 0; });
-  if (!ALLEY) ALLEY = buildAlley();
-  const narrow = mode === 'narrow';
-  const a = drawA = anim = { kind: 'draw', style: 'alley', d, from: snapPose(), onReveal, narrow };
-  a.sign = buildSign(d.map, narrow);
-  // high on the end of the alley, hanging over it
-  if (narrow) a.sign.g.position.set(AW - 1.8, GROUND + 12.5, ZSTOP - 9);
-  else a.sign.g.position.set(0, GROUND + 11.5, ZSTOP - 9);
-  ALLEY.g.add(a.sign.g);
-  a.sc = a.sign.g.localToWorld(V(0, 0, 0));
+  cards.forEach(c => { c.hover = 0; c.picked = false; c.pick = 0; c.g.visible = false; }); deckGroup.visible = false;
+  const a = drawA = anim = { kind: 'draw', style: 'coin', d, from: snapPose(), onReveal, narrow: mode === 'narrow' };
+  a.coin = buildCoin(d.map);
   if (typeof say === 'function') { const R = { qf: 'Quarter-final', sf: 'Semi-final', f: 'The final', b: 'Third place' }[d.round] || (d.roundRaw || 'The draw'); say(R + '.', `${d.a} against ${d.b}.`); }
   onScreen = true; start(); return true;
 }
 let drawA = null;
-function inAlley(on) {
-  fxOn(on);
-  if (on) { scene.fog = ALLEY.fog || (ALLEY.fog = new THREE.FogExp2(0x070a12, .045)); scene.background = new THREE.Color(0x020306); camera.far = 120; hemi.intensity = .08; }
-  else { scene.fog = ROOM.fog; scene.background = ROOM.bg; camera.far = 60; hemi.intensity = ROOM.hemi; }
-  camera.updateProjectionMatrix();
-}
 function endDraw(a, quiet) {
   if (!a || a.done) return; a.done = true;
-  if (ALLEY) { ALLEY.g.visible = false; if (a.sign) ALLEY.g.remove(a.sign.g); }
-  inAlley(false); blackPlane.visible = false; blackMat.opacity = 0;
-  boss.position.set(0, 0, -2.62); boss.rotation.set(0, 0, 0); legsRest(); fxOn(false);
+  if (a.coin) { scene.remove(a.coin.g); }
+  fxOn(false);
   cards.forEach(c => c.g.visible = true); deckGroup.visible = !!SPOTS[mode === 'narrow' ? 'narrow' : 'wide'].deck; coverEl.classList.remove('dive');
   camera.up.set(0, 1, 0); if (mode) fit();
   if (anim === a) anim = null;
   busy = false; lighter.visible = false;
   if (!quiet) { dealT0 = now; dealWait = .2; sfx('deal', dealWait); }
 }
-// in the alley: he walks slowly towards the far end, then stops
-const W0 = 5, W1 = 5.7, WALK0 = .55, STRIDE = 1.55;   // walking from t=WALK0, slowing to a stop by W1
-function bossAt(t, out) {
-  // speed eases in and out, so the steps slow down instead of cutting off
-  const v = s => clamp((s - WALK0) / .5, 0, 1) * (1 - smooth(s, W0 - .5, W1));
-  let dist = 0; for (let s = WALK0; s < t; s += .02) dist += v(s) * 2.45 * Math.min(.02, t - s);
-  const z = 4 - dist;
-  out.w = v(t) > 0 ? Math.max(.25, v(t)) * (t < W1 ? 1 : 0) : 0; out.w = Math.min(1, out.w * 1.15);
-  out.phase = dist / STRIDE * PI;
-  const passing = (Math.cos(2 * out.phase) + 1) / 2;                 // highest when the legs pass each other
-  out.p = V(AO.x + .3 + .06 * Math.sin(out.phase) * out.w, AO.y + .3 + (passing - 1) * .09 * out.w, AO.z + z);
-  out.rot = PI + .05 * Math.sin(out.phase) * out.w;                 // the hips turn a little with each step
-  out.roll = .03 * Math.sin(out.phase) * out.w;                     // weight from one foot to the other
-  out.dist = dist; return out;
+// keys in world space; the shoulder moves so the hand lands right on the point
+const _rk = new THREE.Vector3(), _rs = new THREE.Vector3();
+function reach(p, side, keys, t) {
+  path(keys, t, _rk); toBody(_rk);
+  const arm = ARMS[side]; _rs.copy(_rk).sub(arm.base); const L = _rs.length();
+  _rs.multiplyScalar(L > 1e-4 ? clamp(L - 1.5, -.5, .95) / L : 0);
+  aimArm(p, side, _rk, _rs);
 }
-const _bs = {};
+// the back of a hand: centre of the glove and the way its top faces
+function handTop(side, out, up) {
+  const pv = ARMS[side].pv; pv.updateMatrixWorld(true);
+  out.copy(pv.localToWorld(V(0, -1.3, 0)));
+  up.set(0, 0, 1).applyQuaternion(pv.getWorldQuaternion(new THREE.Quaternion())).normalize();
+  return out;
+}
+const restW = side => body.localToWorld(ARMS[side].restEnd.clone());
+// where his hands go (tips of the arms, in the room)
+const FLICK = V(-.35, 1.35, -1.3), SHOW = V(.35, .95, -1.05);
 function drawPose(t, p, a) {
   p.held = 0; p.cigIn = 1; p.tilt = 0;
-  if (t < .45) { p.yaw = p.pitch = null; return; }   // still at the table until the screen is black
-  const b = bossAt(t, _bs);
-  boss.position.copy(b.p); boss.rotation.set(0, b.rot, b.roll);
-  legsWalk(b.phase, b.w);
-  body.updateMatrixWorld(true);
-  // arms swing against the legs, a bit out from the body, with a slight lag
-  ['R', 'L'].forEach((s, i) => { const arm = ARMS[s], sw = Math.sin(b.phase - .35 + (i ? 0 : PI)) * .3 * b.w;
-    aimArm(p, s, V((i ? 1 : -1) * .12, -1.5 * Math.cos(sw), 1.5 * Math.sin(sw) + .1).add(arm.base), ZERO); });
-  // head steady while he walks, down a little; up to the sign once he has stopped
-  p.yaw = .04 * Math.sin(b.phase) * b.w; p.pitch = lerp(.12 - .03 * Math.cos(2 * b.phase) * b.w, -.34, smooth(t, W1 - .1, W1 + 1.0));
-}
-function camShot(t, a, pos, tgt) {
-  const b = _bs.p || V(AO.x, AO.y, AO.z), head = b.clone().add(V(0, 2.5, 0)), n = a.narrow;
-  // 1: in front of him, low, backing away as he comes; 2: round to his back; 3: rise a little and look up at the sign
-  const ang = PI * smooth(t, 3.0, 5.2), rad = lerp(n ? 13 : 10.5, n ? 8.5 : 7, smooth(t, 3.0, 5.2));
-  const hgt = lerp(-.2, 2.2, smooth(t, 3.0, 5.4)) + .6 * smooth(t, 5.4, DRAW_T.alley);
-  pos.set(b.x + Math.sin(ang) * 3.4, GROUND + 1.6 + hgt, b.z - Math.cos(ang) * rad);
-  tgt.copy(b).add(V(0, lerp(1.3, 2.4, smooth(t, 3, 5)), 0)).lerp(a.sc, .78 * smoother(smooth(t, 5.4, DRAW_T.alley + .1)));
+  const RR = restW('R'), RL = restW('L');
+  // left hand comes out flat, back up, and waits
+  reach(p, 'L', [[-.6, RL], [1.2, SHOW], [DRAW_T.coin + 2.4, SHOW], [DRAW_T.coin + 3.2, RL]], t);
+  // right hand: up with the coin, a dip, the flick, then over the left hand, the slap, the reveal
+  const slap = (a.slap || SHOW.clone().add(V(-.1, .55, -.1))), over = slap.clone().add(V(0, .7, .15));
+  reach(p, 'R', [[-2.2, RR], [-1.1, FLICK], [-.45, FLICK], [-.08, FLICK.clone().add(V(0, -.16, 0))], [.12, FLICK.clone().add(V(0, .3, .05))], [.8, FLICK],
+    [1.7, over], [COIN_LAND - .1, over], [COIN_LAND, slap], [3.75, slap], [4.35, slap.clone().add(V(-.5, .95, .3))], [5.4, RR]], t);
+  // eyes on the coin: up with it, down to the hand
+  const up = bell(t, .1, .7, 1.6, 2.3);
+  p.yaw = 0; p.pitch = lerp(.2, -.35, up);
 }
 function drawSceneUpdate(dt) {
-  const a = anim, d = a.d, t = (drawClock() - d.at) / 1000, T = DRAW_T.alley, A = ALLEY, sg = a.sign;
-  // to black at the end of the countdown, open on the alley
-  const black = smooth(t, -.05, .35) * (1 - smooth(t, .75, 1.6));
-  blackPlane.visible = black > .002; blackMat.opacity = black;
-  const there = t > .45;
-  if (there !== a._there) { a._there = there; inAlley(there); A.g.visible = there; if (there) { sfx('rain', 10); } }
-  if (there) {
-    const cp = V(), ct = V(); camShot(t, a, cp, ct);
-    camera.position.copy(cp); camera.up.set(0, 1, 0); camera.lookAt(ct); camera.clearViewOffset(); camera.updateProjectionMatrix();
-    // held by hand: a slow drift and a little breathing in the frame
-    camera.rotateX(.004 * Math.sin(now * 1.7) + .002 * Math.sin(now * 4.3)); camera.rotateY(.0035 * Math.sin(now * 1.3 + 1) + .0015 * Math.sin(now * 3.7)); camera.rotateZ(.0025 * Math.sin(now * .9));
-    FXP.bars = (a.narrow ? .04 : .1) * smooth(t, .5, 1.4) * (1 - smooth(t, T + 2.6, T + 3.4));
-    // rain around the camera, a flickering lamp, steam
-    const r = A.rp, cz = camera.position.z - AO.z;
-    A.seed.forEach((s, i) => { const y = GROUND + ((s[1] - now * 24 * s[3]) % 16 + 16) % 16, x = s[0], z = s[2] + cz + 6;
-      r[i * 6] = x; r[i * 6 + 1] = y; r[i * 6 + 2] = z; r[i * 6 + 3] = x - .05; r[i * 6 + 4] = y + .6 * s[3]; r[i * 6 + 5] = z; });
-    A.rain.geometry.attributes.position.needsUpdate = true;
-    const fl = (Math.sin(now * 23) > .93 || (Math.sin(now * 3.1) > .97)) ? .25 : 1; A.lamp.intensity = 40 * fl; A.lampGlow.material.opacity = .8 * fl; A.bulb.material.color.setScalar(fl);
-    A.steam.forEach((s, i) => { const k = (now * .25 + s.userData.o) % 1; s.position.set(A.grate.position.x + Math.sin(k * 5 + i) * .3, GROUND + k * 4, A.grate.position.z); s.scale.setScalar(1 + k * 2.4); s.material.opacity = Math.sin(k * PI) * .14; });
-    // footsteps
-    const st = Math.floor((_bs.phase || 0) / PI + .5); if (_bs.w > .2 && st !== a._st) { a._st = st; sfx('step'); }
-  } else {
-    const e = smoother(smooth(t, -2, 0)); if (e > 0) drawCamera(a, e * .25, camera.position.clone().add(V(0, -.3, -1.2)), camTarget);   // a slow push in before the cut
-  }
-  // the sign is already on, buzzing; it is only out of sight until the camera looks up
-  const lv = [], FL = [0, .7, 0, 1, .3, 1];
-  for (let i = 0; i < sg.n; i++) { const t0 = 5.5 + i * .1, k = Math.floor((t - t0) / .08); lv.push(t < t0 ? 0 : k < FL.length ? FL[k] : 1); }
-  const key = lv.map(v => v.toFixed(1)).join(); if (key !== sg.key) { sg.key = key; sg.draw(lv); }
-  const on = lv.reduce((s, v) => s + v, 0) / sg.n, hum = .92 + .08 * Math.sin(now * 50);
-  sg.glow.material.opacity = on * .6 * hum; sg.light.intensity = on * 22 * hum;
-  sg.bulbs.forEach((b, i) => { const k = smooth(t, T - .4, T) * (.55 + .45 * (Math.floor(now * 6 + i * .5) % 3 === 0 ? 1 : .3)); b.material.color.setRGB(.25 + 2.6 * k, .17 + 1.9 * k, .06 + .6 * k); });
-  if (!a._bz && t > T - .9) { a._bz = 1; sfx('buzz', 1.6); }
-  // a flash of lightning when the name is in full view
-  const fl = t >= T ? Math.exp(-(t - T) * 8) + (t >= T + .25 ? .7 * Math.exp(-(t - T - .25) * 10) : 0) : 0;
-  A.flash.intensity = fl * 6; A.moon.intensity = .5 + fl * 2; FXP.bloom = 1.1 + fl * 1.6;
-  if (!a._th && t > T + .3) { a._th = 1; sfx('thunder'); }
-  coverEl.classList.toggle('dive', t > -2 && t < T + 3.4);
+  const a = anim, d = a.d, t = (drawClock() - d.at) / 1000, T = DRAW_T.coin, c = a.coin, n = a.narrow;
+  fxOn(t > -2.4 && t < T + 3.2); FXP.bloom = .55;
+  FXP.bars = (n ? .03 : .07) * smooth(t, -2.4, -1.4) * (1 - smooth(t, T + 2.4, T + 3.2));
+  const hR = handTop('R', V(), V()), upR = new THREE.Vector3(); handTop('R', hR, upR);
+  const hL = V(), upL = V(); handTop('L', hL, upL);
+  if (!a.slap) { const s0 = hL.clone().addScaledVector(upL, .95); a.slapTmp = s0; }
+  // where the right hand must go so its palm covers the coin: the arm tip a little past the glove's centre
+  if (t > 1 && !a.slap) { const sh = ARMS.R.pv.getWorldPosition(V()), ctr = hL.clone().addScaledVector(upL, .47 + c.TH + .46); a.slap = ctr.clone().add(ctr.clone().sub(sh).normalize().multiplyScalar(.2)); }
+  // the coin
+  const onR = hR.clone().addScaledVector(upR, .47 + c.TH / 2), onL = hL.clone().addScaledVector(upL, .47 + c.TH / 2);
+  c.g.visible = t > -1.4;
+  const qFlat = (up) => new THREE.Quaternion().setFromUnitVectors(V(0, 1, 0), up);
+  if (t < 0) { c.g.position.copy(onR); c.g.quaternion.copy(qFlat(upR)); a.from0 = onR.clone(); }
+  else if (t < COIN_LAND) {
+    const u = t / COIN_LAND, s = u + .8 * Math.sin(2 * PI * u) / (2 * PI);   // fast up, slow at the top, fast down
+    const p0 = a.from0 || onR, p1 = onL, apex = Math.max(p0.y, p1.y) + 3.3;
+    const pos = V().lerpVectors(p0, p1, s); pos.y = (1 - s) * (1 - s) * p0.y + 2 * (1 - s) * s * (2 * apex - (p0.y + p1.y) / 2) + s * s * p1.y;
+    c.g.position.copy(pos);
+    const q = qFlat(V(0, 1, 0).lerp(upL, s).normalize()); q.multiply(new THREE.Quaternion().setFromAxisAngle(V(1, 0, 0), 14 * PI * s)); c.g.quaternion.copy(q);
+    c.glint.material.opacity = Math.max(0, Math.cos(14 * PI * s)) ** 8 * .5;
+    if (!a._fl) { a._fl = 1; sfx('coin'); }
+  } else { c.g.position.copy(onL); c.g.quaternion.copy(coinRest(upL)); c.glint.material.opacity = 0; }
+  if (!a._sl && t > COIN_LAND) { a._sl = 1; sfx('land'); sfx('clap'); }
+  // uncovered: it shines
+  const shine = smooth(t, 3.9, T); c.light.intensity = 0; c.top.emissiveIntensity = .15;
+  if (!a._hit && t > T - .1) { a._hit = 1; sfx('hit'); }
+  // camera: on him, up with the coin, down onto the hands, then right over the coin
+  const look = c.g.position.clone(), head = V(0, 2.6, -2.2);
+  let cp = n ? V(0, 3.3, 3.6) : V(0, 2.7, 2.4), ct = n ? V(0, 1.6, -1.6) : V(0, 1.7, -1.7);
+  const fly = bell(t, .1, .9, 1.5, 2.2); ct.lerp(look.clone().add(V(0, -.6, 0)), fly * .45); cp.y += fly * .5;
+  const close = smooth(t, COIN_LAND - .15, COIN_LAND + .5);
+  cp.lerp(onL.clone().add(n ? V(.4, 2.6, 3.0) : V(.6, 1.9, 2.4)), close); ct.lerp(onL.clone().add(V(-.05, .25, 0)), close);
+  const top = smoother(smooth(t, 3.8, T + .2));
+  cp.lerp(onL.clone().add(n ? V(0, 1.9, 1.45) : V(0, 1.35, 1.0)), top); ct.lerp(onL, top);
+  if (t < COIN_LAND + .1 && t > COIN_LAND - .02) { cp.x += (Math.random() - .5) * .06; cp.y += (Math.random() - .5) * .06; }   // the slap shakes the shot
+  const e = smoother(smooth(t, -2.4, -1.2)) * (1 - smooth(t, T + 2.4, T + 3.4));
+  if (e > 0) { drawCamera(a, e, cp, ct); camera.rotateX(.003 * Math.sin(now * 1.7)); camera.rotateY(.0025 * Math.sin(now * 1.3 + 1)); }
+  coverEl.classList.toggle('dive', t > -2.4 && t < T + 3.2);
   if (!a.revealed && t >= T) { a.revealed = true; if (typeof a.onReveal === 'function') setTimeout(() => a.onReveal(), 1800); }
   if (t > T + 3.6) endDraw(a);
 }
@@ -1787,7 +1683,7 @@ canvas.addEventListener('webglcontextlost', e => { e.preventDefault(); stop(); f
 if ('IntersectionObserver' in window) new IntersectionObserver(es => { onScreen = es[es.length - 1].isIntersecting; if (onScreen) start(); else stop(); }).observe(canvas);
 
 window.room3d = {
-  layout, deal, start, back, drawScene, drawTime: s => DRAW_T.alley,
+  layout, deal, start, back, drawScene, drawTime: s => DRAW_T.coin,
   focus(k) { if (busy) return; focused = k; if (k >= 0) hovered = -1; kick(); },
   pick(k) { if (anim && anim.kind === 'contract') skipContract(anim); else choose(k); }
 };

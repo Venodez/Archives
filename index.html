@@ -1077,6 +1077,10 @@ footer::before{content:"";position:absolute;left:0;right:0;top:0;height:14px;bac
       o.connect(f); f.connect(g); g.connect(fxBus); o.start(t); o.stop(t + dur + .9); for (let k = 0; k < 6; k++) burst(t + Math.random() * 1, .03, 4000, 2, .1); },
     thunder: t => { const s = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain(); s.buffer = white; s.loop = true; f.type = 'lowpass'; f.frequency.setValueAtTime(900, t); f.frequency.exponentialRampToValueAtTime(120, t + 2.5);
       g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.5, t + .05); g.gain.exponentialRampToValueAtTime(.15, t + .6); g.gain.linearRampToValueAtTime(.25, t + .9); g.gain.exponentialRampToValueAtTime(.0001, t + 3); s.connect(f); f.connect(g); g.connect(fxBus); s.start(t); s.stop(t + 3.1); },
+    coin: t => { [[3150, .05, 1.6], [4720, .03, 1.2], [6300, .015, .8]].forEach(([f, v, d]) => { const o = ctx.createOscillator(), g = ctx.createGain(), am = ctx.createOscillator(), ag = ctx.createGain();
+        o.frequency.value = f; am.frequency.value = 9; ag.gain.value = v * .5; am.connect(ag); ag.connect(g.gain); g.gain.setValueAtTime(v, t); g.gain.exponentialRampToValueAtTime(.0001, t + d); o.connect(g); g.connect(fxBus); o.start(t); am.start(t); o.stop(t + d + .05); am.stop(t + d + .05); });
+      burst(t, .25, 1600, .7, .08, 'bandpass', .05); },
+    clap: t => { burst(t, .06, 1200, .8, .45); burst(t + .005, .18, 300, 1, .3, 'lowpass'); },
     tick: t => { burst(t, .02, 3200, 3, .07); ping(t, 1500, .01, .03); },
     beat: (t, n = 3) => { const o = ctx.createOscillator(), g = ctx.createGain(); o.frequency.setValueAtTime(90 + (5 - n) * 8, t); o.frequency.exponentialRampToValueAtTime(45, t + .25); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.5, t + .01); g.gain.exponentialRampToValueAtTime(.0001, t + .35); o.connect(g); g.connect(fxBus); o.start(t); o.stop(t + .4); burst(t, .05, 900, 1, .08, 'lowpass'); },
     hit: t => { const o = ctx.createOscillator(), g = ctx.createGain(); o.type = 'triangle'; o.frequency.setValueAtTime(120, t); o.frequency.exponentialRampToValueAtTime(38, t + .6); g.gain.setValueAtTime(.7, t); g.gain.exponentialRampToValueAtTime(.0001, t + .9); o.connect(g); g.connect(fxBus); o.start(t); o.stop(t + 1);
@@ -1549,7 +1553,7 @@ async function pollDraws(){if(!SHEET_URL)return;
 const DRAW_SPIN=6200;
 /* at the table when the 3D room is there: he draws the map himself; otherwise the card reel */
 function showDraw(d){
-  const st="alley";
+  const st="coin";
   try{if(MOTION&&is3d()&&room3d.drawScene&&!document.hidden&&Date.now()<d.at+room3d.drawTime(st)*1000-400){
     closeDrawer();closeModal();if(cover.hidden){cover.hidden=false;root.classList.add("lock");siteInert(true);layoutScene()}
     if(room3d.drawScene(d,st,()=>showReel(d,{land:true}))){drawCountdown(d);return}}}catch(e){}
