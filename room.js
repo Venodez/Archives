@@ -308,13 +308,17 @@ function mesh(geo, mat, x = 0, y = 0, z = 0, parent = scene) { const m = new THR
 /* ---------- the room ---------- */
 const WALL_Z = -4.6;
 {
-  const wall = mesh(new THREE.PlaneGeometry(26, 12), M.wall, 0, 3, WALL_Z); wall.receiveShadow = true;
+  // the wall has a real opening behind the window, so the camera can go out into the city
+  const wsh = new THREE.Shape(); wsh.moveTo(-13, -6); wsh.lineTo(13, -6); wsh.lineTo(13, 6); wsh.lineTo(-13, 6); wsh.closePath();
+  const hole = new THREE.Path(); hole.moveTo(3.5 - 1.56, .15 - 1.46); hole.lineTo(3.5 + 1.56, .15 - 1.46); hole.lineTo(3.5 + 1.56, .15 + 1.46); hole.lineTo(3.5 - 1.56, .15 + 1.46); hole.closePath(); wsh.holes.push(hole);
+  const wg = new THREE.ShapeGeometry(wsh); { const p = wg.attributes.position, uv = wg.attributes.uv; for (let i = 0; i < p.count; i++) uv.setXY(i, (p.getX(i) + 13) / 26, (p.getY(i) + 6) / 12); }
+  const wall = mesh(wg, M.wall, 0, 3, WALL_Z); wall.receiveShadow = true; wall.name = 'wall';
   mesh(new THREE.BoxGeometry(26, .12, .14), M.trim, 0, 1.35, WALL_Z + .07).receiveShadow = true;
   mesh(new THREE.BoxGeometry(26, .05, .1), M.trim, 0, 1.48, WALL_Z + .05);
   // window with the city and half-open blinds
-  const W = new THREE.Group(); W.position.set(3.5, 3.15, WALL_Z + .02); scene.add(W);
+  const W = new THREE.Group(); W.position.set(3.5, 3.15, WALL_Z + .02); W.name = 'window'; scene.add(W);
   const ww = 3.1, wh = 2.9;
-  const city = mesh(new THREE.PlaneGeometry(ww, wh), new THREE.MeshBasicMaterial({ map: cityTexture(), color: new THREE.Color(.62, .62, .66), fog: false }), 0, 0, .005, W);
+  const city = mesh(new THREE.PlaneGeometry(ww, wh), new THREE.MeshBasicMaterial({ map: cityTexture(), color: new THREE.Color(.62, .62, .66), fog: false }), 0, 0, .005, W); city.name = 'cityPlane';
   const frameMat = M.trim;
   [[0, wh / 2 + .07, ww + .3, .16], [0, -wh / 2 - .07, ww + .3, .16]].forEach(([x, y, w, h]) => mesh(new THREE.BoxGeometry(w, h, .22), frameMat, x, y, .1, W));
   [[-ww / 2 - .07, 0], [ww / 2 + .07, 0], [0, 0]].forEach(([x, y], k) => mesh(new THREE.BoxGeometry(k === 2 ? .06 : .16, wh, k === 2 ? .1 : .22), frameMat, x, y, .1, W));
@@ -322,18 +326,18 @@ const WALL_Z = -4.6;
   const slat = new THREE.BoxGeometry(ww, .1, .015), slatMat = new THREE.MeshStandardMaterial({ color: 0x24170c, roughness: .8 });
   { const ys = []; for (let y = wh / 2 - .08; y > -wh / 2; y -= .17) ys.push(y);
     const im = new THREE.InstancedMesh(slat, slatMat, ys.length), m4 = new THREE.Matrix4(), e = new THREE.Euler(1.05, 0, 0);
-    ys.forEach((y, k) => { m4.makeRotationFromEuler(e); m4.setPosition(0, y, .09); im.setMatrixAt(k, m4); }); W.add(im); }
+    ys.forEach((y, k) => { m4.makeRotationFromEuler(e); m4.setPosition(0, y, .09); im.setMatrixAt(k, m4); }); im.name = 'blinds'; im.userData.ys = ys; W.add(im); }
   // the two men in the dark by the window
   const shade = M.shadow;
   const hatGeo = lathe([[0, 0], [.42, .0], [.46, .03], [.43, .04], [.25, .05], [.24, .3], [.12, .36], [0, .34]], 24);
   [[2.6, -3.85, .95, true], [4.3, -3.65, .9, false]].forEach(([x, z, s, cig]) => {
-    const g = new THREE.Group(); g.position.set(x, -.4, z); g.scale.setScalar(s); scene.add(g);
+    const g = new THREE.Group(); g.position.set(x, -.4, z); g.scale.setScalar(s); g.name = 'man'; scene.add(g);
     mesh(new THREE.CapsuleGeometry(.55, 1.1, 6, 16), shade, 0, 1.1, 0, g).scale.set(1.25, 1, .8);
     mesh(new THREE.SphereGeometry(.3, 16, 12), shade, 0, 2.25, 0, g);
     mesh(hatGeo, shade, 0, 2.4, 0, g);
     if (cig) { const e = mesh(new THREE.SphereGeometry(.035, 8, 6), new THREE.MeshBasicMaterial({ color: new THREE.Color(0xff7a2a).multiplyScalar(3) }), .36, 2.1, .3, g); e.name = 'ember2'; }
   });
-  mesh(new THREE.CylinderGeometry(.9, .9, .08, 24), shade, 3.4, .55, -3.6);
+  mesh(new THREE.CylinderGeometry(.9, .9, .08, 24), shade, 3.4, .55, -3.6).name = 'sideTable';
 }
 
 /* ---------- the table ---------- */
@@ -891,6 +895,7 @@ canvas.addEventListener('pointermove', ev => {
 canvas.addEventListener('pointerleave', () => { pointer.in = false; setHover(-1); });
 let busy = false, anim = null, cig = 1, nextDrink = 1e9, sayOff = .95, diveE = 0, gatherRank = [0, 1, 2, 3, 4];
 canvas.addEventListener('click', ev => {
+  if (anim && anim.kind === 'draw') return;
   if (anim && anim.kind === 'contract') { skipContract(anim); return; }
   if (busy || !dealt) return; const k = pick(ev); if (k >= 0) choose(k);
 });
@@ -939,6 +944,7 @@ function resetRoom() {
 let now = 0, dealT0 = 1e9, dealWait = .6, lightT0 = 0;
 function deal(waitMs = 650) {
   if (anim && anim.kind === 'burn') endBurn(anim);
+  if (anim && anim.kind === 'draw') endDraw(anim, true);
   if (anim && anim.kind !== 'light') resetRoom();
   busy = false; dealt = false; dealT0 = now; dealWait = REDUCE ? 0 : waitMs / 1000;
   cards.forEach(c => { c.hover = 0; c.picked = false; c.pick = 0; });
@@ -1115,6 +1121,7 @@ function updateMoves(dt) {
     else if (a.kind === 'drink') drinkPose(t, pose, a, dt);
     else if (a.kind === 'contract') contractPose(t, pose, a);
     else if (a.kind === 'burn') burnPose(t, pose, a);
+    else if (a.kind === 'draw') drawPose((drawClock() - a.d.at) / 1000, pose, a);
     if (a.from && anim === a && t < SETTLE) { mixPose(poseMix, a.from, pose, smooth(t, 0, SETTLE)); copyPose(pose, poseMix); }
     if (!anim && a.rush !== undefined) startContract(a.rush);
   }
@@ -1375,6 +1382,269 @@ function back(go, swap, done) {
   } catch (e) { plain(); }
 }
 
+/* ---------- the map draw: he gets up, goes to the window, and the city answers ---------- */
+let drawClock = () => Date.now();
+const DRAW_T = { city: 7 };   // when the sign is fully lit, seconds after the draw time
+const dV = new THREE.Vector3(), dV2 = new THREE.Vector3();
+// legs, out of sight under the table until he stands up
+const LEGS = [-1, 1].map(sd => {
+  const hip = new THREE.Group(); hip.position.set(sd * .5, -.12, 0); body.add(hip);
+  const leg = new THREE.Mesh(new RoundedBox(.96, 1.95, .96, 3, .07), M.suit); leg.position.y = -1.0; hip.add(leg);
+  const shoe = new THREE.Mesh(new RoundedBox(1.0, .2, 1.12, 2, .06), M.satin); shoe.position.set(0, -1.95, .07); hip.add(shoe);
+  leg.castShadow = shoe.castShadow = true; return hip;
+});
+const ROOM = { win: scene.getObjectByName('window'), city: scene.getObjectByName('cityPlane'), blinds: scene.getObjectByName('blinds'), men: [], side: scene.getObjectByName('sideTable') };
+scene.traverse(o => { if (o.name === 'man') ROOM.men.push(o); });
+ROOM.menHome = ROOM.men.map(m => m.position.clone()); ROOM.sideHome = ROOM.side ? ROOM.side.position.clone() : null;
+ROOM.city.material.transparent = true;
+function setBlinds(tilt) {
+  const b = ROOM.blinds, m4 = new THREE.Matrix4(), e = new THREE.Euler(tilt, 0, 0);
+  b.userData.ys.forEach((y, k) => { m4.makeRotationFromEuler(e); m4.setPosition(0, y, .09); b.setMatrixAt(k, m4); }); b.instanceMatrix.needsUpdate = true;
+}
+const FLOOR_Y = -1.87;
+const floor = new THREE.Mesh(new THREE.PlaneGeometry(30, 14), new THREE.MeshStandardMaterial({ color: 0x120c08, roughness: .8, map: T.wood })); floor.rotation.x = -PI / 2; floor.position.set(0, FLOOR_Y, -1); floor.receiveShadow = true; floor.visible = false; scene.add(floor);
+const winLight = new THREE.PointLight(0x7f9cff, 0, 9, 1.6); winLight.position.set(3.5, 3.2, -5.2); scene.add(winLight);
+
+/* the city outside: built the first time it is needed, the same for everyone */
+let CITY = null;
+function cityRand(s) { return () => { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; }; }
+function windowsTex(r) {
+  const [c, x] = makeCanvas(256, 256); x.fillStyle = '#07090e'; x.fillRect(0, 0, 256, 256);
+  for (let i = 0; i < 8; i++) for (let j = 0; j < 8; j++) {
+    const lit = r() < .22, X = 6 + i * 32, Y = 8 + j * 32;
+    x.fillStyle = lit ? `rgba(255,${195 + r() * 40 | 0},${110 + r() * 60 | 0},${.5 + r() * .45})` : 'rgba(30,40,60,.6)'; x.fillRect(X, Y, 18, 20);
+    if (lit && r() < .4) { x.fillStyle = 'rgba(0,0,0,.5)'; x.fillRect(X, Y, 18, 7); }
+  }
+  const t = tex(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; return t;
+}
+function buildCity() {
+  const g = new THREE.Group(), r = cityRand(4242);
+  // sky: deep blue up top, a warm glow of the streets along the horizon
+  const [sc, sx] = makeCanvas(16, 512); let gr = sx.createLinearGradient(0, 0, 0, 512);
+  gr.addColorStop(0, '#04060d'); gr.addColorStop(.42, '#0d1426'); gr.addColorStop(.5, '#3a2a2c'); gr.addColorStop(.56, '#160f12'); gr.addColorStop(1, '#050505'); sx.fillStyle = gr; sx.fillRect(0, 0, 16, 512);
+  const skyMat = new THREE.MeshBasicMaterial({ map: tex(sc), side: THREE.BackSide, fog: false, toneMapped: false });
+  const sky = new THREE.Mesh(new THREE.SphereGeometry(180, 32, 16), skyMat); sky.position.set(0, -10, -40); g.add(sky);
+  const moon = glowSprite(0xbfd0ff, 26, .35); moon.position.set(-40, 50, -150); moon.material.fog = false; g.add(moon);
+  const texs = [0, 1, 2, 3, 4, 5].map(() => windowsTex(r));
+  const roof = new THREE.MeshStandardMaterial({ color: 0x15161b, roughness: .35, metalness: .4 });
+  const bmats = texs.map(t => new THREE.MeshStandardMaterial({ color: 0x2a2f3a, map: t, emissiveMap: t, emissive: 0xffffff, emissiveIntensity: .9, roughness: .6 }));
+  const box = (x, z, w, d, top, mi) => {
+    const h = top + 80, geo = new THREE.BoxGeometry(w, h, d), uv = geo.attributes.uv, n = geo.attributes.normal;
+    for (let i = 0; i < uv.count; i++) { const sx = Math.abs(n.getX(i)) > .5 ? d : w; uv.setXY(i, uv.getX(i) * sx / 16, uv.getY(i) * h / 16); }
+    const m = new THREE.Mesh(geo, [bmats[mi], bmats[mi], roof, roof, bmats[mi], bmats[mi]]); m.position.set(x, top - h / 2, z); g.add(m); return m;
+  };
+  const S = { x: 6, z: -25, top: -2.6 };
+  for (let z = -12; z > -130; z -= 11 + r() * 5) for (let x = -70; x < 80; x += 11 + r() * 6) {
+    if (Math.abs(x - S.x) < 9 && Math.abs(z - S.z) < 8) continue;
+    const near = z > -40 && x > -12 && x < 22;   // keep the way to the sign clear, below it
+    const top = near ? -26 + r() * 16 : z > -60 ? -24 + r() * 20 : z > -95 ? -16 + r() * 30 : -6 + r() * 40 + (r() < .2 ? 20 : 0);
+    const w = 6 + r() * 6, d = 6 + r() * 5, b = box(x + r() * 3, z, w, d, top, r() * 6 | 0);
+    if (r() < .35) { const tank = new THREE.Mesh(new THREE.CylinderGeometry(.9, .9, 1.8, 10), roof); tank.position.set(b.position.x + (r() - .5) * w * .5, top + .9, z + (r() - .5) * d * .5); g.add(tank); }
+    if (r() < .25) { const ant = new THREE.Mesh(new THREE.CylinderGeometry(.06, .06, 6, 4), roof); ant.position.set(b.position.x, top + 3, z); g.add(ant);
+      const red = glowSprite(0xff2a1a, 1.4, .9); red.position.set(b.position.x, top + 6.1, z); red.userData.blink = r() * 6; g.add(red); }
+  }
+  // the building with the sign
+  const sb = box(S.x, S.z, 16, 11, S.top, 2);
+  // rain
+  const N = 1400, rp = new Float32Array(N * 6), seed = [];
+  for (let i = 0; i < N; i++) seed.push([r() * 26 - 8, r() * 22 - 12, -4.8 - r() * 28, .5 + r() * .6]);
+  const rg = new THREE.BufferGeometry(); rg.setAttribute('position', new THREE.BufferAttribute(rp, 3));
+  const rain = new THREE.LineSegments(rg, new THREE.LineBasicMaterial({ color: 0xa8b8d6, transparent: true, opacity: .32 })); rain.frustumCulled = false; g.add(rain);
+  const hemi = new THREE.HemisphereLight(0x3a4a78, 0x120a06, .9); g.add(hemi);
+  const flash = new THREE.DirectionalLight(0xc8d6ff, 0); flash.position.set(-30, 60, -60); g.add(flash);
+  g.visible = false; scene.add(g);
+  return { g, S, sky, skyMat, rain, rp, seed, flash, hemi };
+}
+// the neon sign: the map name in glass tubes, dark until it buzzes on, a row of bulbs around it
+function buildSign(name, vertical) {
+  const g = new THREE.Group(), txt = String(name).toUpperCase(), n = [...txt].length;
+  const cw = vertical ? 512 : 2048, ch = vertical ? Math.max(1024, n * 230 + 160) : 640;
+  const [c, x] = makeCanvas(cw, ch), t = tex(c, { aniso: 16 });
+  const sw = vertical ? 2.6 : 13, sh = sw * ch / cw;
+  const board = new THREE.Mesh(new THREE.BoxGeometry(sw + .5, sh + .5, .3), new THREE.MeshStandardMaterial({ color: 0x14100e, roughness: .5, metalness: .5 })); board.position.z = -.2; g.add(board);
+  const trim = new THREE.Mesh(new THREE.BoxGeometry(sw + .7, sh + .7, .2), M.brass); trim.position.z = -.3; g.add(trim);
+  const face = new THREE.Mesh(new THREE.PlaneGeometry(sw, sh), new THREE.MeshBasicMaterial({ map: t, transparent: true, toneMapped: false, fog: false, depthWrite: false })); g.add(face);
+  // legs down to the roof
+  const legH = vertical ? 0 : 3.2;
+  if (!vertical) [-1, 1].forEach(s => { const l = new THREE.Mesh(new THREE.BoxGeometry(.25, legH, .25), M.steelDark); l.position.set(s * sw * .35, -sh / 2 - legH / 2, -.25); g.add(l);
+    const br = new THREE.Mesh(new THREE.BoxGeometry(.12, legH * 1.2, .12), M.steelDark); br.position.set(s * sw * .35 - s * .8, -sh / 2 - legH / 2, -.25); br.rotation.z = s * .5; g.add(br); });
+  // bulbs around the frame
+  const bulbs = [], bm = () => new THREE.MeshBasicMaterial({ color: 0x3a2a10, toneMapped: false });
+  const per = 2 * (sw + sh), nb = Math.round(per / .55);
+  for (let i = 0; i < nb; i++) { let d = i / nb * per, px, py;
+    if (d < sw) { px = -sw / 2 + d; py = sh / 2 + .12; } else if ((d -= sw) < sh) { px = sw / 2 + .12; py = sh / 2 - d; } else if ((d -= sh) < sw) { px = sw / 2 - d; py = -sh / 2 - .12; } else { d -= sw; px = -sw / 2 - .12; py = -sh / 2 + d; }
+    const b = new THREE.Mesh(new THREE.SphereGeometry(.09, 8, 6), bm()); b.position.set(px, py, .05); g.add(b); bulbs.push(b); }
+  const glow = glowSprite(0xff3a5c, vertical ? 10 : 18, 0); glow.position.z = .4; glow.scale.set(vertical ? 6 : 20, vertical ? 14 : 8, 1); glow.material.fog = false; g.add(glow);
+  const light = new THREE.PointLight(0xff4a6a, 0, 26, 1.4); light.position.set(0, vertical ? 0 : -sh / 2, 2.5); g.add(light);
+  // where each letter sits on the canvas
+  const letters = []; let fs;
+  if (vertical) { fs = 200; x.font = `400 ${fs}px Limelight, serif`; [...txt].forEach((L, i) => letters.push({ L, x: cw / 2, y: 120 + (i + .5) * (ch - 240) / n })); }
+  else { fs = 300; x.font = `400 ${fs}px Limelight, serif`; while (x.measureText(txt).width > cw - 220 && fs > 80) { fs *= .94; x.font = `400 ${fs}px Limelight, serif`; }
+    const tw = x.measureText(txt).width; let cx = (cw - tw) / 2; [...txt].forEach(L => { const w = x.measureText(L).width; letters.push({ L, x: cx + w / 2, y: ch / 2 + 10 }); cx += w; }); }
+  const draw = lv => {
+    x.clearRect(0, 0, cw, ch); x.font = `400 ${fs}px Limelight, serif`; x.textAlign = 'center'; x.textBaseline = 'middle'; x.lineJoin = 'round';
+    letters.forEach((o, i) => { const k = lv[i] || 0;
+      if (k > .02) { x.globalAlpha = k; x.shadowColor = '#ff2a50'; x.shadowBlur = fs * .25; x.strokeStyle = '#ff4a6a'; x.lineWidth = fs * .07; x.strokeText(o.L, o.x, o.y);
+        x.shadowBlur = fs * .08; x.strokeStyle = '#ffe2ea'; x.lineWidth = fs * .025; x.strokeText(o.L, o.x, o.y); x.globalAlpha = 1; } });
+    t.needsUpdate = true; };
+  draw([]);
+  return { g, draw, n, bulbs, glow, light, face, sw, sh, legH, lv: [], key: '' };
+}
+// sparks when the sign comes on
+function buildSparks() {
+  const N = 90, pos = new Float32Array(N * 3), geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  const pts = new THREE.Points(geo, new THREE.PointsMaterial({ color: 0xffd27a, size: .14, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }));
+  pts.frustumCulled = false; return { pts, pos, v: [], t0: -1 };
+}
+
+const _dcp = new THREE.Vector3(), _dct = new THREE.Vector3();
+function drawCamera(a, e, pos, tgt) {   // eases the camera from where it is to the shot
+  if (!a.cam) a.cam = { p: camera.position.clone(), t: camTarget.clone(), ox: view.ox || 0, oy: view.oy || 0 };
+  _dcp.lerpVectors(a.cam.p, pos, e); _dct.lerpVectors(a.cam.t, tgt, e);
+  camera.position.copy(_dcp); camera.up.set(0, 1, 0); camera.lookAt(_dct);
+  camera.setViewOffset(W, H, a.cam.ox * (1 - e), a.cam.oy * (1 - e), W, H); camera.updateProjectionMatrix();
+}
+function drawScene(d, style, onReveal) {
+  if (frozen || REDUCE) return false;
+  if (anim && anim.kind === 'contract') endContract(anim);
+  if (anim && anim.kind === 'burn') endBurn(anim);
+  endDraw(drawA, true);
+  resetRoom(); busy = true; dealt = false; dealT0 = now; dealWait = 999; hovered = focused = -1; cig = 1;
+  cards.forEach(c => { c.hover = 0; c.picked = false; c.pick = 0; });
+  if (!CITY) CITY = buildCity();
+  const narrow = mode === 'narrow';
+  const a = drawA = anim = { kind: 'draw', style: 'city', d, from: snapPose(), onReveal, narrow };
+  a.sign = buildSign(d.map, narrow);
+  const S = CITY.S;
+  if (narrow) { a.sign.g.position.set(S.x - 8.4, S.top - 4.0, S.z + 6.4); a.sign.g.rotation.y = -.15; }   // a tall sign on the corner of the building
+  else { a.sign.g.position.set(S.x, S.top + a.sign.legH + a.sign.sh / 2, S.z + 1.5); a.sign.g.rotation.y = -.08; }
+  CITY.g.add(a.sign.g); a.sp = buildSparks(); CITY.g.add(a.sp.pts);
+  a.sc = a.sign.g.localToWorld(V(0, 0, 0));
+  if (typeof say === 'function') { const R = { qf: 'Quarter-final', sf: 'Semi-final', f: 'The final', b: 'Third place' }[d.round] || (d.roundRaw || 'The draw'); say(R + '.', `${d.a} against ${d.b}.`); }
+  onScreen = true; start(); return true;
+}
+let drawA = null;
+function outside(on) {
+  if (on) { scene.fog = CITY.fog || (CITY.fog = new THREE.Fog(0x0e1426, 14, 95)); scene.background = new THREE.Color(0x05070d); camera.far = 260; }
+  else { scene.fog = ROOM.fog; scene.background = ROOM.bg; camera.far = 60; }
+  camera.updateProjectionMatrix();
+}
+ROOM.fog = scene.fog; ROOM.bg = scene.background;
+function endDraw(a, quiet) {
+  if (!a || a.done) return; a.done = true;
+  if (CITY) { CITY.g.visible = false; if (a.sign) CITY.g.remove(a.sign.g); if (a.sp) CITY.g.remove(a.sp.pts); }
+  outside(false); floor.visible = false; winLight.intensity = 0;
+  boss.position.set(0, 0, -2.62); boss.rotation.set(0, 0, 0); LEGS.forEach(l => l.rotation.set(0, 0, 0));
+  ROOM.men.forEach((m, i) => m.position.copy(ROOM.menHome[i])); if (ROOM.side) ROOM.side.position.copy(ROOM.sideHome);
+  setBlinds(1.05); ROOM.city.material.opacity = 1; ROOM.city.visible = true;
+  cards.forEach(c => c.g.visible = true); deckGroup.visible = !!SPOTS[mode === 'narrow' ? 'narrow' : 'wide'].deck; coverEl.classList.remove('dive');
+  camera.up.set(0, 1, 0); if (mode) fit();
+  if (anim === a) anim = null;
+  busy = false; lighter.visible = false;
+  if (!quiet) { dealT0 = now; dealWait = .2; sfx('deal', dealWait); }
+}
+// keys in world space; the shoulder moves so the hand lands right on the point
+const _rk = new THREE.Vector3(), _rs = new THREE.Vector3();
+function reach(p, side, keys, t) {
+  path(keys, t, _rk); toBody(_rk);
+  const arm = ARMS[side]; _rs.copy(_rk).sub(arm.base); const L = _rs.length();
+  _rs.multiplyScalar(L > 1e-4 ? clamp(L - 1.5, -.5, .95) / L : 0);
+  aimArm(p, side, _rk, _rs);
+}
+// where he is: up from the table, across the room, at the window
+const B0 = V(0, 0, -2.62), B1 = V(.2, .3, -3.05), B2 = V(4.35, .3, -3.5), TURN = Math.atan2(B2.x - B1.x, B2.z - B1.z);
+function bossAt(t, out) {
+  const up = smooth(t, -2.7, -2.0), u = easeInOut(seg(t, -1.6, 1.4));
+  out.p = V().lerpVectors(B0, B1, up).lerp(B2, u);
+  out.walk = bell(t, -1.7, -1.2, 1.0, 1.5); out.phase = u * PI * 7;
+  out.p.y += Math.abs(Math.sin(out.phase)) * .07 * out.walk;
+  out.rot = lerp(0, TURN, smooth(t, -2.1, -1.4)); out.rot = lerp(out.rot, PI, smooth(t, .7, 1.6));
+  return out;
+}
+const _bs = {};
+function drawPose(t, p, a) {
+  p.held = 0; p.cigIn = 1; p.tilt = 0;   // the glass stays on the table
+  const b = bossAt(t, _bs);
+  boss.position.copy(b.p); boss.rotation.y = b.rot;
+  LEGS.forEach((l, i) => l.rotation.x = Math.sin(b.phase + i * PI) * .55 * b.walk);
+  body.updateMatrixWorld(true);
+  // arms: off the table, hanging and swinging as he walks
+  const hang = smooth(t, -2.8, -2.1);
+  ['R', 'L'].forEach((s, i) => {
+    const arm = ARMS[s], sw = Math.sin(b.phase + (i ? 0 : PI)) * .4 * b.walk;
+    const h = V(0, -1.5 * Math.cos(sw), 1.5 * Math.sin(sw) + .15).add(arm.base);
+    aimArm(p, s, V().lerpVectors(arm.restEnd, h, hang), ZERO);
+  });
+  // at the window his left hand opens the blinds
+  if (t > 1.2) {
+    const hW = body.localToWorld(V().copy(ARMS.L.base).add(V(0, -1.5, .15))), bl = V(3.75, 3.35, -4.3), bl2 = V(3.75, 3.05, -4.3);
+    reach(p, 'L', [[1.2, hW], [1.9, bl], [2.4, bl2], [3.6, bl2]], t);
+  }
+  p.yaw = 0; p.pitch = t > 1.6 ? -.04 : t > -2.8 ? .02 : 0;
+}
+const T_OUT = 3.2;   // when the camera goes through the window
+function camKeys(a) {
+  if (a.keys) return a.keys;
+  const sc = a.sc, n = a.narrow;
+  const P = [[-2.2, V(-2.4, 2.8, 2.0)], [0, V(-2.0, 3.0, .4)], [1.6, V(.9, 3.4, -1.7)], [2.7, V(1.85, 3.4, -2.75)], [3.5, V(2.4, 3.15, -5.2)]];
+  const Tg = [[-2.2, V(1.4, 1.8, -3.0)], [0, V(2.5, 2.4, -3.6)], [1.6, V(3.0, 3.2, -4.6)], [2.7, V(2.4, 3.2, -4.6)], [3.5, V(3.6, 0, -14)]];
+  if (n) { P.push([5.2, sc.clone().add(V(-.8, 2.4, 19))], [7, sc.clone().add(V(-.3, .6, 15.8))], [11, sc.clone().add(V(-.2, .5, 15))]); }
+  else { P.push([5.2, sc.clone().add(V(-1.8, 3.2, 16))], [7, sc.clone().add(V(-.6, 2.0, 12.4))], [11, sc.clone().add(V(-.4, 1.7, 11.5))]); }
+  [5.2, 7, 11].forEach(k => Tg.push([k, sc.clone().add(V(0, k < 6 ? -.5 : -.4, 0))]));
+  return (a.keys = { P, Tg });
+}
+function drawSceneUpdate(dt) {
+  const a = anim, d = a.d, t = (drawClock() - d.at) / 1000, T = DRAW_T.city;
+  const sg = a.sign, C = CITY;
+  // the room makes way: the two men step aside, the floor shows, the city light comes in
+  floor.visible = t > -3.2;
+  const aside = smooth(t, -2.6, -1.2);
+  ROOM.men.forEach((m, i) => m.position.lerpVectors(ROOM.menHome[i], V(7.2 + i * .9, -.4, -2.4 - i * .8), aside));
+  if (ROOM.side) ROOM.side.position.lerpVectors(ROOM.sideHome, V(8.2, .55, -3.0), aside);
+  setBlinds(lerp(1.05, 1.5, smooth(t, 1.9, 2.5)) + .07 * smooth(t, 2.6, 3.1));
+  winLight.intensity = 6 * smooth(t, 1.9, 2.6) * (1 - smooth(t, 3.3, 3.6));
+  // footsteps
+  const ph = _bs.phase || 0, st = Math.floor(ph / PI); if (_bs.walk > .3 && st !== a._st) { a._st = st; sfx('step'); }
+  if (!a._up && t > -2.7) { a._up = 1; sfx('chair'); }
+  if (!a._bl && t > 1.95) { a._bl = 1; sfx('blinds'); }
+  // out through the window
+  const out = t > 2.85;
+  if (out !== a._out) { a._out = out; outside(out); C.g.visible = out; if (out) { sfx('toss'); sfx('rain', 9); } }
+  ROOM.city.material.opacity = 1 - smooth(t, 2.85, T_OUT); ROOM.city.visible = t < T_OUT;
+  // camera
+  const K = camKeys(a), cp = path(K.P, t, V()), ct = path(K.Tg, t, V());
+  const e = smoother(smooth(t, -3.2, -2.2));
+  if (e > 0) drawCamera(a, e, cp, ct);
+  // rain
+  if (C.g.visible) { const r = C.rp, cam = camera.position;
+    C.seed.forEach((s, i) => { let y = ((s[1] - now * 26 * s[3]) % 22 + 22) % 22 - 12 + cam.y, x = s[0] + cam.x + (y - cam.y) * .12, z = s[2] + Math.min(0, cam.z + 4.8);
+      r[i * 6] = x; r[i * 6 + 1] = y; r[i * 6 + 2] = z; r[i * 6 + 3] = x - .08; r[i * 6 + 4] = y + .55 * s[3]; r[i * 6 + 5] = z; });
+    C.rain.geometry.attributes.position.needsUpdate = true;
+    C.g.children.forEach(o => { if (o.userData.blink !== undefined) o.material.opacity = (Math.sin(now * 3 + o.userData.blink) > .3) ? .9 : .05; }); }
+  // the sign buzzes on, letter by letter, then holds
+  const lv = [], FL = [0, .7, 0, 0, .9, .2, 1, .4, 1];
+  for (let i = 0; i < sg.n; i++) { const t0 = 5.6 + i * (1.0 / sg.n); const k = Math.floor((t - t0) / .07);
+    lv.push(t < t0 ? 0 : k < FL.length ? FL[k] : 1); }
+  if (t > T - .05) for (let i = 0; i < sg.n; i++) lv[i] = 1;
+  const key = lv.map(v => v.toFixed(1)).join(); if (key !== sg.key) { sg.key = key; sg.draw(lv); }
+  const on = lv.reduce((s, v) => s + v, 0) / sg.n, hum = .9 + .1 * Math.sin(now * 50);
+  sg.glow.material.opacity = on * .55 * hum; sg.light.intensity = on * 60 * hum;
+  if (!a._bz && t > 5.6) { a._bz = 1; sfx('buzz', 2.2); }
+  const bulbsOn = smooth(t, T - .1, T + .1);
+  sg.bulbs.forEach((b, i) => { const k = bulbsOn * (.55 + .45 * (Math.floor(now * 6 + i * .5) % 3 === 0 ? 1 : .3)); b.material.color.setRGB(.25 + 2.6 * k, .17 + 1.9 * k, .06 + .6 * k); });
+  // lightning and sparks as it comes on
+  const fl = Math.max(Math.exp(-Math.max(0, t - T) * 9) * (t >= T ? 1 : 0), Math.exp(-Math.max(0, t - T - .28) * 12) * (t >= T + .28 ? .7 : 0));
+  C.flash.intensity = fl * 7; C.skyMat.color.setScalar(1 + fl * 2.5); C.hemi.intensity = .9 + fl * 2;
+  if (!a._th && t > T + .35) { a._th = 1; sfx('thunder'); }
+  const S = a.sp; if (S.t0 < 0 && t > T - .15) { S.t0 = t; const o = sg.g.localToWorld(V(sg.sw * .38, sg.sh / 2, .2));
+    for (let i = 0; i < S.pos.length / 3; i++) { S.pos[i * 3] = o.x; S.pos[i * 3 + 1] = o.y; S.pos[i * 3 + 2] = o.z; S.v.push(V((Math.random() - .5) * 5, Math.random() * 4, Math.random() * 3)); } }
+  if (S.t0 >= 0) { for (let i = 0; i < S.v.length; i++) { S.v[i].y -= 14 * dt; S.pos[i * 3] += S.v[i].x * dt; S.pos[i * 3 + 1] += S.v[i].y * dt; S.pos[i * 3 + 2] += S.v[i].z * dt; }
+    S.pts.geometry.attributes.position.needsUpdate = true; S.pts.material.opacity = 1 - smooth(t - S.t0, .6, 1.6); }
+  coverEl.classList.toggle('dive', t > -3.2 && t < T + 3.4);
+  if (!a.revealed && t >= T) { a.revealed = true; if (typeof a.onReveal === 'function') setTimeout(() => a.onReveal(), 1800); }
+  if (t > T + 3.6) endDraw(a);
+}
+
 let last = performance.now(), running = false, frames = 0, slow = 0;
 const EMBER2 = scene.getObjectByName('ember2');
 function frame(t) {
@@ -1416,7 +1686,7 @@ function update(dt) {
   }
   if (EMBER2) EMBER2.material.color.setRGB(3 * (.6 + .4 * Math.sin(t * 2.1)), .9 * (.6 + .4 * Math.sin(t * 2.1)), .2);
   // camera drifts with your pointer
-  const still = REDUCE || (anim && (anim.kind === 'contract' || anim.kind === 'burn'));
+  const still = REDUCE || (anim && (anim.kind === 'contract' || anim.kind === 'burn' || anim.kind === 'draw'));
   const tx = still ? par.x : (pointer.in && FINE ? pointer.x * .32 : Math.sin(t * .23) * .12), ty = still ? par.y : (pointer.in && FINE ? -pointer.y * .14 : Math.sin(t * .31) * .05);
   par.x = damp(par.x, tx, 2.5, dt); par.y = damp(par.y, ty, 2.5, dt);
   placeCamera(par.x, par.y);
@@ -1424,6 +1694,8 @@ function update(dt) {
     const ct = now - anim.t0; diveE = smoother(seg(ct, T_DIVE, T_DIVE1));
     if (diveE > 0) diveCamera(anim, diveE);
     body.updateMatrixWorld(); contractScene(ct, anim);
+  } else if (anim && anim.kind === 'draw') {
+    body.updateMatrixWorld(); drawSceneUpdate(dt);
   } else if (anim && anim.kind === 'burn') {
     const bt = now - anim.t0; diveE = 1 - smoother(seg(bt, .2, 1.5));
     if (diveE > 0) diveCamera(anim, diveE); else if (!anim.up) { anim.up = true; camera.up.set(0, 1, 0); if (mode) fit(); placeCamera(par.x, par.y); }
@@ -1459,7 +1731,7 @@ canvas.addEventListener('webglcontextlost', e => { e.preventDefault(); stop(); f
 if ('IntersectionObserver' in window) new IntersectionObserver(es => { onScreen = es[es.length - 1].isIntersecting; if (onScreen) start(); else stop(); }).observe(canvas);
 
 window.room3d = {
-  layout, deal, start, back,
+  layout, deal, start, back, drawScene, drawTime: s => DRAW_T.city,
   focus(k) { if (busy) return; focused = k; if (k >= 0) hovered = -1; kick(); },
   pick(k) { if (anim && anim.kind === 'contract') skipContract(anim); else choose(k); }
 };

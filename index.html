@@ -1066,6 +1066,17 @@ footer::before{content:"";position:absolute;left:0;right:0;top:0;height:14px;bac
       g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.09, t + .02); g.gain.exponentialRampToValueAtTime(.0001, t + .13);
       s.connect(f); f.connect(g); g.connect(fxBus); s.start(t, Math.random()); s.stop(t + .16);
       burst(t + .005, .03, 3600 + k * 200, 2.5, .05); ping(t + .004, 2400 + k * 90, .012, .06); },
+    step: t => { burst(t, .09, 140, 1, .32, 'lowpass'); burst(t + .01, .04, 900, 1.5, .05); },
+    chair: t => { const o = ctx.createOscillator(), f = ctx.createBiquadFilter(), g = ctx.createGain(); o.type = 'sawtooth'; o.frequency.setValueAtTime(95, t); o.frequency.linearRampToValueAtTime(70, t + .35);
+      f.type = 'bandpass'; f.frequency.value = 600; f.Q.value = 4; g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.1, t + .05); g.gain.exponentialRampToValueAtTime(.0001, t + .4); o.connect(f); f.connect(g); g.connect(fxBus); o.start(t); o.stop(t + .45); burst(t + .38, .12, 200, 1, .25, 'lowpass'); },
+    blinds: t => { for (let i = 0; i < 16; i++) burst(t + i * .025 + Math.random() * .01, .03, 2600 + Math.random() * 1800, 3, .07); },
+    rain: (t, dur = 8) => { const s = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain(); s.buffer = white; s.loop = true; f.type = 'highpass'; f.frequency.value = 1200;
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.16, t + .6); g.gain.setValueAtTime(.16, t + dur - 1); g.gain.linearRampToValueAtTime(.0001, t + dur); s.connect(f); f.connect(g); g.connect(fxBus); s.start(t); s.stop(t + dur + .1); },
+    buzz: (t, dur = 2) => { const o = ctx.createOscillator(), f = ctx.createBiquadFilter(), g = ctx.createGain(); o.type = 'sawtooth'; o.frequency.value = 120; f.type = 'bandpass'; f.frequency.value = 480; f.Q.value = 2;
+      g.gain.setValueAtTime(0, t); for (let k = 0; k < 14; k++) g.gain.setValueAtTime(Math.random() < .5 ? .07 : .005, t + k * .07); g.gain.setValueAtTime(.05, t + 1); g.gain.linearRampToValueAtTime(.035, t + dur); g.gain.exponentialRampToValueAtTime(.0001, t + dur + .8);
+      o.connect(f); f.connect(g); g.connect(fxBus); o.start(t); o.stop(t + dur + .9); for (let k = 0; k < 6; k++) burst(t + Math.random() * 1, .03, 4000, 2, .1); },
+    thunder: t => { const s = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain(); s.buffer = white; s.loop = true; f.type = 'lowpass'; f.frequency.setValueAtTime(900, t); f.frequency.exponentialRampToValueAtTime(120, t + 2.5);
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.5, t + .05); g.gain.exponentialRampToValueAtTime(.15, t + .6); g.gain.linearRampToValueAtTime(.25, t + .9); g.gain.exponentialRampToValueAtTime(.0001, t + 3); s.connect(f); f.connect(g); g.connect(fxBus); s.start(t); s.stop(t + 3.1); },
     tick: t => { burst(t, .02, 3200, 3, .07); ping(t, 1500, .01, .03); },
     beat: (t, n = 3) => { const o = ctx.createOscillator(), g = ctx.createGain(); o.frequency.setValueAtTime(90 + (5 - n) * 8, t); o.frequency.exponentialRampToValueAtTime(45, t + .25); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.5, t + .01); g.gain.exponentialRampToValueAtTime(.0001, t + .35); o.connect(g); g.connect(fxBus); o.start(t); o.stop(t + .4); burst(t, .05, 900, 1, .08, 'lowpass'); },
     hit: t => { const o = ctx.createOscillator(), g = ctx.createGain(); o.type = 'triangle'; o.frequency.setValueAtTime(120, t); o.frequency.exponentialRampToValueAtTime(38, t + .6); g.gain.setValueAtTime(.7, t); g.gain.exponentialRampToValueAtTime(.0001, t + .9); o.connect(g); g.connect(fxBus); o.start(t); o.stop(t + 1);
@@ -1537,7 +1548,14 @@ async function pollDraws(){if(!SHEET_URL)return;
   }catch(e){}finally{clearTimeout(pollDraws.t);pollDraws.t=setTimeout(pollDraws,document.hidden?20000:4000)}}
 const DRAW_SPIN=6200;
 /* at the table when the 3D room is there: he draws the map himself; otherwise the card reel */
-function showDraw(d){showReel(d)}
+function showDraw(d){
+  const st="city";
+  try{if(MOTION&&is3d()&&room3d.drawScene&&!document.hidden&&Date.now()<d.at+room3d.drawTime(st)*1000-400){
+    closeDrawer();closeModal();if(cover.hidden){cover.hidden=false;root.classList.add("lock");siteInert(true);layoutScene()}
+    if(room3d.drawScene(d,st,()=>showReel(d,{land:true}))){drawCountdown(d);return}}}catch(e){}
+  showReel(d)}
+function drawCountdown(d){const el=document.createElement("div");el.className="draw-cd";el.setAttribute("aria-live","polite");document.body.appendChild(el);let last=0;
+  const t=setInterval(()=>{const r=d.at-Date.now();if(r<=0){clearInterval(t);el.remove();return}const n=Math.ceil(r/1000);if(n!==last){last=n;if(n<=5){el.innerHTML=`<b>${n}</b>`;el.classList.remove("pop");void el.offsetWidth;el.classList.add("pop");if(window.aphSound)aphSound.fx("beat",n)}else el.innerHTML=`<small>Map draw in</small><b class="sm">${n}</b>`}},100)}
 function showReel(d,opt={}){
   const ov=document.createElement("div");ov.className="draw-ov";ov.setAttribute("role","dialog");ov.setAttribute("aria-label","Map draw");
   const pool=d.pool.length?d.pool:[d.map],seq=[];for(let i=0;i<40;i++)seq.push(pool[(i*7+3)%pool.length]);seq.push(d.map,pool[0],pool[pool.length>1?1:0]);
