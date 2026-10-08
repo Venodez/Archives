@@ -1553,8 +1553,10 @@ async function pollDraws(){if(!SHEET_URL)return;
     const v=(r,i)=>i>=0?t.val(r[i]):"";
     DRAWS=t.rows.map(r=>({tour:v(r,c.t),round:normRound(v(r,c.r)),roundRaw:v(r,c.r),a:v(r,c.a),b:v(r,c.b),map:v(r,c.m),pool:v(r,c.p).split(/\s*,\s*/).filter(Boolean),at:+String(v(r,c.e)).replace(/[^\d]/g,"")||0,mode:v(r,c.mo),style:v(r,c.sy)})).filter(d=>d.map&&d.at);
     const d=DRAWS.reduce((x,y)=>!x||y.at>x.at?y:x,null),now=clock();
-    if(d&&!drawSeen.has(d.at)&&now<d.at+DRAW_SPIN+60000){drawSeen.add(d.at);showDraw(d)}
-  }catch(e){}finally{clearTimeout(pollDraws.t);pollDraws.t=setTimeout(pollDraws,document.hidden?20000:4000)}}
+    // seen too late (slow sheet, tab in the background): play it whole from a short countdown instead of joining halfway
+    if(d&&!drawSeen.has(d.at)&&now<d.at+20000){drawSeen.add(d.at);showDraw(d.at-now<3500?{...d,at:now+3500}:d)}
+  }catch(e){}finally{clearTimeout(pollDraws.t);pollDraws.t=setTimeout(pollDraws,document.hidden?20000:2000)}}
+document.addEventListener("visibilitychange",()=>{if(!document.hidden&&SHEET_URL){clearTimeout(pollDraws.t);pollDraws()}});
 const DRAW_SPIN=6200;
 /* the draw time comes from Google's clock; if this device's clock is off by more than a second or two, follow the server's */
 let SKEW=0;const clock=()=>Date.now()+SKEW;
