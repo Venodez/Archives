@@ -1476,15 +1476,16 @@ function coinFace(name, star) {
 function buildCoin(name) {
   const R = .4, TH = .07, g = new THREE.Group();
   const edge = new THREE.MeshStandardMaterial({ color: 0xd9a63a, metalness: 1, roughness: .28, envMapIntensity: 1.4 });
-  const top = new THREE.MeshStandardMaterial({ map: coinFace(name, false), metalness: .45, roughness: .55, envMapIntensity: .8, emissive: 0x3a2200, emissiveIntensity: .15 });
-  const bot = new THREE.MeshStandardMaterial({ map: coinFace(name, true), metalness: .5, roughness: .5, envMapIntensity: .9, emissive: 0x3a2200, emissiveIntensity: .5 });
+  const mapTex = coinFace(name, false), starTex = coinFace(name, true);
+  const top = new THREE.MeshStandardMaterial({ map: starTex, metalness: .45, roughness: .55, envMapIntensity: .8, emissive: 0x3a2200, emissiveIntensity: .15 });
+  const bot = new THREE.MeshStandardMaterial({ map: starTex, metalness: .5, roughness: .5, envMapIntensity: .9, emissive: 0x3a2200, emissiveIntensity: .5 });
   const m = new THREE.Mesh(new THREE.CylinderGeometry(R, R, TH, 64, 1, true), edge); m.castShadow = true; g.add(m);
   const f1 = new THREE.Mesh(new THREE.CircleGeometry(R, 64), top); f1.rotation.x = -PI / 2; f1.position.y = TH / 2; g.add(f1);
   const f2 = new THREE.Mesh(new THREE.CircleGeometry(R, 64), bot); f2.rotation.x = PI / 2; f2.position.y = -TH / 2; g.add(f2);
   const glint = glowSprite(0xffe2a0, 1.1, 0); g.add(glint);
   const light = new THREE.PointLight(0xffcf70, 0, 3, 2); light.position.y = .4; g.add(light);
   g.visible = false; scene.add(g);
-  return { g, m, glint, light, TH, top };
+  return { g, m, glint, light, TH, top, mapTex, starTex };
 }
 
 // lying on the back of his hand, the top of the text towards him so it reads upright for us
@@ -1511,7 +1512,7 @@ function drawScene(d, style, onReveal) {
   a.coin = buildCoin(d.map);
   try {
     a.coin.g.visible = true; a.coin.g.position.set(0, -50, 0); renderer.compile(scene, camera);
-    a.coin.g.traverse(o => { if (o.material) [].concat(o.material).forEach(m => m.map && renderer.initTexture(m.map)); });
+    a.coin.g.traverse(o => { if (o.material) [].concat(o.material).forEach(m => m.map && renderer.initTexture(m.map)); }); renderer.initTexture(a.coin.mapTex);
     fxTargets(); [brightMat, blurMat, finalMat].forEach(m => { fxQuad.material = m; renderer.compile(fxScene, fxCam); });
     a.coin.g.visible = false;
   } catch (e) {}
@@ -1584,6 +1585,7 @@ function drawSceneUpdate(dt) {
     if (!a._fl) { a._fl = 1; sfx('coin'); }
   } else { c.g.position.copy(onL); c.g.quaternion.copy(coinRest(upL)); c.glint.material.opacity = 0; }
   if (!a._sl && t > COIN_LAND) { a._sl = 1; sfx('land'); sfx('clap'); }
+  const showMap = t > COIN_LAND + .05; if (showMap !== a._mp) { a._mp = showMap; c.top.map = showMap ? c.mapTex : c.starTex; }
   // uncovered: it shines
   const shine = smooth(t, 3.9, T); c.light.intensity = 0; c.top.emissiveIntensity = .15;
   if (!a._hit && t > T - .1) { a._hit = 1; sfx('hit'); }

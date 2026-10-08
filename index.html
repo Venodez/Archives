@@ -1547,14 +1547,15 @@ function prizeHTML(txt,cls=""){const P=prizeParts(txt);if(!P.length)return "";
 /* ---------- the live map draw: started from the sheet, seen by everyone at the same moment ---------- */
 let DRAWS=[];const drawSeen=new Set();
 const pairKey=(a,b)=>[team(a).map(norm).sort().join("&"),team(b).map(norm).sort().join("&")].sort().join("|");
-function mapOf(m){if(m.map)return m.map;const k=pairKey(m.win,m.lose),d=[...DRAWS].reverse().find(d=>same(d.tour,m.tour)&&pairKey(d.a,d.b)===k);return d?d.map:""}
+function mapOf(m){if(m.map)return m.map;const k=pairKey(m.win,m.lose),d=[...DRAWS].reverse().find(d=>same(d.tour,m.tour)&&pairKey(d.a,d.b)===k);return d&&clock()>d.at+DRAW_HIDE?d.map:""}
+const DRAW_HIDE=6000;   // the map stays secret on the site until the coin has shown it
 async function pollDraws(){if(!SHEET_URL)return;
   try{const t=await readTab("Draws");if(!t)return;const c={t:t.col("tournament","tournoi"),r:t.col("round","phase"),a:t.col("team a","player a","a"),b:t.col("team b","player b","b"),m:t.col("map","carte"),p:t.col("pool","maps"),e:t.col("epoch","at (ms)","time (ms)"),mo:t.col("mode"),sy:t.col("style")};
     const v=(r,i)=>i>=0?t.val(r[i]):"";
     DRAWS=t.rows.map(r=>({tour:v(r,c.t),round:normRound(v(r,c.r)),roundRaw:v(r,c.r),a:v(r,c.a),b:v(r,c.b),map:v(r,c.m),pool:v(r,c.p).split(/\s*,\s*/).filter(Boolean),at:+String(v(r,c.e)).replace(/[^\d]/g,"")||0,mode:v(r,c.mo),style:v(r,c.sy)})).filter(d=>d.map&&d.at);
     const d=DRAWS.reduce((x,y)=>!x||y.at>x.at?y:x,null),now=clock();
     // seen too late (slow sheet, tab in the background): play it whole from a short countdown instead of joining halfway
-    if(d&&!drawSeen.has(d.at)&&now<d.at+20000){drawSeen.add(d.at);showDraw(d.at-now<3500?{...d,at:now+3500}:d)}
+    if(d&&!drawSeen.has(d.at)&&now<d.at+20000){drawSeen.add(d.at);setTimeout(()=>{try{renderAll()}catch(e){}},Math.max(0,d.at+DRAW_HIDE-now)+300);showDraw(d.at-now<3500?{...d,at:now+3500}:d)}
   }catch(e){}finally{clearTimeout(pollDraws.t);pollDraws.t=setTimeout(pollDraws,document.hidden?20000:2000)}}
 document.addEventListener("visibilitychange",()=>{if(!document.hidden&&SHEET_URL){clearTimeout(pollDraws.t);pollDraws()}});
 const DRAW_SPIN=6200;
