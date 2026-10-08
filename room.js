@@ -1582,13 +1582,13 @@ function drawSceneUpdate(dt) {
     c.g.position.copy(pos);
     const q = qFlat(V(0, 1, 0).lerp(upL, s).normalize()); q.multiply(new THREE.Quaternion().setFromAxisAngle(V(1, 0, 0), 14 * PI * s)); c.g.quaternion.copy(q);
     c.glint.material.opacity = Math.max(0, Math.cos(14 * PI * s)) ** 8 * .5;
-    if (!a._fl) { a._fl = 1; sfx('coin'); }
+    if (!a._fl) { a._fl = 1; sfx('coinFlick'); sfx('coinSpin', COIN_LAND - .05); }
   } else { c.g.position.copy(onL); c.g.quaternion.copy(coinRest(upL)); c.glint.material.opacity = 0; }
-  if (!a._sl && t > COIN_LAND) { a._sl = 1; sfx('land'); sfx('clap'); }
+  if (!a._sl && t > COIN_LAND) { a._sl = 1; sfx('slap'); }
   const showMap = t > COIN_LAND + .05; if (showMap !== a._mp) { a._mp = showMap; c.top.map = showMap ? c.mapTex : c.starTex; }
   // uncovered: it shines
   const shine = smooth(t, 3.9, T); c.light.intensity = 0; c.top.emissiveIntensity = .15;
-  if (!a._hit && t > T - .1) { a._hit = 1; sfx('hit'); }
+  if (!a._hit && t > T - .7) { a._hit = 1; sfx('reveal', .6); }
   // camera: on him, up with the coin, down onto the hands, then right over the coin
   const look = c.g.position.clone(), head = V(0, 2.6, -2.2);
   let cp = n ? V(0, 3.3, 3.6) : V(0, 2.7, 2.4), ct = n ? V(0, 1.6, -1.6) : V(0, 1.7, -1.7);

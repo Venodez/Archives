@@ -1046,6 +1046,7 @@ footer::before{content:"";position:absolute;left:0;right:0;top:0;height:14px;bac
   function burst(t, dur, f, q, v, type = 'bandpass', att = .005) { const s = ctx.createBufferSource(), fl = ctx.createBiquadFilter(), g = ctx.createGain(); s.buffer = white; fl.type = type; fl.frequency.value = f; fl.Q.value = q;
     g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(v, t + att); g.gain.exponentialRampToValueAtTime(.0001, t + dur); s.connect(fl); fl.connect(g); g.connect(fxBus); s.start(t, Math.random() * 1.5); s.stop(t + dur + .05); return g; }
   function ping(t, f, v, dur) { const o = ctx.createOscillator(), g = ctx.createGain(); o.frequency.value = f; g.gain.setValueAtTime(v, t); g.gain.exponentialRampToValueAtTime(.0001, t + dur); o.connect(g); g.connect(fxBus); o.start(t); o.stop(t + dur + .02); }
+  const PI_ = Math.PI;
   const FX = {
     lid: t => { burst(t, .03, 3800, 1, .5, 'highpass'); ping(t, 2900, .06, .12); ping(t + .004, 4300, .04, .09); },
     light: t => { for (let i = 0; i < 7; i++) burst(t + i * .016, .03, 4200, 2, .28); // the wheel on the flint, then the flame
@@ -1086,6 +1087,32 @@ footer::before{content:"";position:absolute;left:0;right:0;top:0;height:14px;bac
         o.frequency.value = f; am.frequency.value = 9; ag.gain.value = v * .5; am.connect(ag); ag.connect(g.gain); g.gain.setValueAtTime(v, t); g.gain.exponentialRampToValueAtTime(.0001, t + d); o.connect(g); g.connect(fxBus); o.start(t); am.start(t); o.stop(t + d + .05); am.stop(t + d + .05); });
       burst(t, .25, 1600, .7, .08, 'bandpass', .05); },
     clap: t => { burst(t, .06, 1200, .8, .45); burst(t + .005, .18, 300, 1, .3, 'lowpass'); },
+    // the draw: a clock, a rising tension, the coin, the slap, the sting
+    cdTick: (t, n = 9) => { const hi = n % 2 === 0; burst(t, .03, hi ? 3400 : 2600, 5, .38); ping(t, hi ? 1250 : 940, .06, .07); burst(t + .004, .06, 500, 2, .14, 'lowpass'); },
+    riser: (t, dur = 5) => { const s = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain(); s.buffer = white; s.loop = true; f.type = 'bandpass'; f.Q.value = 3;
+      f.frequency.setValueAtTime(250, t); f.frequency.exponentialRampToValueAtTime(5200, t + dur); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.11, t + dur * .9); g.gain.linearRampToValueAtTime(0, t + dur + .05);
+      s.connect(f); f.connect(g); g.connect(fxBus); s.start(t); s.stop(t + dur + .1);
+      [55, 55 * 1.5].forEach((f0, i) => { const o = ctx.createOscillator(), og = ctx.createGain(), lp = ctx.createBiquadFilter(); o.type = 'sawtooth'; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f0 * 2, t + dur);
+        lp.type = 'lowpass'; lp.frequency.setValueAtTime(200, t); lp.frequency.exponentialRampToValueAtTime(1600, t + dur); og.gain.setValueAtTime(0, t); og.gain.linearRampToValueAtTime(.07 - i * .025, t + dur * .95); og.gain.linearRampToValueAtTime(0, t + dur + .05);
+        o.connect(lp); lp.connect(og); og.connect(fxBus); o.start(t); o.stop(t + dur + .1); }); },
+    heart: (t, n = 3) => { [0, .2].forEach((d, i) => { const o = ctx.createOscillator(), g = ctx.createGain(); o.frequency.setValueAtTime(70, t + d); o.frequency.exponentialRampToValueAtTime(40, t + d + .18);
+      g.gain.setValueAtTime(0, t + d); g.gain.linearRampToValueAtTime(i ? .45 : .7, t + d + .01); g.gain.exponentialRampToValueAtTime(.0001, t + d + .25); o.connect(g); g.connect(fxBus); o.start(t + d); o.stop(t + d + .3); }); burst(t, .04, 1400, 2, .12); },
+    duck: (t, dur = 8) => { music.gain.cancelScheduledValues(t); music.gain.setValueAtTime(music.gain.value, t); music.gain.linearRampToValueAtTime(.12, t + .6); music.gain.setValueAtTime(.12, t + dur); music.gain.linearRampToValueAtTime(.55, t + dur + 2.5); },
+    coinFlick: t => { burst(t, .012, 4200, 2, .35); [[2840, .09, 1.4], [7830, .035, .9], [5170, .045, 1.1], [11200, .012, .5]].forEach(([f, v, d]) => ping(t, f, v, d)); burst(t + .02, .35, 900, .6, .1, 'bandpass', .1); },
+    coinSpin: (t, dur = 2.3) => { let k = 0; for (let s = .05; s < dur && k < 70; k++) { const u = s / dur, gap = .03 + .11 * Math.sin(PI_ * u) ** 1.3; const f = 3600 + 900 * Math.sin(k * 1.7);
+        ping(t + s, f, .03 + .035 * Math.sin(PI_ * u), .07); s += gap; } burst(t + dur * .55, dur * .45, 700, .7, .09, 'bandpass', dur * .4); },
+    slap: t => { burst(t, .05, 1600, .7, .6); burst(t + .004, .22, 240, 1, .5, 'lowpass'); const o = ctx.createOscillator(), g = ctx.createGain(); o.frequency.setValueAtTime(110, t); o.frequency.exponentialRampToValueAtTime(42, t + .2);
+      g.gain.setValueAtTime(.6, t); g.gain.exponentialRampToValueAtTime(.0001, t + .3); o.connect(g); g.connect(fxBus); o.start(t); o.stop(t + .32);
+      music.gain.cancelScheduledValues(t); music.gain.setValueAtTime(music.gain.value, t); music.gain.linearRampToValueAtTime(0, t + .05); },
+    reveal: (t, lead = .6) => { const s = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain(); s.buffer = white; s.loop = true; f.type = 'highpass'; f.frequency.value = 3000;
+      g.gain.setValueAtTime(0, t); g.gain.exponentialRampToValueAtTime(.18, t + lead); g.gain.setValueAtTime(0, t + lead + .01); s.connect(f); f.connect(g); g.connect(fxBus); s.start(t); s.stop(t + lead + .05);   // a reversed cymbal into it
+      const T0 = t + lead;
+      [[110, .2], [220, .12], [261.63, .1], [329.63, .09], [415.3, .05]].forEach(([fr, v]) => { [-6, 6].forEach(dt => { const o = ctx.createOscillator(), lp = ctx.createBiquadFilter(), og = ctx.createGain(); o.type = 'sawtooth'; o.frequency.value = fr; o.detune.value = dt;
+        lp.type = 'lowpass'; lp.frequency.setValueAtTime(2600, T0); lp.frequency.exponentialRampToValueAtTime(380, T0 + 2.2); og.gain.setValueAtTime(0, T0); og.gain.linearRampToValueAtTime(v * .5, T0 + .015); og.gain.exponentialRampToValueAtTime(.0001, T0 + 2.6);
+        o.connect(lp); lp.connect(og); og.connect(fxBus); o.start(T0); o.stop(T0 + 2.7); }); });
+      const o = ctx.createOscillator(), g2 = ctx.createGain(); o.frequency.setValueAtTime(90, T0); o.frequency.exponentialRampToValueAtTime(32, T0 + 1); g2.gain.setValueAtTime(.8, T0); g2.gain.exponentialRampToValueAtTime(.0001, T0 + 1.3); o.connect(g2); g2.connect(fxBus); o.start(T0); o.stop(T0 + 1.4);
+      [1760, 2093, 2637, 3520].forEach((f0, i) => ping(T0 + .05 + i * .07, f0, .035, 2.2));
+      music.gain.cancelScheduledValues(T0); music.gain.setValueAtTime(0, T0); music.gain.setValueAtTime(0, T0 + 2.5); music.gain.linearRampToValueAtTime(.55, T0 + 6); },
     tick: t => { burst(t, .02, 3200, 3, .07); ping(t, 1500, .01, .03); },
     beat: (t, n = 3) => { const o = ctx.createOscillator(), g = ctx.createGain(); o.frequency.setValueAtTime(90 + (5 - n) * 8, t); o.frequency.exponentialRampToValueAtTime(45, t + .25); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.5, t + .01); g.gain.exponentialRampToValueAtTime(.0001, t + .35); o.connect(g); g.connect(fxBus); o.start(t); o.stop(t + .4); burst(t, .05, 900, 1, .08, 'lowpass'); },
     hit: t => { const o = ctx.createOscillator(), g = ctx.createGain(); o.type = 'triangle'; o.frequency.setValueAtTime(120, t); o.frequency.exponentialRampToValueAtTime(38, t + .6); g.gain.setValueAtTime(.7, t); g.gain.exponentialRampToValueAtTime(.0001, t + .9); o.connect(g); g.connect(fxBus); o.start(t); o.stop(t + 1);
@@ -1577,7 +1604,7 @@ function drawCountdown(d){document.querySelectorAll(".draw-cd").forEach(e=>e.rem
   let done=false;const tick=()=>{if(done)return;const r=d.at-clock();
     if(r<=0){done=true;clearInterval(iv);b.textContent="";el.classList.add("go");setTimeout(()=>el.remove(),500);return}
     const n=Math.ceil(r/1000);bar.style.transform=`scaleX(${(r%1000)/1000})`;
-    if(n!==last){last=n;b.textContent=n;el.classList.toggle("big",n<=5);b.classList.remove("pop");void b.offsetWidth;b.classList.add("pop");if(n<=5&&window.aphSound)aphSound.fx("beat",n)}
+    if(n!==last){last=n;b.textContent=n;el.classList.toggle("big",n<=5);b.classList.remove("pop");void b.offsetWidth;b.classList.add("pop");if(window.aphSound){if(n>5)aphSound.fx("cdTick",n);else{aphSound.fx(n<=3?"heart":"beat",n);if(n===5){aphSound.fx("riser",5);aphSound.fx("duck",9)}}}}
   };
   const loop=()=>{tick();if(!done)requestAnimationFrame(loop)};iv=setInterval(tick,50);loop()}
 function showReel(d,opt={}){
