@@ -1378,75 +1378,144 @@ function back(go, swap, done) {
   } catch (e) { plain(); }
 }
 
-/* ---------- the map draw at the table: three ways for him to pick the map ---------- */
+/* ---------- the map draw at the table: the safe or the telephone ---------- */
 let drawClock = () => Date.now();
-const DRAW_T = { deck: 4.9, revolver: 5.3, roulette: 5.8 };   // when the map is known, seconds after the draw time
+const DRAW_T = { safe: 5.6, phone: 5.2 };   // when the map is known, seconds after the draw time
 const drawG = new THREE.Group(); scene.add(drawG); drawG.visible = false;
-const mapHue = n => { let h = 0; for (const ch of String(n).toLowerCase()) h = (h * 31 + ch.charCodeAt(0)) % 360; return h; };
-function mapFace(name, mode) {   // a card for a map, like the ones on the site
-  const [c, x] = makeCanvas(360, 504), h = mapHue(name);
-  let g = x.createRadialGradient(110, 80, 20, 180, 260, 420); g.addColorStop(0, `hsl(${h},45%,44%)`); g.addColorStop(.7, `hsl(${h},50%,16%)`); g.addColorStop(1, '#0c0a08');
-  x.fillStyle = g; roundRectPath(x, 0, 0, 360, 504, 30); x.fill(); noise(x, 360, 504, 2500, '#ffffff', '#000000', .05);
-  x.strokeStyle = 'rgba(241,212,140,.55)'; x.lineWidth = 3; roundRectPath(x, 14, 14, 332, 476, 20); x.stroke();
-  x.fillStyle = 'rgba(241,212,140,.9)'; x.font = '400 92px Limelight, serif'; x.textAlign = 'left'; x.fillText(String(name)[0] || '?', 34, 120);
-  x.fillStyle = '#f6ecd6'; x.font = fitFont(x, name, '400 #px Limelight, serif', 64, 300); x.fillText(name, 32, 430);
-  x.fillStyle = 'rgba(241,212,140,.8)'; x.font = '700 24px "Barlow Condensed", Arial, sans-serif'; x.fillText(String(mode || '').toUpperCase(), 34, 468);
-  return tex(c, { aniso: 8 });
+const dQ = new THREE.Quaternion(), dV = new THREE.Vector3(), dV2 = new THREE.Vector3(), dV3 = new THREE.Vector3(), dM = new THREE.Matrix4();
+const DM = {
+  safe: new THREE.MeshStandardMaterial({ color: 0x1c2621, metalness: .55, roughness: .42, envMapIntensity: 1.1 }),
+  safeIn: new THREE.MeshStandardMaterial({ color: 0x3a0d0b, roughness: .95, envMapIntensity: .1 }),
+  bakelite: new THREE.MeshPhysicalMaterial({ color: 0x0c0c0e, roughness: .22, clearcoat: 1, clearcoatRoughness: .15, envMapIntensity: 1.2 }),
+  paper: new THREE.MeshStandardMaterial({ color: 0xf3e7c4, roughness: .9, envMapIntensity: .2 }),
+  board: new THREE.MeshStandardMaterial({ color: 0x6b4a2b, roughness: .85 }),
+  pencil: new THREE.MeshStandardMaterial({ color: 0xd9a12a, roughness: .5 })
+};
+const goldBarMat = () => new THREE.MeshStandardMaterial({ color: 0xffd477, metalness: 1, roughness: .2, envMapIntensity: 1.6, emissive: 0x2a1600 });
+// a gold bar, the map engraved on top
+function buildBar(name) {
+  const g = new THREE.Group(), w = .78, h = .2, l = .42;
+  const geo = new THREE.BoxGeometry(w, h, l); { const p = geo.attributes.position; for (let i = 0; i < p.count; i++) if (p.getY(i) > 0) { p.setX(i, p.getX(i) * .84); p.setZ(i, p.getZ(i) * .76); } geo.computeVertexNormals(); }
+  const mat = goldBarMat(); g.add(new THREE.Mesh(geo, mat));
+  const [c, x] = makeCanvas(640, 320);
+  let gr = x.createLinearGradient(0, 0, 640, 320); gr.addColorStop(0, '#ffe7a3'); gr.addColorStop(.5, '#e2ad45'); gr.addColorStop(1, '#ffdc86'); x.fillStyle = gr; x.fillRect(0, 0, 640, 320);
+  x.strokeStyle = 'rgba(120,70,10,.6)'; x.lineWidth = 6; x.strokeRect(20, 20, 600, 280);
+  x.textAlign = 'center'; x.textBaseline = 'middle';
+  const f = fitFont(x, name, '400 #px Limelight, serif', 120, 540);
+  x.fillStyle = 'rgba(255,248,215,.9)'; x.fillText(name, 322, 154); x.fillStyle = '#7a4a0c'; x.fillText(name, 320, 150);
+  x.font = '700 30px "Barlow Condensed", Arial, sans-serif'; x.fillStyle = '#7a4a0c'; x.fillText('999.9  FINE GOLD', 320, 262);
+  const top = new THREE.Mesh(new THREE.PlaneGeometry(w * .84 - .02, l * .76 - .02), new THREE.MeshStandardMaterial({ map: tex(c, { aniso: 16 }), metalness: .85, roughness: .25, envMapIntensity: 1.4, emissive: 0x3a2200 }));
+  top.rotation.x = -PI / 2; top.position.y = h / 2 + .002; g.add(top);
+  return { g, mat };
 }
-const DCARDS = [], dQ = new THREE.Quaternion(), dQy = new THREE.Quaternion(), dQx = new THREE.Quaternion(), dQf = new THREE.Quaternion(), dV = new THREE.Vector3(), dV2 = new THREE.Vector3();
-// the roulette wheel, built for the pool it is given
-function buildWheel(pool, k) {
-  const g = new THREE.Group(), N = pool.length <= 4 ? pool.length * 3 : pool.length * 2, R = .95;
-  const [c, x] = makeCanvas(1024, 1024), cx = 512, rr = 500, seg = PI * 2 / N;
-  x.fillStyle = '#1a120a'; x.beginPath(); x.arc(cx, cx, rr + 10, 0, PI * 2); x.fill();
-  const slots = [];
-  for (let i = 0; i < N; i++) { const name = pool[i % pool.length], a0 = i * seg - seg / 2, h = mapHue(name); slots.push(name);
-    x.fillStyle = i % 2 ? `hsl(${h},48%,22%)` : `hsl(${h},52%,32%)`; x.beginPath(); x.moveTo(cx, cx); x.arc(cx, cx, rr, a0, a0 + seg); x.closePath(); x.fill();
-    x.strokeStyle = '#d4a64c'; x.lineWidth = 6; x.beginPath(); x.moveTo(cx, cx); x.lineTo(cx + Math.cos(a0) * rr, cx + Math.sin(a0) * rr); x.stroke();
-    x.save(); x.translate(cx, cx); x.rotate(i * seg); x.fillStyle = '#f6ecd6'; x.font = fitFont(x, name, '400 #px Limelight, serif', 46, 230); x.textAlign = 'right'; x.textBaseline = 'middle'; x.fillText(name, rr - 26, 0); x.restore(); }
-  x.fillStyle = '#2a1d10'; x.beginPath(); x.arc(cx, cx, 170, 0, PI * 2); x.fill(); x.strokeStyle = '#d4a64c'; x.lineWidth = 8; x.stroke();
-  x.beginPath(); x.arc(cx, cx, rr, 0, PI * 2); x.lineWidth = 12; x.stroke();
-  const top = new THREE.Mesh(new THREE.CircleGeometry(R, 96), new THREE.MeshStandardMaterial({ map: tex(c, { aniso: 16 }), roughness: .45, metalness: .1 }));
-  top.rotation.x = -PI / 2; top.position.y = .135; top.renderOrder = 2;
-  const body = new THREE.Mesh(new THREE.CylinderGeometry(R, R * 1.06, .12, 72), M.trim); body.position.y = .06;
-  const rim = new THREE.Mesh(new THREE.TorusGeometry(R * 1.02, .045, 12, 96), M.brass); rim.rotation.x = PI / 2; rim.position.y = .14;
-  const hub = new THREE.Mesh(new THREE.ConeGeometry(.16, .22, 24), M.brass); hub.position.y = .23;
-  const spin = new THREE.Group(); spin.add(top, hub); g.add(body, rim, spin);
-  const bowl = new THREE.Mesh(new THREE.CylinderGeometry(R * 1.32, R * 1.26, .2, 72, 1, true), M.leather); bowl.position.y = .1; g.add(bowl);
-  const ball = new THREE.Mesh(new THREE.SphereGeometry(.07, 18, 14), new THREE.MeshStandardMaterial({ color: 0xfaf5ea, roughness: .2, metalness: .05, emissive: 0x332a1a })); g.add(ball);
-  // a pocket that holds the drawn map
-  const picks = slots.map((s, i) => s === pool[k] ? i : -1).filter(i => i >= 0);
-  return { g, spin, ball, N, seg, R, slot: picks[0] };
+// the combination dial, map names in place of numbers
+function dialTex(slots) {
+  const [c, x] = makeCanvas(1024, 1024), cx = 512, N = slots.length, sg = PI * 2 / N;
+  let gr = x.createRadialGradient(400, 380, 30, cx, cx, 512); gr.addColorStop(0, '#3a3a40'); gr.addColorStop(1, '#0d0d10'); x.fillStyle = gr; x.beginPath(); x.arc(cx, cx, 510, 0, PI * 2); x.fill();
+  x.strokeStyle = '#c9a24a'; x.lineWidth = 14; x.beginPath(); x.arc(cx, cx, 496, 0, PI * 2); x.stroke();
+  for (let i = 0; i < N * 5; i++) { const a = i * sg / 5; x.save(); x.translate(cx, cx); x.rotate(a); x.fillStyle = '#e8d6a8'; x.fillRect(-2, -488, 4, i % 5 ? 22 : 44); x.restore(); }
+  slots.forEach((n, i) => { x.save(); x.translate(cx, cx); x.rotate(i * sg); x.fillStyle = '#f6ecd6'; fitFont(x, n, '400 #px Limelight, serif', 62, Math.min(330, 2 * PI * 380 / N * .9)); x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(n, 0, -380); x.restore(); });
+  x.fillStyle = '#151518'; x.beginPath(); x.arc(cx, cx, 250, 0, PI * 2); x.fill(); x.strokeStyle = '#8f7433'; x.lineWidth = 8; x.stroke();
+  for (let i = 0; i < 36; i++) { x.save(); x.translate(cx, cx); x.rotate(i * PI / 18); x.fillStyle = '#26262b'; x.fillRect(-10, -246, 20, 40); x.restore(); }
+  return tex(c, { aniso: 16 });
 }
-// the revolver cylinder, a name engraved by each chamber
-function buildDrum(pool) {
-  const g = new THREE.Group(), N = pool.length <= 3 ? 6 : 8, R = .62;
-  const side = new THREE.Mesh(new THREE.CylinderGeometry(R, R, .5, 48), M.steelDark); side.rotation.x = PI / 2;
-  const [c, x] = makeCanvas(1024, 1024), cx = 512, cr = 470;
-  x.fillStyle = '#16181d'; x.fillRect(0, 0, 1024, 1024);
-  let gr = x.createRadialGradient(cx - 120, cx - 160, 40, cx, cx, cr); gr.addColorStop(0, '#5a5f6b'); gr.addColorStop(1, '#16181d'); x.fillStyle = gr; x.beginPath(); x.arc(cx, cx, cr, 0, PI * 2); x.fill();
-  noise(x, 1024, 1024, 6000, '#ffffff', '#000000', .04);
-  x.strokeStyle = '#8a8f99'; x.lineWidth = 10; x.beginPath(); x.arc(cx, cx, cr - 5, 0, PI * 2); x.stroke();
-  const ang = i => PI / 2 + i * PI * 2 / N;
-  for (let i = 0; i < N; i++) { const a = ang(i), hx = cx + Math.cos(a) * 270, hy = cx - Math.sin(a) * 270, name = pool[i % pool.length];
-    x.fillStyle = '#050505'; x.beginPath(); x.arc(hx, hy, 92, 0, PI * 2); x.fill(); x.strokeStyle = '#c9a24a'; x.lineWidth = 10; x.stroke();
-    x.save(); x.translate(hx, hy); x.rotate(-i * PI * 2 / N); x.fillStyle = '#e8c977'; x.font = fitFont(x, name, '400 #px Limelight, serif', 40, 150); x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(name, 0, 0); x.restore(); }
-  x.fillStyle = '#0b0c0e'; x.beginPath(); x.arc(cx, cx, 64, 0, PI * 2); x.fill(); x.strokeStyle = '#8a8f99'; x.lineWidth = 8; x.stroke();
-  const face = new THREE.Mesh(new THREE.CircleGeometry(R, 72), new THREE.MeshStandardMaterial({ map: tex(c, { aniso: 16 }), roughness: .45, metalness: .25 })); face.position.z = .252;
-  const spin = new THREE.Group(); spin.add(side, face); g.add(spin);
-  const glow = glowSprite(0xffc860, .9, 0); glow.position.set(0, R * .435, .3); g.add(glow);
-  const halo = new THREE.Mesh(new THREE.TorusGeometry(R * .26, .03, 12, 48), new THREE.MeshBasicMaterial({ color: 0xffd27a, transparent: true, opacity: 0 })); halo.position.set(0, R * .435, .27); g.add(halo);
-  const lamp = new THREE.PointLight(0xffe2b0, 0, 4, 2); lamp.position.set(.3, .4, 1.3); g.add(lamp);
-  const pin = new THREE.Mesh(new THREE.ConeGeometry(.08, .2, 3), new THREE.MeshStandardMaterial({ color: 0xa3221b, emissive: 0x5a0a06, roughness: .4 })); pin.rotation.z = PI; pin.position.set(0, R + .16, .2); g.add(pin);
-  return { g, spin, face, glow, halo, lamp, N, ang };
+function buildSafe(slots, k) {
+  const g = new THREE.Group(), W = 1.3, H = 1.5, D = 1.1, th = .1;
+  const box = (w, h, d, x, y, z, m = DM.safe) => { const o = new THREE.Mesh(new RoundedBox(w, h, d, 2, .03), m); o.position.set(x, y, z); o.castShadow = o.receiveShadow = true; g.add(o); return o; };
+  const by = .12 + H / 2;
+  box(W, H, th, 0, by, -D / 2 + th / 2); box(th, H, D, -W / 2 + th / 2, by, 0); box(th, H, D, W / 2 - th / 2, by, 0);
+  box(W, th, D, 0, .12 + H - th / 2, 0); box(W, th, D, 0, .12 + th / 2, 0);
+  const inner = new THREE.Mesh(new THREE.BoxGeometry(W - 2 * th - .02, H - 2 * th - .02, D - th - .02), DM.safeIn); inner.material.side = THREE.BackSide; inner.position.set(0, by, th / 2); g.add(inner);
+  [-1, 1].forEach(sx => [-1, 1].forEach(sz => { const f = new THREE.Mesh(new THREE.CylinderGeometry(.07, .09, .12, 12), M.brass); f.position.set(sx * (W / 2 - .12), .06, sz * (D / 2 - .12)); g.add(f); }));
+  const shelf = new THREE.Mesh(new THREE.BoxGeometry(W - 2 * th, .03, D - th - .05), DM.safe); shelf.position.set(0, .12 + H * .36, .03); g.add(shelf);
+  const bar = buildBar(slots[k]); bar.g.scale.setScalar(1.25); bar.g.position.set(0, shelf.position.y + .14, .1); g.add(bar.g);
+  const bar2 = new THREE.Mesh(bar.g.children[0].geometry, bar.mat); bar2.position.set(-.18, shelf.position.y - .23 - .115 + .02, -.1); bar2.rotation.y = .15; g.add(bar2);
+  const bar3 = bar2.clone(); bar3.position.set(.2, bar2.position.y, -.05); bar3.rotation.y = -.1; g.add(bar3);
+  const glow = glowSprite(0xffcf6a, 1.2, 0); glow.position.set(0, bar.g.position.y + .15, .15); g.add(glow);
+  const light = new THREE.PointLight(0xffd27a, 0, 2.6, 2); light.position.set(0, .12 + H - .3, .35); g.add(light);
+  // the door, hinged on the right as you look at it
+  const hinge = new THREE.Group(); hinge.position.set(W / 2 - .02, by, D / 2 + .04); g.add(hinge);
+  const dw = W - .04, door = new THREE.Group(); door.position.x = -dw / 2; hinge.add(door);
+  const [c, x] = makeCanvas(512, 600); x.fillStyle = '#1c2621'; x.fillRect(0, 0, 512, 600); noise(x, 512, 600, 3000, '#ffffff', '#000000', .03);
+  x.strokeStyle = '#c9a24a'; x.lineWidth = 5; x.strokeRect(30, 30, 452, 540); x.lineWidth = 2; x.strokeRect(44, 44, 424, 512);
+  [[30, 30], [482, 30], [30, 570], [482, 570]].forEach(([px, py]) => { x.fillStyle = '#c9a24a'; x.beginPath(); x.arc(px, py, 10, 0, PI * 2); x.fill(); });
+  const dp = new THREE.Mesh(new THREE.BoxGeometry(dw, H - .04, .1), [DM.safe, DM.safe, DM.safe, DM.safe, new THREE.MeshStandardMaterial({ map: tex(c), metalness: .5, roughness: .42, envMapIntensity: 1.1 }), DM.safe]); dp.castShadow = true; door.add(dp);
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(.33, .035, 12, 64), M.brass); ring.position.set(0, .2, .06); door.add(ring);
+  const dial = new THREE.Mesh(new THREE.CylinderGeometry(.31, .31, .07, 64), M.steelDark);
+  dial.rotation.x = PI / 2; const dialG = new THREE.Group(); dialG.position.set(0, .2, .09); dialG.add(dial); door.add(dialG);
+  const dface = new THREE.Mesh(new THREE.CircleGeometry(.305, 64), new THREE.MeshStandardMaterial({ map: dialTex(slots), metalness: .3, roughness: .4 })); dface.position.z = .036; dialG.add(dface);
+  const knob = new THREE.Mesh(new THREE.CylinderGeometry(.09, .1, .1, 24), M.brass); knob.rotation.x = PI / 2; knob.position.z = .07; dialG.add(knob);
+  const mark = new THREE.Mesh(new THREE.ConeGeometry(.04, .09, 3), new THREE.MeshStandardMaterial({ color: 0xa3221b, emissive: 0x5a0a06, roughness: .4 })); mark.rotation.z = PI; mark.position.set(0, .2 + .4, .08); door.add(mark);
+  const handle = new THREE.Group(); handle.position.set(0, -.32, .08); door.add(handle);
+  const hub = new THREE.Mesh(new THREE.CylinderGeometry(.07, .07, .08, 20), M.brass); hub.rotation.x = PI / 2; handle.add(hub);
+  for (let i = 0; i < 3; i++) { const sp = new THREE.Mesh(new THREE.CylinderGeometry(.025, .025, .34, 10), M.brass); sp.position.set(Math.sin(i * PI * 2 / 3) * .17, Math.cos(i * PI * 2 / 3) * .17, .04); sp.rotation.z = -i * PI * 2 / 3; handle.add(sp);
+    const ball = new THREE.Mesh(new THREE.SphereGeometry(.045, 12, 10), M.brass); ball.position.set(Math.sin(i * PI * 2 / 3) * .34, Math.cos(i * PI * 2 / 3) * .34, .04); handle.add(ball); }
+  [-1, 1].forEach(s => { const h = new THREE.Mesh(new THREE.CylinderGeometry(.04, .04, .22, 12), M.brass); h.position.set(W / 2 - .02, by + s * .5, D / 2 + .04); g.add(h); });
+  return { g, hinge, dialG, handle, bar, glow, light, N: slots.length, H, dialY: .2 + by, D };
 }
-const _dcp = new THREE.Vector3(), _dct = new THREE.Vector3(), _dcu = new THREE.Vector3();
+// a black rotary telephone and a notepad
+function buildPhone() {
+  const g = new THREE.Group();
+  const base = new THREE.Mesh(new THREE.CylinderGeometry(.42, .52, .32, 4, 1), DM.bakelite); base.rotation.y = PI / 4; base.scale.set(1.1, 1, .85); base.position.y = .16; base.castShadow = true; g.add(base);
+  const topG = new THREE.Mesh(new THREE.BoxGeometry(.5, .1, .42), DM.bakelite); topG.position.set(0, .35, -.05); g.add(topG);
+  const [c, x] = makeCanvas(256, 256); x.fillStyle = '#f2ead8'; x.beginPath(); x.arc(128, 128, 126, 0, PI * 2); x.fill();
+  x.fillStyle = '#1a1a1a'; x.font = '700 22px "Barlow Condensed", Arial'; x.textAlign = 'center'; x.textBaseline = 'middle';
+  for (let i = 0; i < 10; i++) { const a = -PI * .35 - i * PI * 1.45 / 9; x.fillText(String((i + 1) % 10), 128 + Math.cos(a) * 82, 128 + Math.sin(a) * 82); }
+  const face = new THREE.Mesh(new THREE.CircleGeometry(.2, 40), new THREE.MeshStandardMaterial({ map: tex(c), roughness: .5 })); face.position.set(0, .23, .33); face.rotation.x = -.62; g.add(face);
+  const dial = new THREE.Mesh(new THREE.RingGeometry(.06, .21, 40), new THREE.MeshStandardMaterial({ color: 0x18181a, metalness: .6, roughness: .3, transparent: true, opacity: .55, side: THREE.DoubleSide })); dial.position.set(0, .236, .338); dial.rotation.x = -.62; g.add(dial);
+  // cradle prongs
+  [-1, 1].forEach(s => { const pr = new THREE.Mesh(new THREE.BoxGeometry(.07, .14, .1), DM.bakelite); pr.position.set(s * .3, .45, -.05); g.add(pr); });
+  // handset: earpiece at +x
+  const hs = new THREE.Group();
+  const hand = new THREE.Mesh(new THREE.CylinderGeometry(.06, .06, .62, 14), DM.bakelite); hand.rotation.z = PI / 2; hs.add(hand);
+  [-1, 1].forEach(s => { const cup = new THREE.Mesh(new THREE.CylinderGeometry(.13, .1, .15, 20), DM.bakelite); cup.position.set(s * .33, -.07, 0); hs.add(cup);
+    const arm = new THREE.Mesh(new THREE.CylinderGeometry(.055, .055, .12, 10), DM.bakelite); arm.position.set(s * .31, -.02, 0); hs.add(arm); });
+  hs.traverse(o => o.castShadow = true);
+  const restP = V(0, .55, -.05), restQ = new THREE.Quaternion(); hs.position.copy(restP); g.add(hs);
+  // the cord, redrawn each frame between the base and the handset
+  const cordMat = DM.bakelite, cord = new THREE.Mesh(new THREE.TubeGeometry(new THREE.LineCurve3(V(0, 0, 0), V(0, .1, 0)), 4, .018, 6), cordMat); scene.add(cord);
+  return { g, hs, restP, restQ, cord };
+}
+function padTex() { const [c, x] = makeCanvas(400, 520); return { c, x, t: tex(c, { aniso: 8 }) }; }
+function drawPad(pt, name, k) {
+  const { c, x } = pt; x.fillStyle = '#f6edcf'; x.fillRect(0, 0, 400, 520);
+  x.strokeStyle = 'rgba(70,110,170,.35)'; x.lineWidth = 2; for (let y = 120; y < 520; y += 44) { x.beginPath(); x.moveTo(0, y); x.lineTo(400, y); x.stroke(); }
+  x.strokeStyle = 'rgba(190,60,50,.45)'; x.beginPath(); x.moveTo(52, 0); x.lineTo(52, 520); x.stroke();
+  x.fillStyle = 'rgba(40,30,20,.45)'; for (let i = 0; i < 9; i++) { x.beginPath(); x.arc(40 + i * 40, 18, 7, 0, PI * 2); x.fill(); }
+  if (k > 0) {
+    x.save(); x.beginPath(); x.rect(0, 0, 70 + 310 * k, 520); x.clip();
+    x.translate(200, 270); x.rotate(-.08); x.fillStyle = '#1b2440'; x.textAlign = 'center'; x.textBaseline = 'middle';
+    fitFont(x, name, 'italic 400 #px Limelight, serif', 96, 320); x.fillText(name, 0, 0);
+    x.strokeStyle = '#1b2440'; x.lineWidth = 5; x.beginPath(); x.moveTo(-140, 62); x.bezierCurveTo(-60, 52, 60, 76, 150, 58); x.stroke();
+    x.restore();
+    if (k >= 1) { x.save(); x.translate(330, 420); x.rotate(-.2); x.strokeStyle = '#1b2440'; x.lineWidth = 4; x.beginPath(); x.arc(0, 0, 34, 0, PI * 2); x.stroke(); x.restore(); }
+  }
+  pt.t.needsUpdate = true;
+}
+function buildPad(name) {
+  const g = new THREE.Group(), w = .62, l = .8;
+  const back = new THREE.Mesh(new THREE.BoxGeometry(w, .03, l), DM.board); back.position.y = .015; g.add(back);
+  const stack = new THREE.Mesh(new THREE.BoxGeometry(w - .02, .06, l - .02), DM.paper); stack.position.y = .06; g.add(stack);
+  const top = padTex(); drawPad(top, name, 0);
+  const page = new THREE.Group(); g.add(page); page.position.set(0, .092, 0);
+  const pm = new THREE.Mesh(new THREE.PlaneGeometry(w - .02, l - .02), new THREE.MeshStandardMaterial({ map: top.t, roughness: .85, side: THREE.DoubleSide, envMapIntensity: .2 }));
+  pm.rotation.x = -PI / 2; page.add(pm); pm.castShadow = true;
+  const under = new THREE.Mesh(new THREE.PlaneGeometry(w - .02, l - .02), new THREE.MeshStandardMaterial({ map: (() => { const t = padTex(); drawPad(t, '', 0); return t.t; })(), roughness: .85 }));
+  under.rotation.x = -PI / 2; under.position.y = .091; g.add(under);
+  const pencil = new THREE.Group(); const pb = new THREE.Mesh(new THREE.CylinderGeometry(.025, .025, .5, 6), DM.pencil); pb.position.y = .25; pencil.add(pb);
+  const tip = new THREE.Mesh(new THREE.ConeGeometry(.025, .07, 6), DM.paper); tip.rotation.z = PI; tip.position.y = -.035; pencil.add(tip);
+  pencil.position.set(w / 2 - .02, .03, .1); pencil.rotation.set(0, 0, -PI / 2 + .1); g.add(pencil);
+  return { g, page, top, pencil, pencilRest: { p: pencil.position.clone(), q: pencil.quaternion.clone() } };
+}
+const _dcp = new THREE.Vector3(), _dct = new THREE.Vector3();
 function drawCamera(a, e, pos, tgt) {   // eases the camera from where it is to a close look at the draw
   if (!a.cam) a.cam = { p: camera.position.clone(), t: camTarget.clone(), ox: view.ox || 0, oy: view.oy || 0 };
   _dcp.lerpVectors(a.cam.p, pos, e); _dct.lerpVectors(a.cam.t, tgt, e);
   camera.position.copy(_dcp); camera.up.set(0, 1, 0); camera.lookAt(_dct);
   camera.setViewOffset(W, H, a.cam.ox * (1 - e), a.cam.oy * (1 - e), W, H); camera.updateProjectionMatrix();
 }
+// props out of the way while the scene is on
+function clearSpot(a, pts) { a.hid = []; Object.keys(P).forEach(k => { const o = P[k]; if (!o || !o.visible) return; if (pts.some(q => Math.hypot(o.position.x - q.x, o.position.z - q.z) < 1.45)) { o.visible = false; a.hid.push(o); } }); }
 function drawScene(d, style, onReveal) {
   if (frozen || REDUCE) return false;
   if (anim && anim.kind === 'contract') endContract(anim);
@@ -1455,21 +1524,25 @@ function drawScene(d, style, onReveal) {
   resetRoom(); busy = true; dealt = false; dealT0 = now; dealWait = 999; hovered = focused = -1; cig = 1;
   cards.forEach(c => { c.hover = 0; c.picked = false; c.pick = 0; });
   const pool = d.pool && d.pool.length ? d.pool.slice() : [d.map]; if (pool.indexOf(d.map) < 0) pool.push(d.map);
+  if (!DRAW_T[style]) style = 'safe';
   const a = drawA = anim = { kind: 'draw', style, d, pool, from: snapPose(), onReveal, k: Math.abs(Math.floor(d.at / 7)) % pool.length };
   // the drawn map goes in a known place, the others around it
   a.order = pool.filter(m => m !== d.map); a.order.splice(a.k, 0, d.map);
   cards.forEach(c => c.g.visible = false); deckGroup.visible = false;
-  drawG.visible = true; while (drawG.children.length) drawG.remove(drawG.children[0]); DCARDS.length = 0;
+  drawG.visible = true; while (drawG.children.length) drawG.remove(drawG.children[0]);
   const narrow = mode === 'narrow';
-  if (style === 'deck') {
-    const n = a.order.length, gap = narrow ? .82 : .98, z = narrow ? -.55 : -.7;
-    a.order.forEach((name, i) => { const gr = new THREE.Group(); const f = new THREE.Mesh(cardGeo, new THREE.MeshStandardMaterial({ map: mapFace(name, d.mode), roughness: .55 })); f.position.z = .003;
-      const b = new THREE.Mesh(cardGeo, M.back); b.rotation.y = PI; b.position.z = -.003; f.castShadow = b.castShadow = true; gr.add(f, b); drawG.add(gr);
-      DCARDS.push({ g: gr, rest: V((i - (n - 1) / 2) * gap, .012, z), yaw: (i - (n - 1) / 2) * -.05, name }); });
-  } else if (style === 'roulette') {
-    a.w = buildWheel(a.order, a.k); a.w.g.position.set(0, 0, narrow ? .05 : -.05); a.w.g.scale.setScalar(narrow ? .85 : 1); drawG.add(a.w.g);
+  if (style === 'safe') {
+    const slots = a.order.length <= 4 ? a.order.concat(a.order) : a.order.slice(), k = a.k;
+    a.s = buildSafe(slots, k); a.s.k = k;
+    a.spot = narrow ? V(1.85, 0, -.75) : V(2.75, 0, -1.25);
+    a.s.g.position.copy(a.spot); a.s.g.rotation.y = narrow ? -.5 : -.42; a.s.g.scale.setScalar(narrow ? .78 : 1); drawG.add(a.s.g);
+    clearSpot(a, [a.spot]);
   } else {
-    a.r = buildDrum(a.order); a.r.g.position.set(0, 1.05, narrow ? .25 : -.15); a.r.g.scale.setScalar(narrow ? .8 : 1); drawG.add(a.r.g);
+    a.ph = buildPhone(); a.pad = buildPad(d.map);
+    a.phSpot = narrow ? V(-1.1, 0, -.35) : V(-1.75, 0, -.25); a.padSpot = narrow ? V(1.0, 0, -.35) : V(1.4, 0, -.3);
+    a.ph.g.position.copy(a.phSpot); a.ph.g.rotation.y = narrow ? .35 : .45; a.ph.g.scale.setScalar(narrow ? 1.0 : 1.25); drawG.add(a.ph.g);
+    a.pad.g.position.copy(a.padSpot); a.pad.g.rotation.y = -.25; a.pad.g.scale.setScalar(narrow ? .9 : 1); drawG.add(a.pad.g);
+    clearSpot(a, [a.phSpot, a.padSpot]);
   }
   if (typeof say === 'function') { const R = { qf: 'Quarter-final', sf: 'Semi-final', f: 'The final', b: 'Third place' }[d.round] || (d.roundRaw || 'The draw'); say(R + '.', `${d.a} against ${d.b}.`); }
   onScreen = true; start(); return true;
@@ -1477,85 +1550,126 @@ function drawScene(d, style, onReveal) {
 let drawA = null;
 function endDraw(a, quiet) {
   if (!a || a.done) return; a.done = true;
-  drawG.visible = false; while (drawG.children.length) drawG.remove(drawG.children[0]); DCARDS.length = 0;
+  drawG.visible = false; while (drawG.children.length) drawG.remove(drawG.children[0]);
+  if (a.ph) { scene.remove(a.ph.cord); a.ph.cord.geometry.dispose(); }
+  (a.hid || []).forEach(o => o.visible = true);
   cards.forEach(c => c.g.visible = true); deckGroup.visible = !!SPOTS[mode === 'narrow' ? 'narrow' : 'wide'].deck; coverEl.classList.remove('dive');
   camera.up.set(0, 1, 0); if (mode) fit();
   if (anim === a) anim = null;
   busy = false; lighter.visible = false;
   if (!quiet) { dealT0 = now; dealWait = .2; sfx('deal', dealWait); }
 }
+// keys in world space; the shoulder moves so the hand lands right on the point
+const _rk = new THREE.Vector3(), _rs = new THREE.Vector3();
+function reach(p, side, keys, t) {
+  path(keys, t, _rk); toBody(_rk);
+  const arm = ARMS[side]; _rs.copy(_rk).sub(arm.base); const L = _rs.length();
+  _rs.multiplyScalar(L > 1e-4 ? clamp(L - 1.5, -.5, .95) / L : 0);
+  aimArm(p, side, _rk, _rs);
+}
+const restW = side => body.localToWorld(ARMS[side].restEnd.clone());
 function drawPose(t, p, a) {
-  const RE = ARMS.R.restEnd, LE = ARMS.L.restEnd;
   p.held = 0; p.cigIn = 1; p.tilt = 0;   // the glass stays on the table
-  if (a.style === 'deck') {
-    // his hand passes along the row, waits, comes back, and picks
-    const pts = DCARDS.map(c => toBody(c.rest.clone().add(V(0, .5, 0))));
-    if (pts.length) {
-      const k = a.k, keys = [[0, RE], [.6, pts[0]]]; let t0 = .6;
-      pts.forEach((q, i) => { t0 += i ? .5 : .1; keys.push([t0, q]); });
-      keys.push([t0 + .35, pts[Math.max(0, pts.length - 2)]]); keys.push([t0 + .9, pts[k]]); keys.push([t0 + 1.35, pts[k].clone().add(V(0, -.3, 0))]); keys.push([t0 + 1.55, pts[k]]); keys.push([t0 + 2.4, RE]);
-      a.tap = t0 + 1.35;
-      const sh = keys.map(([tt, q]) => [tt, q === RE ? ZERO : V(clamp(q.x * .45 + .25, -.3, .7), -.15, .7)]);
-      armPath(p, 'R', keys, sh, t);
-    }
-    p.yaw = t > 0 && t < 4 ? clamp((DCARDS[Math.min(DCARDS.length - 1, Math.max(0, Math.floor(t / .5)))] || { rest: V(0, 0, 0) }).rest.x * -.12, -.3, .3) : 0; p.pitch = t > -1 && t < 5 ? .22 : 0;
-  } else if (a.style === 'roulette') {
-    // he throws the ball in, then sits back and smokes
-    const w = a.w.g.position, q = toBody(V(w.x + .9, .5, w.z + .2));
-    armPath(p, 'R', [[-.6, RE], [0, q], [.12, toBody(V(w.x + .3, .4, w.z + .6))], [.9, RE]], [[-.6, ZERO], [0, V(0, -.05, .4)], [.12, V(0, -.05, .45)], [.9, ZERO]], t);
-    p.pitch = t > -1 && t < 6.5 ? .25 : 0; p.yaw = 0;
+  if (a.style === 'safe') {
+    const s = a.s, RL = restW('L'), dial = s.g.localToWorld(V(-.42, s.dialY - .05, s.D / 2 + .32)), knob = s.g.localToWorld(V(-.38, s.dialY - .55, s.D / 2 + .3)), out = s.g.localToWorld(V(-.7, s.dialY - .1, s.D / 2 + .7));
+    const wig = t > .1 && t < 4.1 ? V(Math.sin(t * 11) * .03, Math.cos(t * 9) * .02, 0) : V(0, 0, 0);
+    reach(p, 'L', [[-1.3, RL], [-.1, out], [.1, dial.clone().add(wig)], [4.1, dial], [4.35, knob], [4.7, knob.clone().add(V(0, .12, 0))], [4.95, out], [5.4, RL]], t);
+    if (t > .1 && t < 4.1) { const d0 = dial.clone().add(wig); reach(p, 'L', [[0, d0], [1, d0]], 0); }
+    p.yaw = t > -1.4 && t < DRAW_END(a) ? .55 : 0; p.pitch = t > -1.4 && t < DRAW_END(a) ? .1 : 0;
   } else {
-    // a swipe of the hand sets the cylinder spinning
-    const c = a.r.g.position, q1 = toBody(V(c.x + .9, c.y - .4, c.z + .35)), q2 = toBody(V(c.x - .5, c.y + .55, c.z + .45));
-    armPath(p, 'R', [[-.7, RE], [-.05, q1], [.25, q2], [1.1, RE]], [[-.7, ZERO], [-.05, V(.05, 0, .4)], [.25, V(.05, 0, .45)], [1.1, ZERO]], t);
-    p.pitch = t > -1 && t < 6 ? .08 : 0; p.yaw = 0;
+    const ph = a.ph, RR = restW('R'), RL = restW('L');
+    const hsW = ph.g.localToWorld(ph.restP.clone()).add(V(0, .18, 0));
+    const ear = body.localToWorld(V(-1.0, 2.55, .45)), mid = body.localToWorld(V(-1.25, 1.6, 1.2));
+    reach(p, 'R', [[-.1, RR], [.55, hsW], [.75, hsW], [1.25, mid], [1.6, ear], [3.0, ear], [3.35, mid], [3.6, hsW], [3.75, hsW], [4.4, RR]], t);
+    const pad = a.pad.g, pw = (x, z, y = .3) => pad.localToWorld(V(x, y, z));
+    const pen0 = pw(.43, .1, .3), wr = t > 1.5 && t < 3.0 ? Math.sin(t * 26) * .02 : 0;
+    const w0 = pw(-.15, .05, .3), w1 = pw(.18, .05, .3);
+    const writing = V().lerpVectors(w0, w1, smooth(t, 1.5, 3.0)).add(V(0, wr, Math.sin(t * 17) * .03));
+    reach(p, 'L', [[.6, RL], [1.1, pen0], [1.35, w0], [1.5, w0]], t);
+    if (t >= 1.5 && t < 3.0) reach(p, 'L', [[0, writing], [1, writing]], 0);
+    else if (t >= 3.0) reach(p, 'L', [[3.0, w1], [3.35, pen0], [3.55, pen0], [3.85, pw(0, -.33, .32)], [4.0, pw(0, -.33, .32)], [4.3, pw(.1, -.1, .9)], [4.9, RL]], t);
+    p.yaw = t > 1.2 && t < 3.1 ? .3 : t > 3.6 && t < 4.4 ? .3 : t > -1.5 && t < 1.2 ? -.25 : 0;
+    p.pitch = t > 1.2 && t < 3.1 ? .22 : t > -1.5 && t < 5.5 ? .1 : 0;
   }
 }
+const DRAW_END = a => (DRAW_T[a.style] || 5) + 2.6;
+const _hq = new THREE.Quaternion(), _hm = new THREE.Matrix4(), _hx = new THREE.Vector3(), _hy = new THREE.Vector3(), _hz = new THREE.Vector3();
+function handW(side, out, along = 1.32) { return ARMS[side].pv.localToWorld(out.set(0, -along, 0)); }
 function drawSceneUpdate(dt) {
   const a = anim, d = a.d, t = (drawClock() - d.at) / 1000, T = DRAW_T[a.style] || 5;
-  const narrow = mode === 'narrow', appear = smooth(t, -2.2, -.6);
+  const narrow = mode === 'narrow';
   let cp, ct;
-  if (a.style === 'deck') {
-    const n = DCARDS.length;
-    cp = narrow ? V(0, 3.6, 3.4) : V(0, 3.3, 3.3); ct = V(0, .7, narrow ? -.9 : -1.0);
-    { const e0 = smoother(smooth(t, -1.8, .2)) * (1 - smooth(t, T + 2.4, T + 3.4)); if (e0 > 0) drawCamera(a, e0, cp, ct); a.camDone = true; camera.updateMatrixWorld(); }
-    DCARDS.forEach((c, i) => {
-      const fly = easeInOut(clamp((t + 2.4 - i * .16) / .55, 0, 1)), p = dV.copy(deckPos).lerp(c.rest, fly); p.y += Math.sin(PI * fly) * .5;
-      let flip = 1, lift = 0;
-      if (i === a.k) { const u = smooth(t, (a.tap || 3.6) + .1, T); flip = 1 - u; lift = u; if (!a._sl && t > (a.tap || 3.6)) { a._sl = 1; sfx('cards'); } }
-      else flip = 1 - smooth(t, T + .9 + i * .08, T + 1.4 + i * .08);
-      dQy.setFromAxisAngle(AY, c.yaw); dQx.setFromAxisAngle(AX, -PI / 2 + lift * 1.15); dQf.setFromAxisAngle(AY, flip * PI); dQ.copy(dQy).multiply(dQx).multiply(dQf);
-      if (lift > 0) { camera.getWorldDirection(camFwd); dV2.copy(camera.position).addScaledVector(camFwd, 2.6); p.lerp(dV2, lift); p.y += Math.sin(PI * lift) * .4; dQ.slerp(camera.quaternion, lift); }
-      c.g.position.copy(p); c.g.quaternion.copy(dQ); c.g.visible = t > -2.4 + i * .16;
-      if (!c._d && fly > 0) { c._d = 1; sfx('deal', 0); }
-    });
-  } else if (a.style === 'roulette') {
-    const w = a.w; w.g.position.y = -.5 + appear * .5; w.g.visible = appear > 0;
-    const S0 = -1.4, A = PI * 2 * 3.2, th = w.slot * w.seg - PI / 2;   // the pocket ends facing you
-    const k = clamp((t - S0) / (T - S0), 0, 1), wa = th - A * Math.pow(1 - k, 3);
-    w.spin.rotation.y = wa;
-    // the ball: thrown at 0, runs the other way on the rim, drops, rattles, settles in the pocket
-    const Tb = T - .7, kb = clamp(t / Tb, 0, 1), rel = (-PI * 2 * 5.5) * Math.pow(1 - kb, 2.2);
-    const beta = (w.slot * w.seg) - wa + rel, drop = smooth(t, Tb - 1.2, Tb), r = (w.R * 1.12) * (1 - drop) + (w.R * .4) * drop;
-    const hop = t > Tb - 1.2 && t < Tb + .2 ? Math.abs(Math.sin((t - (Tb - 1.2)) * 13)) * .06 * (1 - drop * .8) : 0;
-    w.ball.visible = t > 0; w.ball.position.set(Math.cos(beta) * r, .17 + hop + (1 - drop) * .03, Math.sin(beta) * r);
-    if (t > 0 && t < Tb + .3) { const si = Math.floor(rel / w.seg); if (si !== a._si) { a._si = si; if (kb > .55) sfx('tick'); } }
-    if (!a._ld && t > Tb) { a._ld = 1; sfx('land'); }
-    if (!a._th && t > 0) { a._th = 1; sfx('toss'); }
-    const pz = w.g.position.z;
-    cp = V(0, narrow ? 4.2 : 3.6, pz + (narrow ? 4.6 : 4.0)); ct = V(0, .5, pz - .7);
-    if (t > Tb) { const z = smooth(t, Tb, T); cp.lerp(V(0, 2.0, pz + 2.2), z); ct.lerp(V(0, 0, pz + .75), z); }
+  if (a.style === 'safe') {
+    const s = a.s, g = s.g;
+    // it drops onto the table with a thud
+    const fall = clamp((t + 2.3) / .55, 0, 1); g.position.y = a.spot.y + (1 - fall * fall) * 4 + (fall >= 1 ? Math.max(0, Math.sin((t + 1.75) * 18)) * .03 * Math.max(0, 1 - (t + 1.75) * 3) : 0); g.visible = t > -2.3;
+    if (!a._th && fall >= 1) { a._th = 1; sfx('land'); sfx('clunk'); }
+    // the dial: two turns one way, then back the other way to the map
+    const sg = PI * 2 / s.N, fin = s.k * sg, r0 = fin + .6 * PI, r1 = r0 - 4 * PI;
+    let r; if (t < 0) r = r0; else if (t < 2) r = r0 - 4 * PI * easeInOut(t / 2); else if (t < 2.2) r = r1; else r = r1 + (fin - r1) * easeOut((t - 2.2) / 1.9);
+    s.dialG.rotation.z = r;
+    const si = Math.floor(r / sg + .5); if (t > 0 && t < 4.2 && si !== a._si) { a._si = si; sfx('tick'); }
+    if (!a._cl && t > 4.1) { a._cl = 1; sfx('lidClose'); }
+    s.handle.rotation.z = -smooth(t, 4.4, 4.75) * PI / 3;
+    if (!a._hd && t > 4.5) { a._hd = 1; sfx('clunk'); }
+    const op = easeInOut(clamp((t - 4.8) / 1.0, 0, 1)); s.hinge.rotation.y = op * 1.95;
+    if (!a._cr && t > 4.8) { a._cr = 1; sfx('creak'); }
+    s.light.intensity = 9 * op; s.glow.material.opacity = op * (.55 + .2 * Math.sin(now * 5)); s.bar.mat.emissiveIntensity = 1 + op * 1.5;
+    const sc = g.scale.x, dialW = g.localToWorld(V(0, s.dialY, s.D / 2)), fwd = V(0, 0, 1).applyQuaternion(g.quaternion), barW = s.bar.g.getWorldPosition(V());
+    cp = narrow ? V(.9, 3.0, 3.4) : V(1.25, 2.7, 2.7); ct = narrow ? V(1.1, 1.0, -1.4) : V(1.6, .95, -1.55);
+    const rgt = V(1, 0, 0).applyQuaternion(g.quaternion), z1 = smooth(t, 2.6, 3.8); cp.lerp(dialW.clone().addScaledVector(fwd, (narrow ? 2.6 : 2.1) * sc).addScaledVector(rgt, (narrow ? .75 : .55) * sc).add(V(0, .3, 0)), z1); ct.lerp(dialW.clone().addScaledVector(rgt, .1 * sc), z1);
+    const z2 = smooth(t, 4.9, T + .2); cp.lerp(barW.clone().addScaledVector(fwd, (narrow ? 2.4 : 1.3) * sc).add(V(0, (narrow ? .9 : .6) * sc, 0)), z2); ct.lerp(barW, z2);
   } else {
-    const r = a.r; r.g.visible = appear > 0; r.g.scale.setScalar((narrow ? .8 : 1) * (.3 + .7 * easeOut(appear))); r.g.position.y = .4 + .65 * easeOut(appear);
-    if (!a._ap && t > -2.2) { a._ap = 1; sfx('lid'); exhale(); }
-    const steps = r.N * 3 + a.k, k = clamp(t / (T - .4), 0, 1), e = 1 - Math.pow(1 - k, 3.4);
-    const psi = -(steps * (PI * 2 / r.N)) * e;   // chamber k ends at the top
-    r.spin.rotation.z = psi;
-    const ci = Math.floor(-psi / (PI * 2 / r.N) + .5); if (ci !== a._ci && t > 0) { a._ci = ci; sfx(k > .9 ? 'lidClose' : 'tick'); }
-    if (!a._ck && t > T - .3) { a._ck = 1; sfx('lid'); }
-    const g = smooth(t, T - .2, T + .3); r.glow.material.opacity = g * (.7 + .3 * Math.sin(now * 9)); r.halo.material.opacity = g; r.halo.scale.setScalar(1 + .08 * Math.sin(now * 6) * g); r.lamp.intensity = 6 * appear;
-    const c = r.g.position; cp = V(0, c.y + .35, c.z + (narrow ? 3.4 : 2.6)); ct = c.clone();
-    if (t > T - .6) { const z = smooth(t, T - .6, T + .2); cp.lerp(V(0, c.y + .5, c.z + (narrow ? 2.3 : 1.7)), z); ct.lerp(V(0, c.y + .3, c.z), z); }
+    const ph = a.ph, pad = a.pad;
+    // the camera first: the page is held up to it
+    { const padW = pad.g.getWorldPosition(V());
+      cp = narrow ? V(0, 3.2, 3.9) : V(0, 2.8, 3.3); ct = narrow ? V(0, .95, -1.2) : V(0, .9, -1.25);
+      const z1 = smooth(t, 3.6, 4.6); cp.lerp(padW.clone().add(narrow ? V(-.4, 2.2, 2.6) : V(-.6, 1.9, 2.2)), z1); ct.lerp(padW.clone().add(V(-.3, .5, 0)), z1);
+      const e = smoother(smooth(t, -1.8, .2)) * (1 - smooth(t, T + 2.4, T + 3.4)); if (e > 0) drawCamera(a, e, cp, ct); a.camDone = true; camera.updateMatrixWorld(); }
+    // rings twice
+    const ringing = (t > -1.9 && t < -1.0) || (t > -.6 && t < .3);
+    if (!a._r1 && t > -1.9) { a._r1 = 1; sfx('ring'); } if (!a._r2 && t > -.6) { a._r2 = 1; sfx('ring'); }
+    ph.g.position.y = ringing ? Math.abs(Math.sin(now * 60)) * .012 : 0;
+    // the handset: on the cradle, in his hand, back on the cradle
+    const held = t > .7 && t < 3.68, rest = dV.copy(ph.restP); ph.g.localToWorld(rest);
+    if (held) {
+      handW('R', dV2, 1.25); const toward = dV3.set(1, 0, 0);
+      const pos = dV2.addScaledVector(toward, .42); const u = smooth(t, .75, 1.6) * (1 - smooth(t, 3.0, 3.6));
+      // lying flat on the cradle, then up against his ear
+      const ear = body.localToWorld(V(-.7, 2.6, .25)), mouth = body.localToWorld(V(-.6, 2.0, .75));
+      _hx.subVectors(ear, mouth).normalize(); _hy.set(-1, 0, 0); _hy.addScaledVector(_hx, -_hy.dot(_hx)).normalize(); _hz.crossVectors(_hx, _hy);
+      _hm.makeBasis(_hx, _hy, _hz); _hq.setFromRotationMatrix(_hm);
+      ph.g.getWorldQuaternion(dQ); dQ.slerp(_hq, u);
+      const k0 = smooth(t, .7, .9) * (1 - smooth(t, 3.45, 3.68));
+      pos.lerp(rest, 1 - k0); ph.hs.position.copy(ph.g.worldToLocal(pos));
+      ph.g.getWorldQuaternion(_hq).invert(); ph.hs.quaternion.copy(_hq.multiply(dQ));
+    } else { ph.hs.position.copy(ph.restP); ph.hs.quaternion.copy(ph.restQ); if (ringing) ph.hs.position.y += Math.abs(Math.sin(now * 55)) * .02; }
+    if (!a._pk && t > .75) { a._pk = 1; sfx('glassUp'); sfx('lid'); }
+    if (!a._hu && t > 3.68) { a._hu = 1; sfx('land'); }
+    if (!a._s1 && t > 1.6) { a._s1 = 1; if (typeof say === 'function') say('', 'Yeah… go on.'); }
+    // the cord
+    { const from = ph.g.localToWorld(V(-.38, .2, -.1)), to = ph.hs.localToWorld(V(-.38, -.04, 0)), mid = from.clone().lerp(to, .5); mid.y = Math.min(from.y, to.y) - .1;
+      const pts = []; const cur = new THREE.QuadraticBezierCurve3(from, mid, to); const n = 60;
+      for (let i = 0; i <= n; i++) { const q = cur.getPoint(i / n); if (i > 0 && i < n) { q.x += Math.sin(i * 2.1) * .028; q.z += Math.cos(i * 2.1) * .028; } pts.push(q); }
+      ph.cord.geometry.dispose(); ph.cord.geometry = new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 90, .014, 5); ph.cord.visible = t > -2.6; }
+    // he writes the map down
+    const wk = smooth(t, 1.5, 3.0); if (Math.abs(wk - (a._wk ?? -1)) > .01 || (wk >= 1 && a._wk < 1)) { a._wk = wk; drawPad(pad.top, d.map, wk); }
+    if (t > 1.5 && t < 3.0 && Math.floor(t * 9) !== a._sc) { a._sc = Math.floor(t * 9); sfx('tick'); }
+    // the pencil, in his hand while he writes
+    if (t > 1.1 && t < 3.4) { handW('L', dV2, 1.45); pad.g.worldToLocal(dV2); pad.pencil.position.copy(dV2).add(V(.02, -.2, .05)); pad.pencil.rotation.set(.25, 0, -.15); }
+    else { pad.pencil.position.copy(pad.pencilRest.p); pad.pencil.quaternion.copy(pad.pencilRest.q); }
+    // tears the page off and holds it up to you
+    const tear = smooth(t, 4.0, 4.3), lift = smoother(smooth(t, 4.25, T - .1));
+    if (!a._tr && t > 4.0) { a._tr = 1; sfx('tear'); }
+    if (t > 4.0) {
+      handW('L', dV2, 1.45); const start = pad.g.localToWorld(V(0, .092, 0)), held = start.clone().lerp(dV2.add(V(0, -.12, .1)), tear);
+      camera.getWorldDirection(camFwd); dV3.copy(camera.position).addScaledVector(camFwd, narrow ? 2.3 : 1.9);
+      const pw = held.lerp(dV3, lift);
+      pad.g.getWorldQuaternion(dQ); _hq.setFromAxisAngle(AX, -.7 * tear); dQ.multiply(_hq);
+      _hm.makeRotationX(PI / 2); const camQ = camera.quaternion.clone().multiply(new THREE.Quaternion().setFromRotationMatrix(_hm)); dQ.slerp(camQ, lift);
+      pad.page.position.copy(pad.g.worldToLocal(pw.clone())); pad.g.getWorldQuaternion(_hq).invert(); pad.page.quaternion.copy(_hq.multiply(dQ));
+    } else { pad.page.position.set(0, .092, 0); pad.page.quaternion.identity(); }
+    if (!a._say && t > T) { a._say = 1; if (typeof say === 'function') say('', `${d.map}.`); }
   }
   const e = smoother(smooth(t, -1.8, .2)) * (1 - smooth(t, T + 2.4, T + 3.4));
   if (e > 0 && !a.camDone) drawCamera(a, e, cp, ct); a.camDone = false;
