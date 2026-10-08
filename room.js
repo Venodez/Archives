@@ -1382,16 +1382,97 @@ function back(go, swap, done) {
   } catch (e) { plain(); }
 }
 
+/* ---------- film look for the draw: bloom, grain, vignette, colour grade, letterbox ---------- */
+const FXP = { on: false, ok: true, rt: null, bright: null, mips: [], w: 0, h: 0, bars: 0, bloom: 1.1, time: 0 };
+const fxCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1), fxScene = new THREE.Scene();
+const fxGeo = new THREE.BufferGeometry();
+fxGeo.setAttribute('position', new THREE.Float32BufferAttribute([-1, -1, 0, 3, -1, 0, -1, 3, 0], 3));
+fxGeo.setAttribute('uv', new THREE.Float32BufferAttribute([0, 0, 2, 0, 0, 2], 2));
+const fxQuad = new THREE.Mesh(fxGeo); fxQuad.frustumCulled = false; fxScene.add(fxQuad);
+const FX_VS = 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0., 1.); }';
+const fxMat = (frag, uniforms, toneMapped = false) => new THREE.ShaderMaterial({ vertexShader: FX_VS, fragmentShader: frag, uniforms, depthTest: false, depthWrite: false, toneMapped });
+const brightMat = fxMat(`uniform sampler2D tex; uniform float thr; varying vec2 vUv;
+  void main(){ vec3 c = texture2D(tex, vUv).rgb; float l = max(c.r, max(c.g, c.b)); gl_FragColor = vec4(c * smoothstep(thr, thr + .9, l), 1.); }`, { tex: { value: null }, thr: { value: .75 } });
+const blurMat = fxMat(`uniform sampler2D tex; uniform vec2 dir; varying vec2 vUv;
+  void main(){ vec3 c = texture2D(tex, vUv).rgb * .227;
+    c += (texture2D(tex, vUv + dir * 1.385).rgb + texture2D(tex, vUv - dir * 1.385).rgb) * .316;
+    c += (texture2D(tex, vUv + dir * 3.231).rgb + texture2D(tex, vUv - dir * 3.231).rgb) * .070;
+    gl_FragColor = vec4(c, 1.); }`, { tex: { value: null }, dir: { value: new THREE.Vector2() } });
+const finalMat = fxMat(`uniform sampler2D tex; uniform sampler2D b0; uniform sampler2D b1; uniform sampler2D b2; uniform float bloom; uniform float time; uniform float bars; uniform vec2 res; varying vec2 vUv;
+  float hash(vec2 p){ return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
+  void main(){
+    vec2 uv = vUv, d = uv - .5; float r2 = dot(d, d);
+    vec3 c = vec3(texture2D(tex, uv - d * .006).r, texture2D(tex, uv).g, texture2D(tex, uv + d * .006).b);   // a little lens fringe at the edges
+    c += (texture2D(b0, uv).rgb * .5 + texture2D(b1, uv).rgb * .8 + texture2D(b2, uv).rgb * 1.1) * bloom;
+    float l = dot(c, vec3(.2126, .7152, .0722));
+    c = mix(c, c * vec3(.78, .9, 1.25), (1. - smoothstep(0., .35, l)) * .55);   // cold shadows
+    c = mix(c, c * vec3(1.12, 1., .86), smoothstep(.5, 1.6, l) * .4);          // warm highlights
+    c = mix(vec3(l), c, 1.08);
+    c *= 1. - smoothstep(.12, .75, r2) * .75;                                    // vignette
+    gl_FragColor = vec4(c, 1.);
+    #include <tonemapping_fragment>
+    #include <colorspace_fragment>
+    float g = hash(uv * res + fract(time * 13.1) * 100.) - .5;
+    gl_FragColor.rgb += g * .07;                                                 // film grain
+    gl_FragColor.rgb *= .97 + .03 * sin(time * 47.);                             // a faint projector flicker
+    if (abs(uv.y - .5) > .5 - bars) gl_FragColor = vec4(0., 0., 0., 1.);         // cinema bars
+  }`, { tex: { value: null }, b0: { value: null }, b1: { value: null }, b2: { value: null }, bloom: { value: 1 }, time: { value: 0 }, bars: { value: 0 }, res: { value: new THREE.Vector2() } }, true);
+function fxTargets() {
+  const v = renderer.getDrawingBufferSize(new THREE.Vector2()), w = Math.max(2, v.x | 0), h = Math.max(2, v.y | 0);
+  if (FXP.rt && FXP.w === w && FXP.h === h) return;
+  [FXP.rt, FXP.bright, ...FXP.mips.flatMap(m => [m.a, m.b])].forEach(t => t && t.dispose());
+  const mk = (a, b, samples = 0) => new THREE.WebGLRenderTarget(a, b, { type: THREE.HalfFloatType, samples, depthBuffer: !!samples });
+  FXP.rt = mk(w, h, 4); FXP.rt.depthBuffer = true;
+  FXP.bright = mk(w >> 1, h >> 1);
+  FXP.mips = [2, 4, 8].map(k => ({ a: mk(Math.max(1, w / k / 2 | 0), Math.max(1, h / k / 2 | 0)), b: mk(Math.max(1, w / k / 2 | 0), Math.max(1, h / k / 2 | 0)) }));
+  FXP.w = w; FXP.h = h;
+}
+function fxPass(mat, target) { fxQuad.material = mat; renderer.setRenderTarget(target); renderer.render(fxScene, fxCam); }
+function fxRender() {
+  fxTargets();
+  renderer.setRenderTarget(FXP.rt); renderer.render(scene, camera);
+  brightMat.uniforms.tex.value = FXP.rt.texture; fxPass(brightMat, FXP.bright);
+  let src = FXP.bright;
+  FXP.mips.forEach(m => {
+    blurMat.uniforms.tex.value = src.texture; blurMat.uniforms.dir.value.set(1 / m.a.width, 0); fxPass(blurMat, m.b);
+    blurMat.uniforms.tex.value = m.b.texture; blurMat.uniforms.dir.value.set(0, 1 / m.a.height); fxPass(blurMat, m.a);
+    src = m.a;
+  });
+  const u = finalMat.uniforms; u.tex.value = FXP.rt.texture; u.b0.value = FXP.mips[0].a.texture; u.b1.value = FXP.mips[1].a.texture; u.b2.value = FXP.mips[2].a.texture;
+  u.bloom.value = FXP.bloom; u.time.value = now; u.bars.value = FXP.bars; u.res.value.set(FXP.w, FXP.h);
+  fxPass(finalMat, null);
+}
+function fxOn(on) { FXP.on = !!on && FXP.ok; if (!on) FXP.bars = 0; }
+function renderFrame() {
+  if (FXP.on) { try { fxRender(); return; } catch (e) { FXP.ok = FXP.on = false; renderer.setRenderTarget(null); } }
+  renderer.render(scene, camera);
+}
+
 /* ---------- the map draw: black, then the boss walking down a dark alley under the sign ---------- */
 let drawClock = () => Date.now();
 const DRAW_T = { alley: 7.6 };   // when the sign is in full view, seconds after the draw time
-// legs, out of sight under the table until he walks
+// legs with knees and feet, out of sight under the table until he walks
 const LEGS = [-1, 1].map(sd => {
   const hip = new THREE.Group(); hip.position.set(sd * .5, -.12, 0); body.add(hip);
-  const leg = new THREE.Mesh(new RoundedBox(.96, 1.95, .96, 3, .07), M.suit); leg.position.y = -1.0; hip.add(leg);
-  const shoe = new THREE.Mesh(new RoundedBox(1.0, .2, 1.12, 2, .06), M.satin); shoe.position.set(0, -1.95, .07); hip.add(shoe);
-  leg.castShadow = shoe.castShadow = true; return hip;
+  const thigh = new THREE.Mesh(new RoundedBox(.96, 1.02, .96, 3, .07), M.suit); thigh.position.y = -.5; hip.add(thigh);
+  const knee = new THREE.Group(); knee.position.y = -1.0; hip.add(knee);
+  const shin = new THREE.Mesh(new RoundedBox(.92, .9, .92, 3, .07), M.suit); shin.position.y = -.45; knee.add(shin);
+  const foot = new THREE.Group(); foot.position.y = -.88; knee.add(foot);
+  const shoe = new THREE.Mesh(new RoundedBox(1.0, .2, 1.18, 2, .06), M.satin); shoe.position.set(0, -.08, .1); foot.add(shoe);
+  [thigh, shin, shoe].forEach(m => m.castShadow = true);
+  return { hip, knee, foot };
 });
+function legsRest() { LEGS.forEach(l => { l.hip.rotation.set(0, 0, 0); l.knee.rotation.set(0, 0, 0); l.foot.rotation.set(0, 0, 0); }); }
+// a walk cycle: phase 0..2PI is two steps; w fades it in and out
+function legsWalk(ph, w) {
+  LEGS.forEach((l, i) => {
+    const p = ph + i * PI, swing = Math.sin(p);
+    const th = -.48 * swing * w;                                   // thigh forward / back
+    const kn = (.12 + .85 * Math.max(0, Math.sin(p - 1.1)) ** 1.4) * w;   // the knee folds as the leg comes through
+    l.hip.rotation.x = th; l.knee.rotation.x = kn;
+    l.foot.rotation.x = -(th + kn) * .75 + .18 * w * Math.max(0, -Math.cos(p));   // heel strike, toe off
+  });
+}
 // a black curtain in front of the camera for the cut
 scene.add(camera);
 const blackMat = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0, depthTest: false, depthWrite: false, fog: false });
@@ -1455,7 +1536,7 @@ function buildAlley() {
   // steam from a grate
   const steam = []; const stTex = glowTex;
   for (let i = 0; i < 10; i++) { const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: stTex, color: 0x8a96a8, transparent: true, opacity: 0, depthWrite: false })); s.userData.o = i / 10; g.add(s); steam.push(s); }
-  const grate = add(new THREE.BoxGeometry(1.6, .04, 1.0), dark, 1.2, GROUND + .02, -3.5);
+  const grate = add(new THREE.BoxGeometry(1.6, .04, 1.0), dark, 2.4, GROUND + .02, 9);
   // rain
   const N = 1100, rp = new Float32Array(N * 6), seed = [];
   for (let i = 0; i < N; i++) seed.push([(r() * 2 - 1) * AW, r() * 16, -r() * 30, .6 + r() * .5]);
@@ -1525,6 +1606,7 @@ function drawScene(d, style, onReveal) {
 }
 let drawA = null;
 function inAlley(on) {
+  fxOn(on);
   if (on) { scene.fog = ALLEY.fog || (ALLEY.fog = new THREE.FogExp2(0x070a12, .045)); scene.background = new THREE.Color(0x020306); camera.far = 120; hemi.intensity = .08; }
   else { scene.fog = ROOM.fog; scene.background = ROOM.bg; camera.far = 60; hemi.intensity = ROOM.hemi; }
   camera.updateProjectionMatrix();
@@ -1533,7 +1615,7 @@ function endDraw(a, quiet) {
   if (!a || a.done) return; a.done = true;
   if (ALLEY) { ALLEY.g.visible = false; if (a.sign) ALLEY.g.remove(a.sign.g); }
   inAlley(false); blackPlane.visible = false; blackMat.opacity = 0;
-  boss.position.set(0, 0, -2.62); boss.rotation.set(0, 0, 0); LEGS.forEach(l => l.rotation.set(0, 0, 0));
+  boss.position.set(0, 0, -2.62); boss.rotation.set(0, 0, 0); legsRest(); fxOn(false);
   cards.forEach(c => c.g.visible = true); deckGroup.visible = !!SPOTS[mode === 'narrow' ? 'narrow' : 'wide'].deck; coverEl.classList.remove('dive');
   camera.up.set(0, 1, 0); if (mode) fit();
   if (anim === a) anim = null;
@@ -1541,27 +1623,33 @@ function endDraw(a, quiet) {
   if (!quiet) { dealT0 = now; dealWait = .2; sfx('deal', dealWait); }
 }
 // in the alley: he walks slowly towards the far end, then stops
-const W0 = 5, W1 = 5.6, WALK0 = .55;   // walking from t=WALK0 to t=W0, slowing to a stop by W1
+const W0 = 5, W1 = 5.7, WALK0 = .55, STRIDE = 1.55;   // walking from t=WALK0, slowing to a stop by W1
 function bossAt(t, out) {
-  const u = clamp((t - WALK0) / (W1 - WALK0), 0, 1), e = u < .8 ? u / .9 : (.8 / .9) + (1 - Math.pow(1 - (u - .8) / .2, 2)) * (1 - .8 / .9);
-  const z = 4 + (ZSTOP - 4) * clamp(e, 0, 1);
-  out.p = V(AO.x + .3, AO.y + .3, AO.z + z); out.walk = 1 - smooth(t, W0 - .3, W1);
-  out.phase = (z - 4) / -1.25 * PI;
-  out.p.y += Math.abs(Math.sin(out.phase)) * .06 * out.walk;
-  out.rot = PI; return out;
+  // speed eases in and out, so the steps slow down instead of cutting off
+  const v = s => clamp((s - WALK0) / .5, 0, 1) * (1 - smooth(s, W0 - .5, W1));
+  let dist = 0; for (let s = WALK0; s < t; s += .02) dist += v(s) * 2.45 * Math.min(.02, t - s);
+  const z = 4 - dist;
+  out.w = v(t) > 0 ? Math.max(.25, v(t)) * (t < W1 ? 1 : 0) : 0; out.w = Math.min(1, out.w * 1.15);
+  out.phase = dist / STRIDE * PI;
+  const passing = (Math.cos(2 * out.phase) + 1) / 2;                 // highest when the legs pass each other
+  out.p = V(AO.x + .3 + .06 * Math.sin(out.phase) * out.w, AO.y + .3 + (passing - 1) * .09 * out.w, AO.z + z);
+  out.rot = PI + .05 * Math.sin(out.phase) * out.w;                 // the hips turn a little with each step
+  out.roll = .03 * Math.sin(out.phase) * out.w;                     // weight from one foot to the other
+  out.dist = dist; return out;
 }
 const _bs = {};
 function drawPose(t, p, a) {
   p.held = 0; p.cigIn = 1; p.tilt = 0;
   if (t < .45) { p.yaw = p.pitch = null; return; }   // still at the table until the screen is black
   const b = bossAt(t, _bs);
-  boss.position.copy(b.p); boss.rotation.y = b.rot;
-  LEGS.forEach((l, i) => l.rotation.x = Math.sin(b.phase + i * PI) * .5 * b.walk);
+  boss.position.copy(b.p); boss.rotation.set(0, b.rot, b.roll);
+  legsWalk(b.phase, b.w);
   body.updateMatrixWorld(true);
-  ['R', 'L'].forEach((s, i) => { const arm = ARMS[s], sw = Math.sin(b.phase + (i ? 0 : PI)) * .35 * b.walk;
-    aimArm(p, s, V(0, -1.5 * Math.cos(sw), 1.5 * Math.sin(sw) + .12).add(arm.base), ZERO); });
-  // head down while he walks, up to the sign once he stops
-  p.yaw = 0; p.pitch = lerp(.1, -.32, smooth(t, W1 - .2, W1 + .9));
+  // arms swing against the legs, a bit out from the body, with a slight lag
+  ['R', 'L'].forEach((s, i) => { const arm = ARMS[s], sw = Math.sin(b.phase - .35 + (i ? 0 : PI)) * .3 * b.w;
+    aimArm(p, s, V((i ? 1 : -1) * .12, -1.5 * Math.cos(sw), 1.5 * Math.sin(sw) + .1).add(arm.base), ZERO); });
+  // head steady while he walks, down a little; up to the sign once he has stopped
+  p.yaw = .04 * Math.sin(b.phase) * b.w; p.pitch = lerp(.12 - .03 * Math.cos(2 * b.phase) * b.w, -.34, smooth(t, W1 - .1, W1 + 1.0));
 }
 function camShot(t, a, pos, tgt) {
   const b = _bs.p || V(AO.x, AO.y, AO.z), head = b.clone().add(V(0, 2.5, 0)), n = a.narrow;
@@ -1581,15 +1669,18 @@ function drawSceneUpdate(dt) {
   if (there) {
     const cp = V(), ct = V(); camShot(t, a, cp, ct);
     camera.position.copy(cp); camera.up.set(0, 1, 0); camera.lookAt(ct); camera.clearViewOffset(); camera.updateProjectionMatrix();
+    // held by hand: a slow drift and a little breathing in the frame
+    camera.rotateX(.004 * Math.sin(now * 1.7) + .002 * Math.sin(now * 4.3)); camera.rotateY(.0035 * Math.sin(now * 1.3 + 1) + .0015 * Math.sin(now * 3.7)); camera.rotateZ(.0025 * Math.sin(now * .9));
+    FXP.bars = (a.narrow ? .04 : .1) * smooth(t, .5, 1.4) * (1 - smooth(t, T + 2.6, T + 3.4));
     // rain around the camera, a flickering lamp, steam
     const r = A.rp, cz = camera.position.z - AO.z;
     A.seed.forEach((s, i) => { const y = GROUND + ((s[1] - now * 24 * s[3]) % 16 + 16) % 16, x = s[0], z = s[2] + cz + 6;
       r[i * 6] = x; r[i * 6 + 1] = y; r[i * 6 + 2] = z; r[i * 6 + 3] = x - .05; r[i * 6 + 4] = y + .6 * s[3]; r[i * 6 + 5] = z; });
     A.rain.geometry.attributes.position.needsUpdate = true;
     const fl = (Math.sin(now * 23) > .93 || (Math.sin(now * 3.1) > .97)) ? .25 : 1; A.lamp.intensity = 40 * fl; A.lampGlow.material.opacity = .8 * fl; A.bulb.material.color.setScalar(fl);
-    A.steam.forEach((s, i) => { const k = (now * .25 + s.userData.o) % 1; s.position.set(A.grate.position.x + Math.sin(k * 5 + i) * .3, GROUND + k * 4, A.grate.position.z); s.scale.setScalar(1 + k * 3); s.material.opacity = Math.sin(k * PI) * .22; });
+    A.steam.forEach((s, i) => { const k = (now * .25 + s.userData.o) % 1; s.position.set(A.grate.position.x + Math.sin(k * 5 + i) * .3, GROUND + k * 4, A.grate.position.z); s.scale.setScalar(1 + k * 2.4); s.material.opacity = Math.sin(k * PI) * .14; });
     // footsteps
-    const st = Math.floor((_bs.phase || 0) / PI); if (_bs.walk > .3 && st !== a._st) { a._st = st; sfx('step'); }
+    const st = Math.floor((_bs.phase || 0) / PI + .5); if (_bs.w > .2 && st !== a._st) { a._st = st; sfx('step'); }
   } else {
     const e = smoother(smooth(t, -2, 0)); if (e > 0) drawCamera(a, e * .25, camera.position.clone().add(V(0, -.3, -1.2)), camTarget);   // a slow push in before the cut
   }
@@ -1603,7 +1694,7 @@ function drawSceneUpdate(dt) {
   if (!a._bz && t > T - .9) { a._bz = 1; sfx('buzz', 1.6); }
   // a flash of lightning when the name is in full view
   const fl = t >= T ? Math.exp(-(t - T) * 8) + (t >= T + .25 ? .7 * Math.exp(-(t - T - .25) * 10) : 0) : 0;
-  A.flash.intensity = fl * 6; A.moon.intensity = .5 + fl * 2;
+  A.flash.intensity = fl * 6; A.moon.intensity = .5 + fl * 2; FXP.bloom = 1.1 + fl * 1.6;
   if (!a._th && t > T + .3) { a._th = 1; sfx('thunder'); }
   coverEl.classList.toggle('dive', t > -2 && t < T + 3.4);
   if (!a.revealed && t >= T) { a.revealed = true; if (typeof a.onReveal === 'function') setTimeout(() => a.onReveal(), 1800); }
@@ -1619,7 +1710,7 @@ function frame(t) {
   render(dt);
   if (++frames < 90 && dt > .045) { slow++; if (slow > 25 && renderer.getPixelRatio() > 1) { renderer.setPixelRatio(1); renderer.setSize(W, H, false); } }
 }
-function render(dt) { update(dt); renderer.render(scene, camera); placeSay(dt); }
+function render(dt) { update(dt); renderFrame(); placeSay(dt); }
 function update(dt) {
   now += dt;
   const t = now;
