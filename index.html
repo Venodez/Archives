@@ -1549,7 +1549,7 @@ async function pollDraws(){if(!SHEET_URL)return;
 const DRAW_SPIN=6200;
 /* at the table when the 3D room is there: he draws the map himself; otherwise the card reel */
 function showDraw(d){
-  const st="city";
+  const st="alley";
   try{if(MOTION&&is3d()&&room3d.drawScene&&!document.hidden&&Date.now()<d.at+room3d.drawTime(st)*1000-400){
     closeDrawer();closeModal();if(cover.hidden){cover.hidden=false;root.classList.add("lock");siteInert(true);layoutScene()}
     if(room3d.drawScene(d,st,()=>showReel(d,{land:true}))){drawCountdown(d);return}}}catch(e){}

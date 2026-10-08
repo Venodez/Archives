@@ -1382,119 +1382,119 @@ function back(go, swap, done) {
   } catch (e) { plain(); }
 }
 
-/* ---------- the map draw: he gets up, goes to the window, and the city answers ---------- */
+/* ---------- the map draw: black, then the boss walking down a dark alley under the sign ---------- */
 let drawClock = () => Date.now();
-const DRAW_T = { city: 7 };   // when the sign is fully lit, seconds after the draw time
-const dV = new THREE.Vector3(), dV2 = new THREE.Vector3();
-// legs, out of sight under the table until he stands up
+const DRAW_T = { alley: 7.6 };   // when the sign is in full view, seconds after the draw time
+// legs, out of sight under the table until he walks
 const LEGS = [-1, 1].map(sd => {
   const hip = new THREE.Group(); hip.position.set(sd * .5, -.12, 0); body.add(hip);
   const leg = new THREE.Mesh(new RoundedBox(.96, 1.95, .96, 3, .07), M.suit); leg.position.y = -1.0; hip.add(leg);
   const shoe = new THREE.Mesh(new RoundedBox(1.0, .2, 1.12, 2, .06), M.satin); shoe.position.set(0, -1.95, .07); hip.add(shoe);
   leg.castShadow = shoe.castShadow = true; return hip;
 });
-const ROOM = { win: scene.getObjectByName('window'), city: scene.getObjectByName('cityPlane'), blinds: scene.getObjectByName('blinds'), men: [], side: scene.getObjectByName('sideTable') };
-scene.traverse(o => { if (o.name === 'man') ROOM.men.push(o); });
-ROOM.menHome = ROOM.men.map(m => m.position.clone()); ROOM.sideHome = ROOM.side ? ROOM.side.position.clone() : null;
-ROOM.city.material.transparent = true;
-function setBlinds(tilt) {
-  const b = ROOM.blinds, m4 = new THREE.Matrix4(), e = new THREE.Euler(tilt, 0, 0);
-  b.userData.ys.forEach((y, k) => { m4.makeRotationFromEuler(e); m4.setPosition(0, y, .09); b.setMatrixAt(k, m4); }); b.instanceMatrix.needsUpdate = true;
-}
-const FLOOR_Y = -1.87;
-const floor = new THREE.Mesh(new THREE.PlaneGeometry(30, 14), new THREE.MeshStandardMaterial({ color: 0x120c08, roughness: .8, map: T.wood })); floor.rotation.x = -PI / 2; floor.position.set(0, FLOOR_Y, -1); floor.receiveShadow = true; floor.visible = false; scene.add(floor);
-const winLight = new THREE.PointLight(0x7f9cff, 0, 9, 1.6); winLight.position.set(3.5, 3.2, -5.2); scene.add(winLight);
+// a black curtain in front of the camera for the cut
+scene.add(camera);
+const blackMat = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0, depthTest: false, depthWrite: false, fog: false });
+const blackPlane = new THREE.Mesh(new THREE.PlaneGeometry(4, 4), blackMat); blackPlane.position.z = -.2; blackPlane.renderOrder = 999; blackPlane.visible = false; camera.add(blackPlane);
+const ROOM = { fog: scene.fog, bg: scene.background, hemi: hemi.intensity };
 
-/* the city outside: built the first time it is needed, the same for everyone */
-let CITY = null;
-function cityRand(s) { return () => { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; }; }
-function windowsTex(r) {
-  const [c, x] = makeCanvas(256, 256); x.fillStyle = '#07090e'; x.fillRect(0, 0, 256, 256);
-  for (let i = 0; i < 8; i++) for (let j = 0; j < 8; j++) {
-    const lit = r() < .22, X = 6 + i * 32, Y = 8 + j * 32;
-    x.fillStyle = lit ? `rgba(255,${195 + r() * 40 | 0},${110 + r() * 60 | 0},${.5 + r() * .45})` : 'rgba(30,40,60,.6)'; x.fillRect(X, Y, 18, 20);
-    if (lit && r() < .4) { x.fillStyle = 'rgba(0,0,0,.5)'; x.fillRect(X, Y, 18, 7); }
+/* the alley: built the first time it is needed, far from the room, the same for everyone */
+const AO = new THREE.Vector3(400, 0, 0), GROUND = -1.87, AW = 4.6;   // AW: half the width of the alley
+let ALLEY = null;
+function aRand(s) { return () => { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; }; }
+function brickTex(r) {
+  const [c, x] = makeCanvas(512, 512); x.fillStyle = '#1a0f0c'; x.fillRect(0, 0, 512, 512);
+  for (let row = 0; row < 16; row++) for (let col = -1; col < 9; col++) {
+    const X = col * 64 + (row % 2) * 32 + 2, Y = row * 32 + 2, l = 22 + r() * 16;
+    x.fillStyle = `hsl(${8 + r() * 14},${30 + r() * 20}%,${l}%)`; x.fillRect(X, Y, 60, 28);
+    if (r() < .25) { x.fillStyle = 'rgba(0,0,0,.25)'; x.fillRect(X, Y + 14, 60, 14); }
   }
+  noise(x, 512, 512, 9000, '#ffffff', '#000000', .06);
+  for (let i = 0; i < 26; i++) { const X = r() * 512, gr = x.createLinearGradient(0, 0, 0, 512); gr.addColorStop(0, 'rgba(0,0,0,.45)'); gr.addColorStop(1, 'rgba(0,0,0,0)'); x.fillStyle = gr; x.fillRect(X, 0, 6 + r() * 24, 200 + r() * 312); }
   const t = tex(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; return t;
 }
-function buildCity() {
-  const g = new THREE.Group(), r = cityRand(4242);
-  // sky: deep blue up top, a warm glow of the streets along the horizon
-  const [sc, sx] = makeCanvas(16, 512); let gr = sx.createLinearGradient(0, 0, 0, 512);
-  gr.addColorStop(0, '#04060d'); gr.addColorStop(.42, '#0d1426'); gr.addColorStop(.5, '#3a2a2c'); gr.addColorStop(.56, '#160f12'); gr.addColorStop(1, '#050505'); sx.fillStyle = gr; sx.fillRect(0, 0, 16, 512);
-  const skyMat = new THREE.MeshBasicMaterial({ map: tex(sc), side: THREE.BackSide, fog: false, toneMapped: false });
-  const sky = new THREE.Mesh(new THREE.SphereGeometry(180, 32, 16), skyMat); sky.position.set(0, -10, -40); g.add(sky);
-  const moon = glowSprite(0xbfd0ff, 26, .35); moon.position.set(-40, 50, -150); moon.material.fog = false; g.add(moon);
-  const texs = [0, 1, 2, 3, 4, 5].map(() => windowsTex(r));
-  const roof = new THREE.MeshStandardMaterial({ color: 0x15161b, roughness: .35, metalness: .4 });
-  const bmats = texs.map(t => new THREE.MeshStandardMaterial({ color: 0x2a2f3a, map: t, emissiveMap: t, emissive: 0xffffff, emissiveIntensity: .9, roughness: .6 }));
-  const box = (x, z, w, d, top, mi) => {
-    const h = top + 80, geo = new THREE.BoxGeometry(w, h, d), uv = geo.attributes.uv, n = geo.attributes.normal;
-    for (let i = 0; i < uv.count; i++) { const sx = Math.abs(n.getX(i)) > .5 ? d : w; uv.setXY(i, uv.getX(i) * sx / 16, uv.getY(i) * h / 16); }
-    const m = new THREE.Mesh(geo, [bmats[mi], bmats[mi], roof, roof, bmats[mi], bmats[mi]]); m.position.set(x, top - h / 2, z); g.add(m); return m;
-  };
-  const S = { x: 6, z: -25, top: -2.6 };
-  for (let z = -12; z > -130; z -= 11 + r() * 5) for (let x = -70; x < 80; x += 11 + r() * 6) {
-    if (Math.abs(x - S.x) < 9 && Math.abs(z - S.z) < 8) continue;
-    const near = z > -40 && x > -12 && x < 22;   // keep the way to the sign clear, below it
-    const top = near ? -26 + r() * 16 : z > -60 ? -24 + r() * 20 : z > -95 ? -16 + r() * 30 : -6 + r() * 40 + (r() < .2 ? 20 : 0);
-    const w = 6 + r() * 6, d = 6 + r() * 5, b = box(x + r() * 3, z, w, d, top, r() * 6 | 0);
-    if (r() < .35) { const tank = new THREE.Mesh(new THREE.CylinderGeometry(.9, .9, 1.8, 10), roof); tank.position.set(b.position.x + (r() - .5) * w * .5, top + .9, z + (r() - .5) * d * .5); g.add(tank); }
-    if (r() < .25) { const ant = new THREE.Mesh(new THREE.CylinderGeometry(.06, .06, 6, 4), roof); ant.position.set(b.position.x, top + 3, z); g.add(ant);
-      const red = glowSprite(0xff2a1a, 1.4, .9); red.position.set(b.position.x, top + 6.1, z); red.userData.blink = r() * 6; g.add(red); }
-  }
-  // the building with the sign
-  const sb = box(S.x, S.z, 16, 11, S.top, 2);
-  // rain
-  const N = 1400, rp = new Float32Array(N * 6), seed = [];
-  for (let i = 0; i < N; i++) seed.push([r() * 26 - 8, r() * 22 - 12, -4.8 - r() * 28, .5 + r() * .6]);
-  const rg = new THREE.BufferGeometry(); rg.setAttribute('position', new THREE.BufferAttribute(rp, 3));
-  const rain = new THREE.LineSegments(rg, new THREE.LineBasicMaterial({ color: 0xa8b8d6, transparent: true, opacity: .32 })); rain.frustumCulled = false; g.add(rain);
-  const hemi = new THREE.HemisphereLight(0x3a4a78, 0x120a06, .9); g.add(hemi);
-  const flash = new THREE.DirectionalLight(0xc8d6ff, 0); flash.position.set(-30, 60, -60); g.add(flash);
-  g.visible = false; scene.add(g);
-  return { g, S, sky, skyMat, rain, rp, seed, flash, hemi };
+function groundTex(r) {
+  const [c, x] = makeCanvas(512, 512); x.fillStyle = '#121214'; x.fillRect(0, 0, 512, 512); noise(x, 512, 512, 14000, '#3a3a40', '#000000', .25);
+  for (let i = 0; i < 9; i++) { x.fillStyle = 'rgba(0,0,0,.35)'; x.beginPath(); x.ellipse(r() * 512, r() * 512, 30 + r() * 70, 14 + r() * 30, r() * 3, 0, PI * 2); x.fill(); }
+  const t = tex(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; return t;
 }
-// the neon sign: the map name in glass tubes, dark until it buzzes on, a row of bulbs around it
+const ZSTOP = -9;   // where he stops, along the alley
+function buildAlley() {
+  const g = new THREE.Group(), r = aRand(911); g.position.copy(AO);
+  const bt = brickTex(r), L = 70, H = 34, z0 = 16;
+  const wallMat = new THREE.MeshStandardMaterial({ map: bt, roughness: .85, color: 0x9a8a84 });
+  const plane = (w, h, rx, ry) => { const geo = new THREE.PlaneGeometry(w, h), uv = geo.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * w / rx, uv.getY(i) * h / ry); return geo; };
+  [-1, 1].forEach(s => { const w = new THREE.Mesh(plane(L, H, 6, 6), wallMat); w.rotation.y = -s * PI / 2; w.position.set(s * AW, GROUND + H / 2, z0 - L / 2); w.receiveShadow = true; g.add(w); });
+  const end = new THREE.Mesh(plane(AW * 2, H, 6, 6), wallMat); end.position.set(0, GROUND + H / 2, z0 - L); g.add(end);
+  const back = new THREE.Mesh(plane(AW * 2, H, 6, 6), wallMat); back.rotation.y = PI; back.position.set(0, GROUND + H / 2, z0); g.add(back);
+  const gt = groundTex(r); gt.repeat.set(2, 14);
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(AW * 2, L), new THREE.MeshStandardMaterial({ map: gt, roughness: .22, metalness: .55, color: 0x8a8a90 }));
+  ground.rotation.x = -PI / 2; ground.position.set(0, GROUND, z0 - L / 2); ground.receiveShadow = true; g.add(ground);
+  const pud = new THREE.MeshStandardMaterial({ color: 0x0a0c12, roughness: .02, metalness: .9 });
+  for (let i = 0; i < 9; i++) { const p = new THREE.Mesh(new THREE.CircleGeometry(1, 24), pud); p.scale.set(.8 + r() * 1.4, .5 + r() * .8, 1); p.rotation.x = -PI / 2; p.position.set((r() - .5) * AW * 1.3, GROUND + .01, z0 - 4 - r() * 44); g.add(p); }
+  // pipes, a fire escape, bins, crates
+  const dark = new THREE.MeshStandardMaterial({ color: 0x1b1d22, roughness: .5, metalness: .7 });
+  const rust = new THREE.MeshStandardMaterial({ color: 0x3a2318, roughness: .8, metalness: .3 });
+  const add = (geo, mat, x, y, z) => { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); m.castShadow = m.receiveShadow = true; g.add(m); return m; };
+  [[-AW + .25, 6], [AW - .25, -3], [-AW + .25, -20], [AW - .25, -30]].forEach(([x, z]) => add(new THREE.CylinderGeometry(.16, .16, H, 8), dark, x, GROUND + H / 2, z));
+  for (let k = 0; k < 4; k++) {   // fire escape on the right wall
+    const y = GROUND + 9 + k * 5.5, z = 1;
+    add(new THREE.BoxGeometry(1.6, .12, 7), dark, AW - .8, y, z);
+    add(new THREE.BoxGeometry(.06, 1.2, 7), dark, AW - 1.6, y + .6, z);
+    for (let j = 0; j < 9; j++) add(new THREE.BoxGeometry(.05, 1.2, .05), dark, AW - 1.6, y + .6, z - 3.4 + j * .85);
+  }
+  const bin = add(new RoundedBox(2.4, 1.9, 1.6, 2, .08), new THREE.MeshStandardMaterial({ color: 0x1c3326, roughness: .6, metalness: .4 }), -AW + 1.1, GROUND + .95, 1);
+  bin.rotation.y = PI / 2;
+  [[AW - 1.0, 3.2, .1], [AW - 1.2, 1.9, .4], [-AW + .9, -16, .2], [-AW + 1.0, -17.4, -.3]].forEach(([x, z, ry]) => { const c = add(new THREE.BoxGeometry(1.3, 1.3, 1.3), rust, x, GROUND + .65, z); c.rotation.y = ry; });
+  // a caged lamp on the wall where he comes in, flickering
+  const lampP = V(-AW + .5, GROUND + 6.2, 7);
+  add(new THREE.CylinderGeometry(.22, .3, .4, 12), dark, lampP.x, lampP.y + .2, lampP.z);
+  const bulb = new THREE.Mesh(new THREE.SphereGeometry(.16, 12, 10), new THREE.MeshBasicMaterial({ color: 0xffd9a0, toneMapped: false })); bulb.position.copy(lampP); g.add(bulb);
+  const lampGlow = glowSprite(0xffc070, 3.2, .8); lampGlow.position.copy(lampP); g.add(lampGlow);
+  const lamp = new THREE.PointLight(0xffb870, 40, 22, 1.5); lamp.position.copy(lampP).add(V(.4, -.3, 0)); g.add(lamp);
+  // steam from a grate
+  const steam = []; const stTex = glowTex;
+  for (let i = 0; i < 10; i++) { const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: stTex, color: 0x8a96a8, transparent: true, opacity: 0, depthWrite: false })); s.userData.o = i / 10; g.add(s); steam.push(s); }
+  const grate = add(new THREE.BoxGeometry(1.6, .04, 1.0), dark, 1.2, GROUND + .02, -3.5);
+  // rain
+  const N = 1100, rp = new Float32Array(N * 6), seed = [];
+  for (let i = 0; i < N; i++) seed.push([(r() * 2 - 1) * AW, r() * 16, -r() * 30, .6 + r() * .5]);
+  const rg = new THREE.BufferGeometry(); rg.setAttribute('position', new THREE.BufferAttribute(rp, 3));
+  const rain = new THREE.LineSegments(rg, new THREE.LineBasicMaterial({ color: 0x9fb0cc, transparent: true, opacity: .3 })); rain.frustumCulled = false; g.add(rain);
+  const moon = new THREE.HemisphereLight(0x2a3a66, 0x050302, .5); g.add(moon);
+  const flash = new THREE.DirectionalLight(0xc8d6ff, 0); flash.position.set(-10, 60, -20); flash.target.position.set(0, 0, -10); g.add(flash, flash.target);
+  g.visible = false; scene.add(g);
+  return { g, rain, rp, seed, lamp, lampGlow, bulb, steam, grate, flash, moon };
+}
+// the sign: the map name in red neon, high up at the end of the alley
 function buildSign(name, vertical) {
   const g = new THREE.Group(), txt = String(name).toUpperCase(), n = [...txt].length;
   const cw = vertical ? 512 : 2048, ch = vertical ? Math.max(1024, n * 230 + 160) : 640;
   const [c, x] = makeCanvas(cw, ch), t = tex(c, { aniso: 16 });
-  const sw = vertical ? 2.6 : 13, sh = sw * ch / cw;
+  const sw = vertical ? 2.4 : 8.2, sh = sw * ch / cw;
   const board = new THREE.Mesh(new THREE.BoxGeometry(sw + .5, sh + .5, .3), new THREE.MeshStandardMaterial({ color: 0x14100e, roughness: .5, metalness: .5 })); board.position.z = -.2; g.add(board);
   const trim = new THREE.Mesh(new THREE.BoxGeometry(sw + .7, sh + .7, .2), M.brass); trim.position.z = -.3; g.add(trim);
   const face = new THREE.Mesh(new THREE.PlaneGeometry(sw, sh), new THREE.MeshBasicMaterial({ map: t, transparent: true, toneMapped: false, fog: false, depthWrite: false })); g.add(face);
-  // legs down to the roof
-  const legH = vertical ? 0 : 3.2;
-  if (!vertical) [-1, 1].forEach(s => { const l = new THREE.Mesh(new THREE.BoxGeometry(.25, legH, .25), M.steelDark); l.position.set(s * sw * .35, -sh / 2 - legH / 2, -.25); g.add(l);
-    const br = new THREE.Mesh(new THREE.BoxGeometry(.12, legH * 1.2, .12), M.steelDark); br.position.set(s * sw * .35 - s * .8, -sh / 2 - legH / 2, -.25); br.rotation.z = s * .5; g.add(br); });
-  // bulbs around the frame
-  const bulbs = [], bm = () => new THREE.MeshBasicMaterial({ color: 0x3a2a10, toneMapped: false });
-  const per = 2 * (sw + sh), nb = Math.round(per / .55);
+  const bulbs = [], per = 2 * (sw + sh), nb = Math.round(per / .5);
   for (let i = 0; i < nb; i++) { let d = i / nb * per, px, py;
     if (d < sw) { px = -sw / 2 + d; py = sh / 2 + .12; } else if ((d -= sw) < sh) { px = sw / 2 + .12; py = sh / 2 - d; } else if ((d -= sh) < sw) { px = sw / 2 - d; py = -sh / 2 - .12; } else { d -= sw; px = -sw / 2 - .12; py = -sh / 2 + d; }
-    const b = new THREE.Mesh(new THREE.SphereGeometry(.09, 8, 6), bm()); b.position.set(px, py, .05); g.add(b); bulbs.push(b); }
-  const glow = glowSprite(0xff3a5c, vertical ? 10 : 18, 0); glow.position.z = .4; glow.scale.set(vertical ? 6 : 20, vertical ? 14 : 8, 1); glow.material.fog = false; g.add(glow);
-  const light = new THREE.PointLight(0xff4a6a, 0, 26, 1.4); light.position.set(0, vertical ? 0 : -sh / 2, 2.5); g.add(light);
-  // where each letter sits on the canvas
+    const b = new THREE.Mesh(new THREE.SphereGeometry(.08, 8, 6), new THREE.MeshBasicMaterial({ color: 0x3a2a10, toneMapped: false })); b.position.set(px, py, .05); g.add(b); bulbs.push(b); }
+  const glow = glowSprite(0xff3a5c, 10, 0); glow.position.z = .4; glow.scale.set(vertical ? 5 : 13, vertical ? sh + 4 : 6, 1); glow.material.fog = false; g.add(glow);
+  const light = new THREE.PointLight(0xff3d60, 0, 30, 1.3); light.position.set(0, -sh / 2 - 1, 2); g.add(light);
+  // brackets to the wall
+  [-1, 1].forEach(s => { const b = new THREE.Mesh(new THREE.BoxGeometry(.1, .1, 1.2), M.steelDark); b.position.set(s * sw * .4, sh / 2 + .2, -.8); g.add(b); });
   const letters = []; let fs;
-  if (vertical) { fs = 200; x.font = `400 ${fs}px Limelight, serif`; [...txt].forEach((L, i) => letters.push({ L, x: cw / 2, y: 120 + (i + .5) * (ch - 240) / n })); }
+  if (vertical) { fs = 200; letters.push(...[...txt].map((L, i) => ({ L, x: cw / 2, y: 120 + (i + .5) * (ch - 240) / n }))); }
   else { fs = 300; x.font = `400 ${fs}px Limelight, serif`; while (x.measureText(txt).width > cw - 220 && fs > 80) { fs *= .94; x.font = `400 ${fs}px Limelight, serif`; }
     const tw = x.measureText(txt).width; let cx = (cw - tw) / 2; [...txt].forEach(L => { const w = x.measureText(L).width; letters.push({ L, x: cx + w / 2, y: ch / 2 + 10 }); cx += w; }); }
   const draw = lv => {
     x.clearRect(0, 0, cw, ch); x.font = `400 ${fs}px Limelight, serif`; x.textAlign = 'center'; x.textBaseline = 'middle'; x.lineJoin = 'round';
-    letters.forEach((o, i) => { const k = lv[i] || 0;
-      if (k > .02) { x.globalAlpha = k; x.shadowColor = '#ff2a50'; x.shadowBlur = fs * .25; x.strokeStyle = '#ff4a6a'; x.lineWidth = fs * .07; x.strokeText(o.L, o.x, o.y);
-        x.shadowBlur = fs * .08; x.strokeStyle = '#ffe2ea'; x.lineWidth = fs * .025; x.strokeText(o.L, o.x, o.y); x.globalAlpha = 1; } });
+    letters.forEach((o, i) => { const k = lv[i] || 0; if (k <= .02) return;
+      x.globalAlpha = k; x.shadowColor = '#ff2a50'; x.shadowBlur = fs * .25; x.strokeStyle = '#ff4a6a'; x.lineWidth = fs * .07; x.strokeText(o.L, o.x, o.y);
+      x.shadowBlur = fs * .08; x.strokeStyle = '#ffe2ea'; x.lineWidth = fs * .025; x.strokeText(o.L, o.x, o.y); x.globalAlpha = 1; });
     t.needsUpdate = true; };
   draw([]);
-  return { g, draw, n, bulbs, glow, light, face, sw, sh, legH, lv: [], key: '' };
-}
-// sparks when the sign comes on
-function buildSparks() {
-  const N = 90, pos = new Float32Array(N * 3), geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-  const pts = new THREE.Points(geo, new THREE.PointsMaterial({ color: 0xffd27a, size: .14, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }));
-  pts.frustumCulled = false; return { pts, pos, v: [], t0: -1 };
+  return { g, draw, n, bulbs, glow, light, sw, sh, key: '' };
 }
 
 const _dcp = new THREE.Vector3(), _dct = new THREE.Vector3();
@@ -1511,136 +1511,101 @@ function drawScene(d, style, onReveal) {
   endDraw(drawA, true);
   resetRoom(); busy = true; dealt = false; dealT0 = now; dealWait = 999; hovered = focused = -1; cig = 1;
   cards.forEach(c => { c.hover = 0; c.picked = false; c.pick = 0; });
-  if (!CITY) CITY = buildCity();
+  if (!ALLEY) ALLEY = buildAlley();
   const narrow = mode === 'narrow';
-  const a = drawA = anim = { kind: 'draw', style: 'city', d, from: snapPose(), onReveal, narrow };
+  const a = drawA = anim = { kind: 'draw', style: 'alley', d, from: snapPose(), onReveal, narrow };
   a.sign = buildSign(d.map, narrow);
-  const S = CITY.S;
-  if (narrow) { a.sign.g.position.set(S.x - 8.4, S.top - 4.0, S.z + 6.4); a.sign.g.rotation.y = -.15; }   // a tall sign on the corner of the building
-  else { a.sign.g.position.set(S.x, S.top + a.sign.legH + a.sign.sh / 2, S.z + 1.5); a.sign.g.rotation.y = -.08; }
-  CITY.g.add(a.sign.g); a.sp = buildSparks(); CITY.g.add(a.sp.pts);
+  // high on the end of the alley, hanging over it
+  if (narrow) a.sign.g.position.set(AW - 1.8, GROUND + 12.5, ZSTOP - 9);
+  else a.sign.g.position.set(0, GROUND + 11.5, ZSTOP - 9);
+  ALLEY.g.add(a.sign.g);
   a.sc = a.sign.g.localToWorld(V(0, 0, 0));
   if (typeof say === 'function') { const R = { qf: 'Quarter-final', sf: 'Semi-final', f: 'The final', b: 'Third place' }[d.round] || (d.roundRaw || 'The draw'); say(R + '.', `${d.a} against ${d.b}.`); }
   onScreen = true; start(); return true;
 }
 let drawA = null;
-function outside(on) {
-  if (on) { scene.fog = CITY.fog || (CITY.fog = new THREE.Fog(0x0e1426, 14, 95)); scene.background = new THREE.Color(0x05070d); camera.far = 260; }
-  else { scene.fog = ROOM.fog; scene.background = ROOM.bg; camera.far = 60; }
+function inAlley(on) {
+  if (on) { scene.fog = ALLEY.fog || (ALLEY.fog = new THREE.FogExp2(0x070a12, .045)); scene.background = new THREE.Color(0x020306); camera.far = 120; hemi.intensity = .08; }
+  else { scene.fog = ROOM.fog; scene.background = ROOM.bg; camera.far = 60; hemi.intensity = ROOM.hemi; }
   camera.updateProjectionMatrix();
 }
-ROOM.fog = scene.fog; ROOM.bg = scene.background;
 function endDraw(a, quiet) {
   if (!a || a.done) return; a.done = true;
-  if (CITY) { CITY.g.visible = false; if (a.sign) CITY.g.remove(a.sign.g); if (a.sp) CITY.g.remove(a.sp.pts); }
-  outside(false); floor.visible = false; winLight.intensity = 0;
+  if (ALLEY) { ALLEY.g.visible = false; if (a.sign) ALLEY.g.remove(a.sign.g); }
+  inAlley(false); blackPlane.visible = false; blackMat.opacity = 0;
   boss.position.set(0, 0, -2.62); boss.rotation.set(0, 0, 0); LEGS.forEach(l => l.rotation.set(0, 0, 0));
-  ROOM.men.forEach((m, i) => m.position.copy(ROOM.menHome[i])); if (ROOM.side) ROOM.side.position.copy(ROOM.sideHome);
-  setBlinds(1.05); ROOM.city.material.opacity = 1; ROOM.city.visible = true;
   cards.forEach(c => c.g.visible = true); deckGroup.visible = !!SPOTS[mode === 'narrow' ? 'narrow' : 'wide'].deck; coverEl.classList.remove('dive');
   camera.up.set(0, 1, 0); if (mode) fit();
   if (anim === a) anim = null;
   busy = false; lighter.visible = false;
   if (!quiet) { dealT0 = now; dealWait = .2; sfx('deal', dealWait); }
 }
-// keys in world space; the shoulder moves so the hand lands right on the point
-const _rk = new THREE.Vector3(), _rs = new THREE.Vector3();
-function reach(p, side, keys, t) {
-  path(keys, t, _rk); toBody(_rk);
-  const arm = ARMS[side]; _rs.copy(_rk).sub(arm.base); const L = _rs.length();
-  _rs.multiplyScalar(L > 1e-4 ? clamp(L - 1.5, -.5, .95) / L : 0);
-  aimArm(p, side, _rk, _rs);
-}
-// where he is: up from the table, across the room, at the window
-const B0 = V(0, 0, -2.62), B1 = V(.2, .3, -3.05), B2 = V(4.35, .3, -3.5), TURN = Math.atan2(B2.x - B1.x, B2.z - B1.z);
+// in the alley: he walks slowly towards the far end, then stops
+const W0 = 5, W1 = 5.6, WALK0 = .55;   // walking from t=WALK0 to t=W0, slowing to a stop by W1
 function bossAt(t, out) {
-  const up = smooth(t, -2.7, -2.0), u = easeInOut(seg(t, -1.6, 1.4));
-  out.p = V().lerpVectors(B0, B1, up).lerp(B2, u);
-  out.walk = bell(t, -1.7, -1.2, 1.0, 1.5); out.phase = u * PI * 7;
-  out.p.y += Math.abs(Math.sin(out.phase)) * .07 * out.walk;
-  out.rot = lerp(0, TURN, smooth(t, -2.1, -1.4)); out.rot = lerp(out.rot, PI, smooth(t, .7, 1.6));
-  return out;
+  const u = clamp((t - WALK0) / (W1 - WALK0), 0, 1), e = u < .8 ? u / .9 : (.8 / .9) + (1 - Math.pow(1 - (u - .8) / .2, 2)) * (1 - .8 / .9);
+  const z = 4 + (ZSTOP - 4) * clamp(e, 0, 1);
+  out.p = V(AO.x + .3, AO.y + .3, AO.z + z); out.walk = 1 - smooth(t, W0 - .3, W1);
+  out.phase = (z - 4) / -1.25 * PI;
+  out.p.y += Math.abs(Math.sin(out.phase)) * .06 * out.walk;
+  out.rot = PI; return out;
 }
 const _bs = {};
 function drawPose(t, p, a) {
-  p.held = 0; p.cigIn = 1; p.tilt = 0;   // the glass stays on the table
+  p.held = 0; p.cigIn = 1; p.tilt = 0;
+  if (t < .45) { p.yaw = p.pitch = null; return; }   // still at the table until the screen is black
   const b = bossAt(t, _bs);
   boss.position.copy(b.p); boss.rotation.y = b.rot;
-  LEGS.forEach((l, i) => l.rotation.x = Math.sin(b.phase + i * PI) * .55 * b.walk);
+  LEGS.forEach((l, i) => l.rotation.x = Math.sin(b.phase + i * PI) * .5 * b.walk);
   body.updateMatrixWorld(true);
-  // arms: off the table, hanging and swinging as he walks
-  const hang = smooth(t, -2.8, -2.1);
-  ['R', 'L'].forEach((s, i) => {
-    const arm = ARMS[s], sw = Math.sin(b.phase + (i ? 0 : PI)) * .4 * b.walk;
-    const h = V(0, -1.5 * Math.cos(sw), 1.5 * Math.sin(sw) + .15).add(arm.base);
-    aimArm(p, s, V().lerpVectors(arm.restEnd, h, hang), ZERO);
-  });
-  // at the window his left hand opens the blinds
-  if (t > 1.2) {
-    const hW = body.localToWorld(V().copy(ARMS.L.base).add(V(0, -1.5, .15))), bl = V(3.75, 3.35, -4.3), bl2 = V(3.75, 3.05, -4.3);
-    reach(p, 'L', [[1.2, hW], [1.9, bl], [2.4, bl2], [3.6, bl2]], t);
-  }
-  p.yaw = 0; p.pitch = t > 1.6 ? -.04 : t > -2.8 ? .02 : 0;
+  ['R', 'L'].forEach((s, i) => { const arm = ARMS[s], sw = Math.sin(b.phase + (i ? 0 : PI)) * .35 * b.walk;
+    aimArm(p, s, V(0, -1.5 * Math.cos(sw), 1.5 * Math.sin(sw) + .12).add(arm.base), ZERO); });
+  // head down while he walks, up to the sign once he stops
+  p.yaw = 0; p.pitch = lerp(.1, -.32, smooth(t, W1 - .2, W1 + .9));
 }
-const T_OUT = 3.2;   // when the camera goes through the window
-function camKeys(a) {
-  if (a.keys) return a.keys;
-  const sc = a.sc, n = a.narrow;
-  const P = [[-2.2, V(-2.4, 2.8, 2.0)], [0, V(-2.0, 3.0, .4)], [1.6, V(.9, 3.4, -1.7)], [2.7, V(1.85, 3.4, -2.75)], [3.5, V(2.4, 3.15, -5.2)]];
-  const Tg = [[-2.2, V(1.4, 1.8, -3.0)], [0, V(2.5, 2.4, -3.6)], [1.6, V(3.0, 3.2, -4.6)], [2.7, V(2.4, 3.2, -4.6)], [3.5, V(3.6, 0, -14)]];
-  if (n) { P.push([5.2, sc.clone().add(V(-.8, 2.4, 19))], [7, sc.clone().add(V(-.3, .6, 15.8))], [11, sc.clone().add(V(-.2, .5, 15))]); }
-  else { P.push([5.2, sc.clone().add(V(-1.8, 3.2, 16))], [7, sc.clone().add(V(-.6, 2.0, 12.4))], [11, sc.clone().add(V(-.4, 1.7, 11.5))]); }
-  [5.2, 7, 11].forEach(k => Tg.push([k, sc.clone().add(V(0, k < 6 ? -.5 : -.4, 0))]));
-  return (a.keys = { P, Tg });
+function camShot(t, a, pos, tgt) {
+  const b = _bs.p || V(AO.x, AO.y, AO.z), head = b.clone().add(V(0, 2.5, 0)), n = a.narrow;
+  // 1: in front of him, low, backing away as he comes; 2: round to his back; 3: rise a little and look up at the sign
+  const ang = PI * smooth(t, 3.0, 5.2), rad = lerp(n ? 13 : 10.5, n ? 8.5 : 7, smooth(t, 3.0, 5.2));
+  const hgt = lerp(-.2, 2.2, smooth(t, 3.0, 5.4)) + .6 * smooth(t, 5.4, DRAW_T.alley);
+  pos.set(b.x + Math.sin(ang) * 3.4, GROUND + 1.6 + hgt, b.z - Math.cos(ang) * rad);
+  tgt.copy(b).add(V(0, lerp(1.3, 2.4, smooth(t, 3, 5)), 0)).lerp(a.sc, .78 * smoother(smooth(t, 5.4, DRAW_T.alley + .1)));
 }
 function drawSceneUpdate(dt) {
-  const a = anim, d = a.d, t = (drawClock() - d.at) / 1000, T = DRAW_T.city;
-  const sg = a.sign, C = CITY;
-  // the room makes way: the two men step aside, the floor shows, the city light comes in
-  floor.visible = t > -3.2;
-  const aside = smooth(t, -2.6, -1.2);
-  ROOM.men.forEach((m, i) => m.position.lerpVectors(ROOM.menHome[i], V(7.2 + i * .9, -.4, -2.4 - i * .8), aside));
-  if (ROOM.side) ROOM.side.position.lerpVectors(ROOM.sideHome, V(8.2, .55, -3.0), aside);
-  setBlinds(lerp(1.05, 1.5, smooth(t, 1.9, 2.5)) + .07 * smooth(t, 2.6, 3.1));
-  winLight.intensity = 6 * smooth(t, 1.9, 2.6) * (1 - smooth(t, 3.3, 3.6));
-  // footsteps
-  const ph = _bs.phase || 0, st = Math.floor(ph / PI); if (_bs.walk > .3 && st !== a._st) { a._st = st; sfx('step'); }
-  if (!a._up && t > -2.7) { a._up = 1; sfx('chair'); }
-  if (!a._bl && t > 1.95) { a._bl = 1; sfx('blinds'); }
-  // out through the window
-  const out = t > 2.85;
-  if (out !== a._out) { a._out = out; outside(out); C.g.visible = out; if (out) { sfx('toss'); sfx('rain', 9); } }
-  ROOM.city.material.opacity = 1 - smooth(t, 2.85, T_OUT); ROOM.city.visible = t < T_OUT;
-  // camera
-  const K = camKeys(a), cp = path(K.P, t, V()), ct = path(K.Tg, t, V());
-  const e = smoother(smooth(t, -3.2, -2.2));
-  if (e > 0) drawCamera(a, e, cp, ct);
-  // rain
-  if (C.g.visible) { const r = C.rp, cam = camera.position;
-    C.seed.forEach((s, i) => { let y = ((s[1] - now * 26 * s[3]) % 22 + 22) % 22 - 12 + cam.y, x = s[0] + cam.x + (y - cam.y) * .12, z = s[2] + Math.min(0, cam.z + 4.8);
-      r[i * 6] = x; r[i * 6 + 1] = y; r[i * 6 + 2] = z; r[i * 6 + 3] = x - .08; r[i * 6 + 4] = y + .55 * s[3]; r[i * 6 + 5] = z; });
-    C.rain.geometry.attributes.position.needsUpdate = true;
-    C.g.children.forEach(o => { if (o.userData.blink !== undefined) o.material.opacity = (Math.sin(now * 3 + o.userData.blink) > .3) ? .9 : .05; }); }
-  // the sign buzzes on, letter by letter, then holds
-  const lv = [], FL = [0, .7, 0, 0, .9, .2, 1, .4, 1];
-  for (let i = 0; i < sg.n; i++) { const t0 = 5.6 + i * (1.0 / sg.n); const k = Math.floor((t - t0) / .07);
-    lv.push(t < t0 ? 0 : k < FL.length ? FL[k] : 1); }
-  if (t > T - .05) for (let i = 0; i < sg.n; i++) lv[i] = 1;
+  const a = anim, d = a.d, t = (drawClock() - d.at) / 1000, T = DRAW_T.alley, A = ALLEY, sg = a.sign;
+  // to black at the end of the countdown, open on the alley
+  const black = smooth(t, -.05, .35) * (1 - smooth(t, .75, 1.6));
+  blackPlane.visible = black > .002; blackMat.opacity = black;
+  const there = t > .45;
+  if (there !== a._there) { a._there = there; inAlley(there); A.g.visible = there; if (there) { sfx('rain', 10); } }
+  if (there) {
+    const cp = V(), ct = V(); camShot(t, a, cp, ct);
+    camera.position.copy(cp); camera.up.set(0, 1, 0); camera.lookAt(ct); camera.clearViewOffset(); camera.updateProjectionMatrix();
+    // rain around the camera, a flickering lamp, steam
+    const r = A.rp, cz = camera.position.z - AO.z;
+    A.seed.forEach((s, i) => { const y = GROUND + ((s[1] - now * 24 * s[3]) % 16 + 16) % 16, x = s[0], z = s[2] + cz + 6;
+      r[i * 6] = x; r[i * 6 + 1] = y; r[i * 6 + 2] = z; r[i * 6 + 3] = x - .05; r[i * 6 + 4] = y + .6 * s[3]; r[i * 6 + 5] = z; });
+    A.rain.geometry.attributes.position.needsUpdate = true;
+    const fl = (Math.sin(now * 23) > .93 || (Math.sin(now * 3.1) > .97)) ? .25 : 1; A.lamp.intensity = 40 * fl; A.lampGlow.material.opacity = .8 * fl; A.bulb.material.color.setScalar(fl);
+    A.steam.forEach((s, i) => { const k = (now * .25 + s.userData.o) % 1; s.position.set(A.grate.position.x + Math.sin(k * 5 + i) * .3, GROUND + k * 4, A.grate.position.z); s.scale.setScalar(1 + k * 3); s.material.opacity = Math.sin(k * PI) * .22; });
+    // footsteps
+    const st = Math.floor((_bs.phase || 0) / PI); if (_bs.walk > .3 && st !== a._st) { a._st = st; sfx('step'); }
+  } else {
+    const e = smoother(smooth(t, -2, 0)); if (e > 0) drawCamera(a, e * .25, camera.position.clone().add(V(0, -.3, -1.2)), camTarget);   // a slow push in before the cut
+  }
+  // the sign is already on, buzzing; it is only out of sight until the camera looks up
+  const lv = [], FL = [0, .7, 0, 1, .3, 1];
+  for (let i = 0; i < sg.n; i++) { const t0 = 5.5 + i * .1, k = Math.floor((t - t0) / .08); lv.push(t < t0 ? 0 : k < FL.length ? FL[k] : 1); }
   const key = lv.map(v => v.toFixed(1)).join(); if (key !== sg.key) { sg.key = key; sg.draw(lv); }
-  const on = lv.reduce((s, v) => s + v, 0) / sg.n, hum = .9 + .1 * Math.sin(now * 50);
-  sg.glow.material.opacity = on * .55 * hum; sg.light.intensity = on * 60 * hum;
-  if (!a._bz && t > 5.6) { a._bz = 1; sfx('buzz', 2.2); }
-  const bulbsOn = smooth(t, T - .1, T + .1);
-  sg.bulbs.forEach((b, i) => { const k = bulbsOn * (.55 + .45 * (Math.floor(now * 6 + i * .5) % 3 === 0 ? 1 : .3)); b.material.color.setRGB(.25 + 2.6 * k, .17 + 1.9 * k, .06 + .6 * k); });
-  // lightning and sparks as it comes on
-  const fl = Math.max(Math.exp(-Math.max(0, t - T) * 9) * (t >= T ? 1 : 0), Math.exp(-Math.max(0, t - T - .28) * 12) * (t >= T + .28 ? .7 : 0));
-  C.flash.intensity = fl * 7; C.skyMat.color.setScalar(1 + fl * 2.5); C.hemi.intensity = .9 + fl * 2;
-  if (!a._th && t > T + .35) { a._th = 1; sfx('thunder'); }
-  const S = a.sp; if (S.t0 < 0 && t > T - .15) { S.t0 = t; const o = sg.g.localToWorld(V(sg.sw * .38, sg.sh / 2, .2));
-    for (let i = 0; i < S.pos.length / 3; i++) { S.pos[i * 3] = o.x; S.pos[i * 3 + 1] = o.y; S.pos[i * 3 + 2] = o.z; S.v.push(V((Math.random() - .5) * 5, Math.random() * 4, Math.random() * 3)); } }
-  if (S.t0 >= 0) { for (let i = 0; i < S.v.length; i++) { S.v[i].y -= 14 * dt; S.pos[i * 3] += S.v[i].x * dt; S.pos[i * 3 + 1] += S.v[i].y * dt; S.pos[i * 3 + 2] += S.v[i].z * dt; }
-    S.pts.geometry.attributes.position.needsUpdate = true; S.pts.material.opacity = 1 - smooth(t - S.t0, .6, 1.6); }
-  coverEl.classList.toggle('dive', t > -3.2 && t < T + 3.4);
+  const on = lv.reduce((s, v) => s + v, 0) / sg.n, hum = .92 + .08 * Math.sin(now * 50);
+  sg.glow.material.opacity = on * .6 * hum; sg.light.intensity = on * 22 * hum;
+  sg.bulbs.forEach((b, i) => { const k = smooth(t, T - .4, T) * (.55 + .45 * (Math.floor(now * 6 + i * .5) % 3 === 0 ? 1 : .3)); b.material.color.setRGB(.25 + 2.6 * k, .17 + 1.9 * k, .06 + .6 * k); });
+  if (!a._bz && t > T - .9) { a._bz = 1; sfx('buzz', 1.6); }
+  // a flash of lightning when the name is in full view
+  const fl = t >= T ? Math.exp(-(t - T) * 8) + (t >= T + .25 ? .7 * Math.exp(-(t - T - .25) * 10) : 0) : 0;
+  A.flash.intensity = fl * 6; A.moon.intensity = .5 + fl * 2;
+  if (!a._th && t > T + .3) { a._th = 1; sfx('thunder'); }
+  coverEl.classList.toggle('dive', t > -2 && t < T + 3.4);
   if (!a.revealed && t >= T) { a.revealed = true; if (typeof a.onReveal === 'function') setTimeout(() => a.onReveal(), 1800); }
   if (t > T + 3.6) endDraw(a);
 }
@@ -1731,7 +1696,7 @@ canvas.addEventListener('webglcontextlost', e => { e.preventDefault(); stop(); f
 if ('IntersectionObserver' in window) new IntersectionObserver(es => { onScreen = es[es.length - 1].isIntersecting; if (onScreen) start(); else stop(); }).observe(canvas);
 
 window.room3d = {
-  layout, deal, start, back, drawScene, drawTime: s => DRAW_T.city,
+  layout, deal, start, back, drawScene, drawTime: s => DRAW_T.alley,
   focus(k) { if (busy) return; focused = k; if (k >= 0) hovered = -1; kick(); },
   pick(k) { if (anim && anim.kind === 'contract') skipContract(anim); else choose(k); }
 };
