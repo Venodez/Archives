@@ -1509,6 +1509,12 @@ function drawScene(d, style, onReveal) {
   cards.forEach(c => { c.hover = 0; c.picked = false; c.pick = 0; c.g.visible = false; }); deckGroup.visible = false;
   const a = drawA = anim = { kind: 'draw', style: 'coin', d, from: snapPose(), onReveal, narrow: mode === 'narrow' };
   a.coin = buildCoin(d.map);
+  try {
+    a.coin.g.visible = true; a.coin.g.position.set(0, -50, 0); renderer.compile(scene, camera);
+    a.coin.g.traverse(o => { if (o.material) [].concat(o.material).forEach(m => m.map && renderer.initTexture(m.map)); });
+    fxTargets(); [brightMat, blurMat, finalMat].forEach(m => { fxQuad.material = m; renderer.compile(fxScene, fxCam); });
+    a.coin.g.visible = false;
+  } catch (e) {}
   if (typeof say === 'function') { const R = { qf: 'Quarter-final', sf: 'Semi-final', f: 'The final', b: 'Third place' }[d.round] || (d.roundRaw || 'The draw'); say(R + '.', `${d.a} against ${d.b}.`); }
   onScreen = true; start(); return true;
 }
@@ -1683,7 +1689,7 @@ canvas.addEventListener('webglcontextlost', e => { e.preventDefault(); stop(); f
 if ('IntersectionObserver' in window) new IntersectionObserver(es => { onScreen = es[es.length - 1].isIntersecting; if (onScreen) start(); else stop(); }).observe(canvas);
 
 window.room3d = {
-  layout, deal, start, back, drawScene, drawTime: s => DRAW_T.coin,
+  layout, deal, start, back, drawScene, drawTime: s => DRAW_T.coin, clock: f => { drawClock = f; },
   focus(k) { if (busy) return; focused = k; if (k >= 0) hovered = -1; kick(); },
   pick(k) { if (anim && anim.kind === 'contract') skipContract(anim); else choose(k); }
 };

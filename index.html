@@ -833,11 +833,16 @@ footer::before{content:"";position:absolute;left:0;right:0;top:0;height:14px;bac
 @media (max-width:560px){.dr-num.big{font-size:84px}.dr-stamp{right:0;top:-14px;font-size:15px}}
 @media (prefers-reduced-motion:reduce){.draw-ov .dr-box{transform:none}}
 
-.draw-cd{position:fixed;left:50%;top:22%;transform:translateX(-50%);z-index:155;pointer-events:none;text-align:center;color:var(--gold2);text-shadow:0 0 30px rgba(241,212,140,.6),0 6px 0 #000}
-.draw-cd small{display:block;font:600 12px var(--f-num);letter-spacing:.24em;text-transform:uppercase;color:var(--cream2)}
-.draw-cd b{display:block;font:400 130px/1 var(--f-disp)}
-.draw-cd b.sm{font-size:44px}
-.draw-cd.pop b{animation:drnum2 .9s cubic-bezier(.2,1.4,.4,1)}
+.draw-cd{position:fixed;left:50%;top:max(84px,11vh);transform:translateX(-50%);z-index:155;pointer-events:none;text-align:center;color:var(--gold2);
+  min-width:150px;padding:12px 26px 14px;background:rgba(10,8,6,.78);border:1px solid rgba(241,212,140,.45);border-radius:6px;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);box-shadow:0 10px 40px rgba(0,0,0,.6)}
+.draw-cd small{display:block;font:600 12px var(--f-num);letter-spacing:.28em;text-transform:uppercase;color:var(--cream2);text-shadow:none}
+.draw-cd b{display:block;font:400 72px/1 var(--f-disp);color:var(--gold2);text-shadow:0 0 24px rgba(241,212,140,.45);font-variant-numeric:tabular-nums}
+.draw-cd.big b{font-size:96px;color:#fff3cf}
+.draw-cd b.pop{animation:cdpop .5s cubic-bezier(.2,1.4,.4,1)}
+@keyframes cdpop{0%{transform:scale(1.45);opacity:.4}100%{transform:scale(1);opacity:1}}
+.draw-cd i{display:block;height:3px;width:100%;margin:10px auto 0;background:var(--gold2);transform-origin:left;box-shadow:0 0 12px rgba(241,212,140,.8)}
+.draw-cd.go{opacity:0;transition:opacity .4s}
+@media (max-width:600px){.draw-cd{top:max(70px,9vh);padding:8px 18px 10px;min-width:110px}.draw-cd b{font-size:54px}.draw-cd.big b{font-size:70px}}
 @keyframes drnum2{0%{transform:scale(2.2);opacity:0}25%{opacity:1}100%{transform:scale(1)}}
 </style>
 </head>
@@ -1547,19 +1552,31 @@ async function pollDraws(){if(!SHEET_URL)return;
   try{const t=await readTab("Draws");if(!t)return;const c={t:t.col("tournament","tournoi"),r:t.col("round","phase"),a:t.col("team a","player a","a"),b:t.col("team b","player b","b"),m:t.col("map","carte"),p:t.col("pool","maps"),e:t.col("epoch","at (ms)","time (ms)"),mo:t.col("mode"),sy:t.col("style")};
     const v=(r,i)=>i>=0?t.val(r[i]):"";
     DRAWS=t.rows.map(r=>({tour:v(r,c.t),round:normRound(v(r,c.r)),roundRaw:v(r,c.r),a:v(r,c.a),b:v(r,c.b),map:v(r,c.m),pool:v(r,c.p).split(/\s*,\s*/).filter(Boolean),at:+String(v(r,c.e)).replace(/[^\d]/g,"")||0,mode:v(r,c.mo),style:v(r,c.sy)})).filter(d=>d.map&&d.at);
-    const d=DRAWS.reduce((x,y)=>!x||y.at>x.at?y:x,null),now=Date.now();
+    const d=DRAWS.reduce((x,y)=>!x||y.at>x.at?y:x,null),now=clock();
     if(d&&!drawSeen.has(d.at)&&now<d.at+DRAW_SPIN+60000){drawSeen.add(d.at);showDraw(d)}
   }catch(e){}finally{clearTimeout(pollDraws.t);pollDraws.t=setTimeout(pollDraws,document.hidden?20000:4000)}}
 const DRAW_SPIN=6200;
+/* the draw time comes from Google's clock; if this device's clock is off by more than a second or two, follow the server's */
+let SKEW=0;const clock=()=>Date.now()+SKEW;
+async function syncClock(){try{let best=null;for(let k=0;k<3;k++){const t0=Date.now();const r=await fetch(location.pathname+"?clk="+t0,{method:"HEAD",cache:"no-store"});const t1=Date.now();const h=r.headers.get("date");if(!h)continue;const off=Date.parse(h)+500-(t0+t1)/2;if(!best||t1-t0<best.rt)best={off,rt:t1-t0}}
+  SKEW=best&&best.rt<1500&&Math.abs(best.off)>1800?best.off:0}catch(e){SKEW=0}}
 /* at the table when the 3D room is there: he draws the map himself; otherwise the card reel */
 function showDraw(d){
   const st="coin";
-  try{if(MOTION&&is3d()&&room3d.drawScene&&!document.hidden&&Date.now()<d.at+room3d.drawTime(st)*1000-400){
+  try{if(MOTION&&is3d()&&room3d.drawScene&&!document.hidden&&clock()<d.at+room3d.drawTime(st)*1000-400){
     closeDrawer();closeModal();if(cover.hidden){cover.hidden=false;root.classList.add("lock");siteInert(true);layoutScene()}
-    if(room3d.drawScene(d,st,()=>showReel(d,{land:true}))){drawCountdown(d);return}}}catch(e){}
+    if(room3d.clock)room3d.clock(clock);
+    if(room3d.drawScene(d,st,()=>{})){drawCountdown(d);return}}}catch(e){}
   showReel(d)}
-function drawCountdown(d){const el=document.createElement("div");el.className="draw-cd";el.setAttribute("aria-live","polite");document.body.appendChild(el);let last=0;
-  const t=setInterval(()=>{const r=d.at-Date.now();if(r<=0){clearInterval(t);el.remove();return}const n=Math.ceil(r/1000);if(n!==last){last=n;if(n<=5){el.innerHTML=`<b>${n}</b>`;el.classList.remove("pop");void el.offsetWidth;el.classList.add("pop");if(window.aphSound)aphSound.fx("beat",n)}else el.innerHTML=`<small>Map draw in</small><b class="sm">${n}</b>`}},100)}
+function drawCountdown(d){document.querySelectorAll(".draw-cd").forEach(e=>e.remove());
+  const el=document.createElement("div");el.className="draw-cd";el.setAttribute("aria-live","polite");el.innerHTML=`<small>Map draw</small><b></b><i></i>`;document.body.appendChild(el);
+  const b=el.querySelector("b"),bar=el.querySelector("i");let last=-1,iv;
+  let done=false;const tick=()=>{if(done)return;const r=d.at-clock();
+    if(r<=0){done=true;clearInterval(iv);b.textContent="";el.classList.add("go");setTimeout(()=>el.remove(),500);return}
+    const n=Math.ceil(r/1000);bar.style.transform=`scaleX(${(r%1000)/1000})`;
+    if(n!==last){last=n;b.textContent=n;el.classList.toggle("big",n<=5);b.classList.remove("pop");void b.offsetWidth;b.classList.add("pop");if(n<=5&&window.aphSound)aphSound.fx("beat",n)}
+  };
+  const loop=()=>{tick();if(!done)requestAnimationFrame(loop)};iv=setInterval(tick,50);loop()}
 function showReel(d,opt={}){
   const ov=document.createElement("div");ov.className="draw-ov";ov.setAttribute("role","dialog");ov.setAttribute("aria-label","Map draw");
   const pool=d.pool.length?d.pool:[d.map],seq=[];for(let i=0;i<40;i++)seq.push(pool[(i*7+3)%pool.length]);seq.push(d.map,pool[0],pool[pool.length>1?1:0]);
@@ -1592,15 +1609,15 @@ function showReel(d,opt={}){
   const done=late=>{clearInterval(ov._t);num.classList.remove("big");place(end);strip.style.filter="";reel.classList.remove("spin");strip.children[target].classList.add("win");num.textContent="";
     rev.querySelector("b").textContent=d.map;res.innerHTML=`Played on <b>${esc(d.map)}</b> until one ${team(d.a).length>1?"team":"player"} wins`;ov.classList.add("landed");
     if(late||!MOTION)return;ov.classList.add("boom");burst();if(window.aphSound){aphSound.fx("hit");setTimeout(()=>aphSound.fx("ink"),380)}};
-  const tick=()=>{const now=Date.now();
+  const tick=()=>{const now=clock();
     if(now<d.at){const n=Math.ceil((d.at-now)/1000);if(n!==lastN){lastN=n;num.textContent=n<=5?n:"";num.classList.toggle("big",n<=5);if(n<=5){num.classList.remove("pop");void num.offsetWidth;num.classList.add("pop");if(window.aphSound)aphSound.fx("beat",n)}
       if(n>5)num.innerHTML=`<small>Draw in</small>${n}`}return}
     const k=Math.min(1,(now-d.at)/DRAW_SPIN);if(!MOTION||k>=1){done(false);return}
     num.textContent="";num.classList.remove("big");reel.classList.add("spin");const x=pos(k),v=Math.abs(x-lastX);lastX=x;place(x);strip.style.filter=`blur(${Math.min(7,v/9).toFixed(1)}px)`;
     const ix=Math.floor((x+center)/cw+.5);if(ix!==lastIx){lastIx=ix;if(window.aphSound)aphSound.fx("tick")}};
-  if(opt.land)done(false);else if(Date.now()>d.at+DRAW_SPIN)done(true);else{tick();ov._t=setInterval(tick,16)}
+  if(opt.land)done(false);else if(clock()>d.at+DRAW_SPIN)done(true);else{tick();ov._t=setInterval(tick,16)}
   addEventListener("resize",()=>{measure();end=target*cw-center;fit();if(ov.classList.contains("landed"))place(end)},{once:true});
-  setTimeout(()=>{if(ov.isConnected&&ov.classList.contains("landed"))close()},Math.max(0,d.at+DRAW_SPIN-Date.now())+45000);
+  setTimeout(()=>{if(ov.isConnected&&ov.classList.contains("landed"))close()},Math.max(0,d.at+DRAW_SPIN-clock())+45000);
   if(opt.land)place(end);
 }
 
@@ -1623,7 +1640,7 @@ async function loadSheet(){if(!SHEET_URL)return;
     try{const n=await readTab("News");if(n){const e={d:n.col("date"),t:n.col("title","titre"),x:n.col("text","texte","message")};const L=n.rows.map(r=>[e.d>=0?n.val(r[e.d]):"",e.t>=0?n.val(r[e.t]):"",e.x>=0?n.val(r[e.x]):""]).filter(u=>u[1]);if(L.length){NEWS=L.map(u=>[pretty(u[0]),u[1],u[2]]).reverse()}}}catch(e){}
     try{const pl=await readTab("Players");if(pl){const e={n:pl.col("player","name","joueur","nom"),u:pl.col("roblox","username","pseudo","user"),h:pl.col("headshot","head","photo","tete"),b:pl.col("avatar","skin","body","corps")};const v=(r,i)=>i>=0?pl.val(r[i]):"",url=x=>/^https:\/\//.test(x)?x:"";
       const A={};pl.rows.forEach(r=>{const n=v(r,e.n),u=v(r,e.u).replace(/^@/,"");if(n)A[norm(n)]={user:u,head:url(v(r,e.h)),body:url(v(r,e.b))}});AV=A}}catch(e){}
-    try{await pollDraws()}catch(e){}
+    try{await syncClock();await pollDraws()}catch(e){}
     setData(M,T);DEMO=false;UPDATED=new Date().toLocaleDateString("en-US",{month:"short",day:"numeric"});season="";renderAll()}
   catch(e){console.warn("Sheet unavailable, showing the example data:",e.message)}}
 
