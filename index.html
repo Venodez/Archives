@@ -346,6 +346,13 @@ select option{background:var(--paper);color:var(--cream)}
 .mrow button.n{background:none;border:0;padding:0;font-family:var(--f-disp);font-weight:800;font-size:19px;line-height:1.1;color:var(--cream);text-align:inherit}
 .mrow button.n:hover{color:var(--gold2)}
 .mrow .lose button.n{color:var(--muted);font-weight:600}
+.mrow .tmn{flex-basis:100%;font-family:var(--f-disp);font-weight:800;font-size:19px;line-height:1.1;color:var(--cream)}
+.mrow .lose .tmn{color:var(--muted);font-weight:600}
+.mrow .tmn+.tmp{display:flex;gap:6px;flex-wrap:wrap;justify-content:inherit;width:100%}
+.mrow .side:first-child .tmn+.tmp{justify-content:flex-end}
+.mrow .tmp button.n{font-size:13px;font-weight:600;color:var(--muted)}
+.mrow .tmp .amp{font-size:12px}
+.tbadge{display:inline-block;margin-right:6px;padding:1px 5px;border-radius:3px;font:700 10.5px/1.4 var(--f-num);letter-spacing:.06em;font-style:normal;vertical-align:2px;color:#fff;background:var(--tc);box-shadow:inset 0 0 0 1px rgba(255,255,255,.18)}
 .mrow .score{text-align:center;font:700 16px var(--f-type);color:var(--gold2);letter-spacing:.08em}
 .mrow .tag{justify-self:end;font-size:11.5px;color:var(--muted);text-align:right}
 .mrow .tag b{display:block;color:var(--cream2);font-weight:700}
@@ -1175,10 +1182,16 @@ const fmt=n=>n==null?"—":Math.round(n).toLocaleString("en-US");
 const norm=s=>String(s||"").trim().toLowerCase();
 const same=(a,b)=>norm(a)===norm(b);
 /* 2v2: "Venodez & Katch" (also + or /) is a team, every member plays */
-const team=s=>String(s||"").split(/\s*(?:&|\+|\/)\s*/).map(x=>x.trim()).filter(Boolean);
+/* 2v2 teams from the sheet's Teams tab: a team can be written by its name or as "Player & Player" */
+let TEAMS={},TEAM_PAIR={};
+const team=s=>{const t=TEAMS[norm(s)];return t?t.players.slice():String(s||"").split(/\s*(?:&|\+|\/)\s*/).map(x=>x.trim()).filter(Boolean)};
+const teamOf=side=>{const p=team(side);return p.length===2?TEAM_PAIR[p.map(norm).sort().join("&")]||null:null};
+const label=side=>{const t=teamOf(side);return t?t.name:side};
+const tBadge=t=>t&&t.tag?`<i class="tbadge" style="--tc:${esc(t.color||"#d4a64c")}">${esc(t.tag)}</i>`:"";
+function setTeams(rows){TEAMS={};TEAM_PAIR={};rows.forEach(t=>{if(!t.name||!t.players[0]||!t.players[1])return;TEAMS[norm(t.name)]=t;TEAM_PAIR[t.players.map(norm).sort().join("&")]=t})}
 const inTeam=(side,n)=>team(side).some(x=>same(x,n));
 const sameTeam=(a,b)=>team(a).map(norm).sort().join("&")===team(b).map(norm).sort().join("&");
-const nameBtns=(side,cls="n")=>team(side).map(n=>`<button class="${cls}" type="button" data-p="${esc(n)}">${esc(n)}</button>`).join(`<span class="amp">&amp;</span>`);
+const nameBtns=(side,cls="n")=>{const b=team(side).map(n=>`<button class="${cls}" type="button" data-p="${esc(n)}">${esc(n)}</button>`).join(`<span class="amp">&amp;</span>`),t=teamOf(side);return t?`<span class="tmn">${tBadge(t)}${esc(t.name)}</span><span class="tmp">${b}</span>`:b};
 /* dates: a day stays that day for everyone, a day with a time is shown in each visitor's own time zone */
 let SHEET_TZ="Europe/Paris";
 const timed=d=>/T\d\d:\d\d/.test(d||"");
@@ -1308,12 +1321,12 @@ function drawBracket(t,first){
   let id=0;const links=[];
   const card=(node,cls="")=>{if(!node)return `<div class="bm ghost${cls}" aria-hidden="true"></div>`;const m=node.m,[a,b]=sc(m),k=node.id=++id;
     node.kids.forEach(c=>c&&links.push([c,node]));
-    return `<div class="bm${cls}" data-k="${k}"><div class="w"><span class="nm">${esc(m.win)}</span><b>${esc(a)}</b></div><div class="l"><span class="nm">${esc(m.lose)}</span><b>${esc(b)}</b></div>${mapOf(m)?`<div class="bk-map">${esc(mapOf(m))}</div>`:""}</div>`};
+    return `<div class="bm${cls}" data-k="${k}"><div class="w"><span class="nm">${tBadge(teamOf(m.win))}${esc(label(m.win))}</span><b>${esc(a)}</b></div><div class="l"><span class="nm">${tBadge(teamOf(m.lose))}${esc(label(m.lose))}</span><b>${esc(b)}</b></div>${mapOf(m)?`<div class="bk-map">${esc(mapOf(m))}</div>`:""}</div>`};
   // place every match in its column, empty slots keep the tree straight
   const levels=(node,top)=>{const L=Array.from({length:top+1},(_,l)=>Array(2**(top-l)).fill(null));
     const put=(x,l,i)=>{L[l][i]=x;if(l>0)[0,1].forEach(j=>put(x&&x.kids[j]||null,l-1,2*i+j))};put(node,top,0);return L};
   const head=r=>`<h4 class="bk-r">${ROUNDS[r]}</h4>`;
-  const champ=(t.win?`<div class="bk-champ"><span class="crown" aria-hidden="true">♛</span><span class="lbl">Campione</span><b>${esc(t.win)}</b>${t.score?`<span class="sc">won the final ${esc(t.score)}</span>`:""}</div>`:"")+(t.prize?`<div class="bk-prize">${prizeHTML(t.prize,"dark")}</div>`:"");
+  const champ=(t.win?`<div class="bk-champ"><span class="crown" aria-hidden="true">♛</span><span class="lbl">Campione</span><b>${tBadge(teamOf(t.win))}${esc(label(t.win))}</b>${t.score?`<span class="sc">won the final ${esc(t.score)}</span>`:""}</div>`:"")+(t.prize?`<div class="bk-prize">${prizeHTML(t.prize,"dark")}</div>`:"");
   const center=`<div class="bcol bk-mid">${champ}<div class="bk-fin">${head(rounds[n-1])}${card(root," final")}</div>${third?`<div class="third">${head("b")}${card({m:third,kids:[]})}</div>`:""}</div>`;
   const wide=n>=2&&wrap.clientWidth>=(2*n-2)*178+230+90&&root&&root.kids.length===2;
   let cols=[];
@@ -1596,7 +1609,7 @@ function showDraw(d){
   try{if(MOTION&&is3d()&&room3d.drawScene&&!document.hidden&&clock()<d.at+room3d.drawTime(st)*1000-400){
     closeDrawer();closeModal();if(cover.hidden){cover.hidden=false;root.classList.add("lock");siteInert(true);layoutScene()}
     if(room3d.clock)room3d.clock(clock);
-    if(room3d.drawScene(d,st,()=>{})){drawCountdown(d);return}}}catch(e){}
+    if(room3d.drawScene({...d,a:label(d.a),b:label(d.b)},st,()=>{})){drawCountdown(d);return}}}catch(e){}
   showReel(d)}
 function drawCountdown(d){document.querySelectorAll(".draw-cd").forEach(e=>e.remove());
   const el=document.createElement("div");el.className="draw-cd";el.setAttribute("aria-live","polite");el.innerHTML=`<small>Map draw</small><b></b><i></i>`;document.body.appendChild(el);
@@ -1670,6 +1683,8 @@ async function loadSheet(){if(!SHEET_URL)return;
     try{const n=await readTab("News");if(n){const e={d:n.col("date"),t:n.col("title","titre"),x:n.col("text","texte","message")};const L=n.rows.map(r=>[e.d>=0?n.val(r[e.d]):"",e.t>=0?n.val(r[e.t]):"",e.x>=0?n.val(r[e.x]):""]).filter(u=>u[1]);if(L.length){NEWS=L.map(u=>[pretty(u[0]),u[1],u[2]]).reverse()}}}catch(e){}
     try{const pl=await readTab("Players");if(pl){const e={n:pl.col("player","name","joueur","nom"),u:pl.col("roblox","username","pseudo","user"),h:pl.col("headshot","head","photo","tete"),b:pl.col("avatar","skin","body","corps")};const v=(r,i)=>i>=0?pl.val(r[i]):"",url=x=>/^https:\/\//.test(x)?x:"";
       const A={};pl.rows.forEach(r=>{const n=v(r,e.n),u=v(r,e.u).replace(/^@/,"");if(n)A[norm(n)]={user:u,head:url(v(r,e.h)),body:url(v(r,e.b))}});AV=A}}catch(e){}
+    try{const tm=await readTab("Teams");if(tm){const e={n:tm.col("team name","team","équipe","equipe","nom"),a:tm.col("player 1","joueur 1"),b:tm.col("player 2","joueur 2"),g:tm.col("tag"),c:tm.col("color","colour","couleur")};const v=(r,i)=>i>=0?tm.val(r[i]):"";
+      setTeams(tm.rows.map(r=>({name:v(r,e.n),players:[v(r,e.a),v(r,e.b)],tag:v(r,e.g).slice(0,4).toUpperCase(),color:/^(#[0-9a-f]{3,8}|[a-z]+)$/i.test(v(r,e.c))?v(r,e.c):""})))}}catch(e){}
     try{await syncClock();await pollDraws()}catch(e){}
     setData(M,T);DEMO=false;UPDATED=new Date().toLocaleDateString("en-US",{month:"short",day:"numeric"});season="";renderAll()}
   catch(e){console.warn("Sheet unavailable, showing the example data:",e.message)}}
