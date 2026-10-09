@@ -1607,13 +1607,15 @@ let DRAWS=[];const drawSeen=new Set();
 const pairKey=(a,b)=>[team(a).map(norm).sort().join("&"),team(b).map(norm).sort().join("&")].sort().join("|");
 function mapOf(m){if(m.map)return m.map;const k=pairKey(m.win,m.lose),d=[...DRAWS].reverse().find(d=>same(d.tour,m.tour)&&pairKey(d.a,d.b)===k);return d&&clock()>d.at+DRAW_HIDE?d.map:""}
 const DRAW_HIDE=6000;   // the map stays secret on the site until the coin has shown it
-async function pollDraws(){if(!SHEET_URL)return;
-  try{const t=await readTab("Draws");if(!t)return;const c={t:t.col("tournament","tournoi"),r:t.col("round","phase"),a:t.col("team a","player a","a"),b:t.col("team b","player b","b"),m:t.col("map","carte"),p:t.col("pool","maps"),e:t.col("epoch","at (ms)","time (ms)"),mo:t.col("mode"),sy:t.col("style")};
+async function pollDraws(){if(!SHEET_URL&&!API)return;
+  try{if(API){const r=await fetch("/api/aph",{cache:"no-store"});const j=await r.json();DRAWS=apiDraws(j.draw||[])}
+    else{const t=await readTab("Draws");if(!t)return;const c={t:t.col("tournament","tournoi"),r:t.col("round","phase"),a:t.col("team a","player a","a"),b:t.col("team b","player b","b"),m:t.col("map","carte"),p:t.col("pool","maps"),e:t.col("epoch","at (ms)","time (ms)"),mo:t.col("mode"),sy:t.col("style")};
     const v=(r,i)=>i>=0?t.val(r[i]):"";
     DRAWS=t.rows.map(r=>({tour:v(r,c.t),round:normRound(v(r,c.r)),roundRaw:v(r,c.r),a:v(r,c.a),b:v(r,c.b),map:v(r,c.m),pool:v(r,c.p).split(/\s*,\s*/).filter(Boolean),at:+String(v(r,c.e)).replace(/[^\d]/g,"")||0,mode:v(r,c.mo),style:v(r,c.sy)})).filter(d=>d.map&&d.at);
+    }
     const d=DRAWS.reduce((x,y)=>!x||y.at>x.at?y:x,null),now=clock();
     // seen too late (slow sheet, tab in the background): play it whole from a short countdown instead of joining halfway
-    if(d&&!drawSeen.has(d.at)&&now<d.at+20000){drawSeen.add(d.at);setTimeout(()=>{try{renderAll()}catch(e){}},Math.max(0,d.at+DRAW_HIDE-now)+300);showDraw(d.at-now<3500?{...d,at:now+3500}:d)}
+    if(d&&!drawSeen.has(d.at)&&now<d.at+20000){drawSeen.add(d.at);setTimeout(()=>{try{renderAll()}catch(e){}},Math.max(0,d.at+DRAW_HIDE-now)+300);showDraw(d.at-now<3500?{...d,at:now+3500,key:d.at}:d)}
   }catch(e){}finally{clearTimeout(pollDraws.t);pollDraws.t=setTimeout(pollDraws,document.hidden?20000:2000)}}
 document.addEventListener("visibilitychange",()=>{if(!document.hidden&&SHEET_URL){clearTimeout(pollDraws.t);pollDraws()}});
 const DRAW_SPIN=6200;
@@ -1627,8 +1629,13 @@ function showDraw(d){
   try{if(MOTION&&is3d()&&room3d.drawScene&&!document.hidden&&clock()<d.at+room3d.drawTime(st)*1000-400){
     closeDrawer();closeModal();if(cover.hidden){cover.hidden=false;root.classList.add("lock");siteInert(true);layoutScene()}
     if(room3d.clock)room3d.clock(clock);
-    if(room3d.drawScene({...d,a:label(d.a),b:label(d.b)},st,()=>{})){drawCountdown(d);return}}}catch(e){}
-  showReel(d)}
+    if(room3d.drawScene({...d,a:label(d.a),b:label(d.b)},st,()=>{})){drawCountdown(d);if(!d.map)withMap(d,m=>{d.map=m;room3d.setMap&&room3d.setMap(m)});return}}}catch(e){}
+  if(d.map)showReel(d);else withMap(d,m=>showReel({...d,map:m}))}
+/* the database keeps a draw's map secret until just before the countdown ends: fetch it then */
+function withMap(d,cb){const key=d.key||d.at;let done=false;
+  const ask=async()=>{if(done)return;try{const r=await fetch("/api/aph",{cache:"no-store"});const j=await r.json();const x=(j.draw||[]).find(x=>+x.at===key);if(x&&x.map){done=true;DRAWS=apiDraws(j.draw);return cb(x.map)}}catch(e){}
+    if(clock()<key+30000)setTimeout(ask,400)};
+  setTimeout(ask,Math.max(0,key-1400-clock()))}
 function drawCountdown(d){document.querySelectorAll(".draw-cd").forEach(e=>e.remove());
   const el=document.createElement("div");el.className="draw-cd";el.setAttribute("aria-live","polite");el.innerHTML=`<small>Map draw</small><b></b><i></i>`;document.body.appendChild(el);
   const b=el.querySelector("b"),bar=el.querySelector("i");let last=-1,iv;
@@ -1691,7 +1698,24 @@ async function readTab(tab,hd=1){const m=/\/d\/([\w-]{20,})/.exec(SHEET_URL);if(
     if(d)return d[4]!=null&&(+d[4]||+d[5])?sheetTime(+d[1],+d[2],+d[3],+d[4],+d[5]):`${d[1]}-${String(+d[2]+1).padStart(2,"0")}-${String(d[3]).padStart(2,"0")}`;
     const s=String(c.f??c.v).trim(),x=/^(\d{4})-(\d\d)-(\d\d)[ T](\d{1,2})[:h](\d\d)/.exec(s);return x?sheetTime(+x[1],x[2]-1,+x[3],+x[4],+x[5]):s};
   return {rows:(j.table.rows||[]).map(r=>r.c||[]),col,val}}
-async function loadSheet(){if(!SHEET_URL)return;
+/* the site's own database (filled from the private admin page); the Google Sheet is only the fallback */
+let API=false;
+const apiDraws=list=>list.map(d=>({tour:d.tour||"",round:normRound(d.round),roundRaw:d.round||"",a:d.a,b:d.b,map:d.map||"",pool:String(d.pool||"").split(/\s*,\s*/).filter(Boolean),at:+d.at||0,mode:d.mode||"",style:""})).filter(d=>d.at);
+async function loadApi(){
+  const r=await fetch("/api/aph",{cache:"no-store"});if(!r.ok)return false;const d=await r.json().catch(()=>null);if(!d||!d.ok)return false;
+  const S=d.setting||{};PLACES.forEach(([k])=>{if(S["pts_"+k]!=null&&S["pts_"+k]!==""&&!isNaN(+S["pts_"+k]))PTS[k]=+S["pts_"+k]});
+  const A={};d.player.forEach(p=>{if(p.name)A[norm(p.name)]={user:p.roblox||"",head:/^https:\/\//.test(p.head)?p.head:"",body:/^https:\/\//.test(p.body)?p.body:""}});AV=A;
+  setTeams(d.team.map(t=>({name:t.name,players:[t.p1,t.p2],tag:String(t.tag||"").slice(0,4).toUpperCase(),color:t.color||""})));
+  const N=[...d.news].filter(n=>n.title).sort((a,b)=>String(a.date).localeCompare(String(b.date)));if(N.length)NEWS=N.map(n=>[pretty(n.date),n.title,n.text||""]).reverse();
+  DRAWS=apiDraws(d.draw);
+  const M=d.match.map(m=>[m.date,m.season,m.win,m.lose,m.score,m.tour,m.round,""]),T=d.tour.map(t=>[t.date,t.name,t.season,t.prize,t.winner]);
+  API=true;
+  if(!M.length&&!T.length&&!d.player.length&&!d.team.length)return "empty";
+  try{await syncClock();await pollDraws()}catch(e){}
+  setData(M,T);DEMO=false;UPDATED=new Date().toLocaleDateString("en-US",{month:"short",day:"numeric"});season=S.season||"";renderAll();return true}
+async function loadSheet(){
+  try{const ok=await loadApi();if(ok===true)return;if(ok==="empty"){try{await syncClock();await pollDraws()}catch(e){}return}}catch(e){}
+  if(!SHEET_URL)return;
   try{const st=await readTab("Settings",0);if(st)st.rows.forEach(r=>{const lab=st.val(r[0]),v=st.val(r[1]);if(/time ?zone|fuseau/i.test(lab)&&v)SHEET_TZ=v;const pm=/^points?\s*[·:\-–—]\s*(.+)$/i.exec(lab);if(pm&&v!==""&&!isNaN(+v)){const L=norm(pm[1]).replace(/[^a-z0-9]/g,"");const hit=PLACES.find(([k,l])=>norm(l).replace(/[^a-z0-9]/g,"")===L);if(hit)PTS[hit[0]]=+v}})}catch(e){}
   try{const a=await readTab("Matches"),b=await readTab("Tournaments");if(!a)throw new Error("no Matches tab");
     const c={d:a.col("date"),s:a.col("season","saison"),w:a.col("winner","gagnant","vainqueur"),l:a.col("loser","perdant"),sc:a.col("score"),t:a.col("tournament","tournoi"),r:a.col("round","phase","manche"),mp:a.col("map","carte")};

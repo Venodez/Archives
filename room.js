@@ -1692,6 +1692,7 @@ if ('IntersectionObserver' in window) new IntersectionObserver(es => { onScreen 
 
 window.room3d = {
   layout, deal, start, back, drawScene, drawTime: s => DRAW_T.coin, clock: f => { drawClock = f; },
+  setMap: name => { const a = drawA; if (!a || a.done || !a.coin) return; a.d.map = name; const c = a.coin; c.mapTex = coinFace(name, false); try { renderer.initTexture(c.mapTex); } catch (e) {} if (a._mp) c.top.map = c.mapTex; },
   focus(k) { if (busy) return; focused = k; if (k >= 0) hovered = -1; kick(); },
   pick(k) { if (anim && anim.kind === 'contract') skipContract(anim); else choose(k); }
 };

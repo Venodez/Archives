@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Aphrite · The Office</title>
+<link rel="icon" href="favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Limelight&family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@500;600;700&display=swap">
+<style>
+:root{--bg:#0c0a08;--ink:#14100b;--ink2:#1d1712;--line:rgba(241,212,140,.16);--line2:rgba(241,212,140,.32);--cream:#ede2c8;--cream2:#cfc3a6;--muted:#8f8269;--gold:#d4a64c;--gold2:#f1d48c;--red:#a3221b;--neon:#e8432f;--felt:#1f3a2c;
+  --f-disp:"Limelight",Georgia,serif;--f-num:"Barlow Condensed","Arial Narrow",Arial,sans-serif;--f-type:"Barlow","Helvetica Neue",Arial,sans-serif}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--cream);font:15px/1.45 var(--f-type)}
+button,input,select,textarea{font:inherit;color:inherit}
+a{color:var(--gold2)}
+.wrap{max-width:1100px;margin:0 auto;padding:0 16px 80px}
+header{position:sticky;top:0;z-index:5;background:rgba(12,10,8,.94);backdrop-filter:blur(6px);border-bottom:1px solid var(--line)}
+.hd{max-width:1100px;margin:0 auto;padding:12px 16px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.logo{font:400 24px var(--f-disp);color:var(--cream);text-decoration:none}.logo span{color:var(--gold)}
+.k{font:600 11px var(--f-num);letter-spacing:.24em;text-transform:uppercase;color:var(--gold)}
+nav{display:flex;gap:4px;flex-wrap:wrap;margin-left:auto}
+nav button{background:none;border:1px solid transparent;padding:6px 11px;border-radius:4px;font:600 13px var(--f-num);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);cursor:pointer}
+nav button:hover{color:var(--cream)}nav button[aria-current="true"]{color:var(--gold2);border-color:var(--line2)}
+h1{font:400 clamp(30px,5vw,46px)/1.05 var(--f-disp);margin:28px 0 4px}
+h2{font:400 22px var(--f-disp);margin:26px 0 10px}
+p.sub{color:var(--muted);margin:0 0 18px;max-width:720px}
+.card{background:linear-gradient(180deg,var(--ink2),var(--ink));border:1px solid var(--line);border-radius:8px;padding:16px;margin:0 0 16px}
+form.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px 12px;align-items:end}
+label{display:flex;flex-direction:column;gap:4px;font:600 11.5px var(--f-num);letter-spacing:.12em;text-transform:uppercase;color:var(--cream2)}
+label small{font:400 11.5px var(--f-type);letter-spacing:0;text-transform:none;color:var(--muted)}
+input,select,textarea{background:#0f0c09;border:1px solid var(--line2);border-radius:5px;padding:9px 10px;color:var(--cream);min-width:0;width:100%}
+textarea{min-height:80px;resize:vertical}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--gold);outline-offset:1px}
+.wide{grid-column:1/-1}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 16px;border-radius:5px;border:1px solid var(--gold);background:var(--gold);color:#1a1208;font:700 13px var(--f-num);letter-spacing:.14em;text-transform:uppercase;cursor:pointer}
+.btn:hover{background:var(--gold2)}.btn[disabled]{opacity:.5;cursor:wait}
+.btn.ghost{background:none;color:var(--gold2)}.btn.ghost:hover{background:rgba(241,212,140,.08)}
+.btn.red{background:var(--red);border-color:var(--red);color:#fff}
+.row-actions{display:flex;gap:8px;flex-wrap:wrap}
+table{width:100%;border-collapse:collapse}
+th,td{text-align:left;padding:9px 8px;border-bottom:1px dashed var(--line);vertical-align:middle}
+th{font:600 11px var(--f-num);letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+td .mini{display:flex;gap:6px;justify-content:flex-end}
+td .mini button{background:none;border:1px solid var(--line2);border-radius:4px;padding:4px 9px;color:var(--cream2);cursor:pointer;font-size:12.5px}
+td .mini button:hover{color:var(--gold2);border-color:var(--gold)}
+td .mini button.del:hover{color:#fff;background:var(--red);border-color:var(--red)}
+.empty{color:var(--muted);padding:14px 4px}
+.av{width:34px;height:34px;border-radius:50%;background:#2a2118 center/cover;display:inline-block;vertical-align:middle;border:1px solid var(--line2)}
+.badge{display:inline-block;padding:1px 6px;border-radius:3px;font:700 11px var(--f-num);letter-spacing:.06em;color:#fff;background:var(--tc,#d4a64c);margin-right:6px}
+.scroll{overflow-x:auto}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:20;padding:10px 16px;border-radius:6px;background:#1a1510;border:1px solid var(--line2);box-shadow:0 10px 30px rgba(0,0,0,.6);font-weight:600;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast.show{opacity:1}.toast.err{border-color:var(--neon);color:#ffd4cc}
+.login{max-width:380px;margin:12vh auto 0;text-align:center}
+.login .card{text-align:left}
+.drawres{margin-top:14px;padding:16px;border:1px solid var(--gold);border-radius:8px;background:rgba(212,166,76,.08);display:none}
+.drawres b{font:400 30px var(--f-disp);color:var(--gold2);display:block}
+.cd{font:700 15px var(--f-num);letter-spacing:.1em;color:var(--cream2)}
+.edit-note{display:none;color:var(--gold2);font-size:13px}
+form.editing .edit-note{display:block}
+.hide{display:none!important}
+.pill{display:inline-block;padding:2px 8px;border-radius:99px;border:1px solid var(--line2);font:600 11.5px var(--f-num);letter-spacing:.08em;color:var(--cream2)}
+@media (max-width:640px){nav{margin-left:0}th.opt,td.opt{display:none}}
+</style>
+</head>
+<body>
+<div id="loginView" class="wrap login">
+  <p class="k">Aphrite</p>
+  <h1>The Office</h1>
+  <p class="sub" style="margin:0 auto 18px">Private. Only the family's books are kept here.</p>
+  <form class="card" id="loginForm">
+    <label>Password<input type="password" id="pw" autocomplete="current-password" required></label>
+    <p class="cd" id="loginErr" style="color:#ffb4a8;min-height:20px;margin:8px 0"></p>
+    <button class="btn" type="submit" style="width:100%">Enter</button>
+  </form>
+</div>
+
+<div id="appView" class="hide">
+<header><div class="hd">
+  <a class="logo" href="/" target="_blank" rel="noopener">Aphrite<span>.</span></a><span class="k">The Office</span>
+  <nav id="nav">
+    <button data-v="draw">Draw</button><button data-v="match">Matches</button><button data-v="tour">Tournaments</button>
+    <button data-v="team">Teams</button><button data-v="player">Players</button><button data-v="news">News</button><button data-v="setting">Settings</button>
+  </nav>
+  <button class="btn ghost" id="logout" type="button" style="padding:6px 10px">Lock</button>
+</div></header>
+<main class="wrap" id="main"></main>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+const $=s=>document.querySelector(s),esc=s=>String(s??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;"),norm=s=>String(s||"").trim().toLowerCase();
+const store={get(k){try{return localStorage.getItem(k)||""}catch(e){return ""}},set(k,v){try{v?localStorage.setItem(k,v):localStorage.removeItem(k)}catch(e){}}};
+let KEY=store.get("aph-key"),DATA=null,VIEW=store.get("aph-view")||"draw";
+const ROUNDS=[["r64","Round of 64"],["r32","Round of 32"],["r16","Round of 16"],["qf","Quarter-final"],["sf","Semi-final"],["b","3rd place match"],["f","Final"]];
+const PLACES=[["champion","Champion",100],["runner","Runner-up",70],["third","3rd place",50],["sf","Semi-final (no 3rd place match)",45],["fourth","4th place",40],["qf","Quarter-final",25],["r16","Round of 16",12],["r32","Round of 32",6],["r64","Round of 64",3]];
+function toast(msg,err){const t=$("#toast");t.textContent=msg;t.className="toast show"+(err?" err":"");clearTimeout(toast.t);toast.t=setTimeout(()=>t.className="toast",err?4200:2200)}
+async function api(body){const r=await fetch("/api/aph",{method:"POST",headers:{"content-type":"application/json","x-admin-key":KEY},body:JSON.stringify(body)});const d=await r.json().catch(()=>({error:"No answer from the server."}));if(r.status===401){lock();throw new Error("Wrong password.")}if(!r.ok||d.error)throw new Error(d.error||"Something went wrong.");return d}
+async function load(){const r=await fetch("/api/aph",{cache:"no-store"});const d=await r.json().catch(()=>({error:"No answer from the server."}));if(d.error)throw new Error(d.error);DATA=d;return d}
+// dates: the admin types in their own time, the site shows each visitor theirs
+const toLocal=iso=>{if(!iso)return "";if(!/T\d\d:\d\d/.test(iso))return iso.slice(0,10)+"T00:00";const d=new Date(iso);if(isNaN(d))return "";const p=n=>String(n).padStart(2,"0");return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`};
+const toIso=v=>{if(!v)return "";if(/T00:00$/.test(v))return v.slice(0,10);const d=new Date(v);return isNaN(d)?"":d.toISOString()};
+const showDate=iso=>{if(!iso)return "—";const d=new Date(/T\d\d:\d\d/.test(iso)?iso:iso+"T12:00:00");return d.toLocaleString(undefined,/T\d\d:\d\d/.test(iso)?{day:"numeric",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"}:{day:"numeric",month:"short",year:"numeric"})};
+const byDate=(a,b)=>String(b.date||"").localeCompare(String(a.date||""));
+const teamsList=()=>DATA.team.map(t=>t.name).sort((a,b)=>a.localeCompare(b));
+const playersList=()=>DATA.player.map(p=>p.name).sort((a,b)=>a.localeCompare(b));
+const sideLabel=s=>{const t=DATA.team.find(x=>norm(x.name)===norm(s));return t?`${t.tag?`<span class="badge" style="--tc:${esc(t.color||"#d4a64c")}">${esc(t.tag)}</span>`:""}${esc(t.name)} <small style="color:var(--muted)">(${esc(t.p1)} & ${esc(t.p2)})</small>`:esc(s)};
+
+/* ---------- login ---------- */
+function lock(){KEY="";store.set("aph-key","");$("#appView").classList.add("hide");$("#loginView").classList.remove("hide")}
+$("#loginForm").addEventListener("submit",async e=>{e.preventDefault();KEY=$("#pw").value;$("#loginErr").textContent="";
+  try{await api({action:"check"});store.set("aph-key",KEY);$("#pw").value="";start()}catch(err){$("#loginErr").textContent=err.message;KEY=""}});
+$("#logout").onclick=lock;
+
+/* ---------- the pages ---------- */
+const FORMS={
+  match:{title:"Matches",sub:"One line per match, once it is played. Tournament + Round build the bracket and the points; no tournament = a friendly.",
+    fields:()=>[
+      ["date","Date & time","datetime-local"],["season","Season","text",{list:"seasons",ph:"Season 1"}],
+      ["win","Winner","text",{list:"sides",req:1,ph:"Team name or Player & Player"}],["lose","Loser","text",{list:"sides",req:1}],
+      ["score","Score","text",{ph:"2-1"}],["tour","Tournament","text",{list:"tours",ph:"Leave empty for a friendly"}],
+      ["round","Round","select",{opts:[["","—"],...ROUNDS]}]],
+    cols:[["Date",r=>showDate(r.date)],["Winner",r=>sideLabel(r.win)],["Score",r=>esc(r.score)],["Loser",r=>sideLabel(r.lose)],["Tournament",r=>r.tour?`${esc(r.tour)} <span class="pill">${esc((ROUNDS.find(x=>x[0]===r.round)||[,r.round])[1]||"")}</span>`:'<span class="pill">Friendly</span>',1]],sort:byDate},
+  tour:{title:"Tournaments",sub:"One line per tournament. Leave the winner empty: it comes from the final on its own.",
+    fields:()=>[["date","Date & time","datetime-local"],["name","Name","text",{req:1,ph:"Duo Cup"}],["season","Season","text",{list:"seasons",ph:"Season 1"}],
+      ["winner","Winner (optional)","text",{list:"sides"}],["prize","Prizes","textarea",{wide:1,ph:"1st: Dragora; 2nd: Domini; 3rd: Nihility"}]],
+    cols:[["Date",r=>showDate(r.date)],["Tournament",r=>`<b>${esc(r.name)}</b>`],["Season",r=>esc(r.season),1],["Prizes",r=>esc(r.prize),1]],sort:byDate},
+  team:{title:"Teams",sub:"2v2 only. Give a pair of players a name; matches can then use the name or \"Player & Player\".",
+    fields:()=>[["name","Team name","text",{req:1,ph:"The Velvet Hands"}],["p1","Player 1","text",{list:"players",req:1}],["p2","Player 2","text",{list:"players",req:1}],
+      ["tag","Tag","text",{ph:"VLV",max:4}],["color","Badge colour","color"]],
+    cols:[["Team",r=>`${r.tag?`<span class="badge" style="--tc:${esc(r.color||"#d4a64c")}">${esc(r.tag)}</span>`:""}<b>${esc(r.name)}</b>`],["Players",r=>`${esc(r.p1)} & ${esc(r.p2)}`]],sort:(a,b)=>a.name.localeCompare(b.name)},
+  player:{title:"Players",sub:"The name as you write it everywhere, and the Roblox username: the photo and the skin come on their own.",
+    fields:()=>[["name","Player","text",{req:1,ph:"Venodez"}],["roblox","Roblox username","text",{ph:"@username"}]],
+    cols:[["",r=>`<span class="av" style="${r.head?`background-image:url('${esc(r.head)}')`:""}"></span>`],["Player",r=>`<b>${esc(r.name)}</b>`],["Roblox",r=>r.roblox?"@"+esc(r.roblox):'<span style="color:var(--muted)">—</span>',1]],sort:(a,b)=>a.name.localeCompare(b.name),
+    extra:`<button class="btn ghost" type="button" id="refreshAv">Refresh all Roblox photos</button>`},
+  news:{title:"News",sub:"Announcements shown on the site.",fields:()=>[["date","Date","datetime-local"],["title","Title","text",{req:1,wide:1}],["text","Text","textarea",{wide:1}]],
+    cols:[["Date",r=>showDate(r.date)],["Title",r=>`<b>${esc(r.title)}</b>`]],sort:byDate}
+};
+let editing=null;
+function fieldHTML([k,lab,type,o={}],v){const at=`name="${k}"${o.req?" required":""}${o.max?` maxlength="${o.max}"`:""}${o.ph?` placeholder="${esc(o.ph)}"`:""}${o.list?` list="${o.list}"`:""}`;
+  const input=type==="textarea"?`<textarea ${at}>${esc(v)}</textarea>`:type==="select"?`<select ${at}>${o.opts.map(([a,b])=>`<option value="${a}"${a===v?" selected":""}>${esc(b)}</option>`).join("")}</select>`
+    :type==="color"?`<input type="color" ${at} value="${esc(v||"#a3221b")}" style="padding:2px;height:40px">`:`<input type="${type}" ${at} value="${esc(type==="datetime-local"?toLocal(v):v)}">`;
+  return `<label${o.wide?' class="wide"':""}>${esc(lab)}${input}</label>`}
+function lists(){const opt=a=>a.map(x=>`<option value="${esc(x)}">`).join("");
+  return `<datalist id="players">${opt(playersList())}</datalist><datalist id="sides">${opt([...teamsList(),...playersList()])}</datalist>
+    <datalist id="tours">${opt([...new Set(DATA.tour.map(t=>t.name))])}</datalist><datalist id="seasons">${opt([...new Set([...DATA.tour,...DATA.match].map(x=>x.season).filter(Boolean))])}</datalist>`}
+function renderKind(kind){const F=FORMS[kind],rows=[...DATA[kind]].sort(F.sort),cur=editing&&editing.kind===kind?editing.row:{};
+  $("#main").innerHTML=`<h1>${F.title}</h1><p class="sub">${F.sub}</p>${lists()}
+    <form class="card grid${editing&&editing.kind===kind?" editing":""}" id="f"><p class="edit-note wide">Editing a line. Save to keep the changes, or cancel.</p>${F.fields().map(f=>fieldHTML(f,cur[f[0]]??"")).join("")}
+      <div class="row-actions wide"><button class="btn" type="submit">${editing&&editing.kind===kind?"Save changes":"Add"}</button>${editing&&editing.kind===kind?'<button class="btn ghost" type="button" id="cancel">Cancel</button>':""}${F.extra||""}</div></form>
+    <div class="card scroll">${rows.length?`<table><thead><tr>${F.cols.map(c=>`<th${c[2]?' class="opt"':""}>${c[0]}</th>`).join("")}<th></th></tr></thead><tbody>
+      ${rows.map(r=>`<tr>${F.cols.map(c=>`<td${c[2]?' class="opt"':""}>${c[1](r)}</td>`).join("")}<td><div class="mini"><button type="button" data-ed="${esc(r.id)}">Edit</button><button type="button" class="del" data-del="${esc(r.id)}">Delete</button></div></td></tr>`).join("")}</tbody></table>`
+      :`<p class="empty">Nothing yet.</p>`}</div>`;
+  $("#f").onsubmit=async e=>{e.preventDefault();const fd=new FormData(e.target),d={};F.fields().forEach(([k,,type])=>{let v=fd.get(k)??"";if(type==="datetime-local")v=toIso(v);d[k]=String(v).trim()});
+    const b=e.target.querySelector('button[type="submit"]');b.disabled=true;
+    try{const r=await api({action:"save",kind,id:editing&&editing.kind===kind?editing.row.id:"",data:d,refresh:kind==="player"});
+      if(kind==="player"&&d.roblox&&!r.data.head)toast("Saved, but that Roblox username was not found.",1);else toast(editing?"Saved.":"Added.");
+      editing=null;await load();renderKind(kind)}catch(err){toast(err.message,1);b.disabled=false}};
+  const c=$("#cancel");if(c)c.onclick=()=>{editing=null;renderKind(kind)};
+  $("#main").querySelectorAll("[data-ed]").forEach(b=>b.onclick=()=>{editing={kind,row:DATA[kind].find(r=>r.id===b.dataset.ed)};renderKind(kind);scrollTo({top:0,behavior:"smooth"})});
+  $("#main").querySelectorAll("[data-del]").forEach(b=>b.onclick=async()=>{if(!confirm("Delete this line? This cannot be undone."))return;try{await api({action:"delete",kind,id:b.dataset.del});toast("Deleted.");await load();renderKind(kind)}catch(err){toast(err.message,1)}});
+  const ra=$("#refreshAv");if(ra)ra.onclick=async()=>{ra.disabled=true;try{const r=await api({action:"avatars"});toast(`${r.n} photos refreshed.`);await load();renderKind(kind)}catch(err){toast(err.message,1)}ra.disabled=false};
+}
+
+/* ---------- the live draw ---------- */
+function renderDraw(){const recent=[...DATA.draw].sort((a,b)=>b.at-a.at).slice(0,12),tours=[...DATA.tour].sort(byDate);
+  $("#main").innerHTML=`<h1>The Draw</h1><p class="sub">Picks the map now. Everyone on the site sees the boss flip the coin when the countdown ends (${esc(DATA.setting.countdown)} s, change it in Settings).</p>${lists()}
+  <form class="card grid" id="df">
+    <label>Tournament<select name="tour"><option value="">— none —</option>${tours.map(t=>`<option>${esc(t.name)}</option>`).join("")}</select></label>
+    <label>Round<select name="round"><option value="">—</option>${ROUNDS.map(([a,b])=>`<option value="${a}">${b}</option>`).join("")}</select></label>
+    <label>Team / player A<input name="a" list="sides" required placeholder="The Velvet Hands"></label>
+    <label>Team / player B<input name="b" list="sides" required placeholder="Family Moretti"></label>
+    <label>Mode<select name="mode"><option value="auto">Automatic</option><option>1v1</option><option>2v2</option></select></label>
+    <div class="row-actions"><button class="btn" type="submit">Draw the map</button></div>
+  </form>
+  <div class="drawres" id="dres"></div>
+  <h2>Recent draws</h2><div class="card scroll">${recent.length?`<table><thead><tr><th>When</th><th>Match</th><th>Map</th><th class="opt">Tournament</th><th></th></tr></thead><tbody>${recent.map(d=>`<tr><td>${esc(new Date(d.at).toLocaleString(undefined,{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}))}</td><td>${sideLabel(d.a)} <span style="color:var(--muted)">vs</span> ${sideLabel(d.b)}</td><td><b>${esc(d.map||"(hidden until the countdown ends)")}</b></td><td class="opt">${esc(d.tour)} ${d.round?`<span class="pill">${esc((ROUNDS.find(x=>x[0]===d.round)||[,d.round])[1])}</span>`:""}</td><td><div class="mini"><button type="button" class="del" data-del="${d.at}">Delete</button></div></td></tr>`).join("")}</tbody></table>`:'<p class="empty">No draw yet.</p>'}</div>`;
+  $("#df").onsubmit=async e=>{e.preventDefault();const fd=Object.fromEntries(new FormData(e.target));const b=e.target.querySelector("button");b.disabled=true;
+    try{const r=await api({action:"draw",data:fd});const box=$("#dres");box.style.display="block";
+      const tick=()=>{const s=Math.ceil((r.at-Date.now())/1000);box.innerHTML=`<span class="k">${esc(r.mode)} · the map is</span><b>${esc(r.map)}</b><span class="cd">${s>0?`Shown on the site in ${s} s`:"Shown on the site now"}</span>`;if(s>0)setTimeout(tick,250);else{load().then(()=>{if(VIEW==="draw")renderDraw()})}};tick()}
+    catch(err){toast(err.message,1)}b.disabled=false};
+  $("#main").querySelectorAll("[data-del]").forEach(b=>b.onclick=async()=>{if(!confirm("Delete this draw?"))return;try{await api({action:"delete",kind:"draw",id:b.dataset.del});await load();renderDraw()}catch(err){toast(err.message,1)}});
+}
+
+/* ---------- settings ---------- */
+function renderSettings(){const S=DATA.setting;
+  $("#main").innerHTML=`<h1>Settings</h1><p class="sub">How the season, the points and the draw work.</p>
+  <form class="card grid" id="sf">
+    <label>Current season<input name="season" value="${esc(S.season||"")}" placeholder="Empty = the latest one"></label>
+    <label>Draw countdown <small>seconds</small><input name="countdown" type="number" min="5" max="120" value="${esc(S.countdown)}"></label>
+    <label class="wide">Maps 1v1 <small>separated by commas</small><input name="maps1v1" value="${esc(S.maps1v1)}"></label>
+    <label class="wide">Maps 2v2 <small>separated by commas</small><input name="maps2v2" value="${esc(S.maps2v2)}"></label>
+    <h2 class="wide" style="margin:10px 0 0">Points per finish</h2>
+    ${PLACES.map(([k,l,v])=>`<label>${esc(l)}<input name="pts_${k}" type="number" min="0" max="1000" value="${esc(S["pts_"+k]??v)}"></label>`).join("")}
+    <div class="row-actions wide"><button class="btn" type="submit">Save settings</button></div>
+  </form>
+  <h2>Bring over the old Google Sheet</h2>
+  <div class="card"><p class="sub" style="margin-bottom:12px">Copies the players, teams, tournaments, matches and news from your Google Sheet into the database, once. Use it only on an empty database, or you will get duplicates.</p>
+    <form class="grid" id="imf"><label class="wide">Google Sheet link<input name="url" placeholder="https://docs.google.com/spreadsheets/d/…"></label><div class="row-actions"><button class="btn ghost" type="submit">Import</button></div></form></div>`;
+  $("#sf").onsubmit=async e=>{e.preventDefault();const fd=Object.fromEntries(new FormData(e.target));const b=e.target.querySelector("button");b.disabled=true;
+    try{for(const [k,v] of Object.entries(fd))if(String(v)!==String(S[k]??""))await api({action:"save",kind:"setting",id:k,data:{v}});toast("Settings saved.");await load();renderSettings()}catch(err){toast(err.message,1)}b.disabled=false};
+  $("#imf").onsubmit=async e=>{e.preventDefault();const url=new FormData(e.target).get("url"),m=/\/d\/([\w-]{20,})/.exec(url||"");if(!m)return toast("Paste the sheet's link.",1);
+    const b=e.target.querySelector("button");b.disabled=true;
+    try{const rows=await readSheet(m[1]);if(!rows.length)throw new Error("Nothing found in that sheet.");if(!confirm(`Import ${rows.length} lines?`)){b.disabled=false;return}
+      const r=await api({action:"import",rows});toast(`${r.n} lines imported.`);await load();renderSettings()}catch(err){toast(err.message,1)}b.disabled=false};
+}
+// reading the old sheet, the same way the site used to
+async function readSheet(id){const out=[];
+  const tab=async name=>{try{const r=await fetch(`https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:json&headers=1&sheet=${encodeURIComponent(name)}`);const t=await r.text(),j=JSON.parse(t.slice(t.indexOf("{"),t.lastIndexOf("}")+1));if(j.status==="error")return null;
+    const H=j.table.cols.map(c=>norm(c.label)),col=(...n)=>H.findIndex(h=>n.some(x=>h===x||h.startsWith(x)));
+    const val=c=>{if(!c||c.v==null)return "";const d=/^Date\((\d+),(\d+),(\d+)(?:,(\d+),(\d+))?/.exec(String(c.v));if(d){const dt=new Date(+d[1],+d[2],+d[3],+(d[4]||0),+(d[5]||0));return d[4]!=null&&(+d[4]||+d[5])?dt.toISOString():`${d[1]}-${String(+d[2]+1).padStart(2,"0")}-${String(d[3]).padStart(2,"0")}`}return String(c.f??c.v).trim()};
+    return {rows:(j.table.rows||[]).map(r=>r.c||[]),col,val}}catch(e){return null}};
+  const take=async(name,kind,map)=>{const t=await tab(name);if(!t)return;const c={};for(const [k,names] of Object.entries(map))c[k]=t.col(...names);
+    t.rows.forEach(r=>{const d={};for(const k in c)d[k]=c[k]>=0?t.val(r[c[k]]):"";out.push({kind,data:d})})};
+  await take("Players","player",{name:["player","name","joueur"],roblox:["roblox username","roblox","username"],head:["headshot"],body:["avatar"]});
+  await take("Teams","team",{name:["team name","team"],p1:["player 1"],p2:["player 2"],tag:["tag"],color:["color","colour"]});
+  await take("Tournaments","tour",{date:["date"],name:["tournament","name"],season:["season"],prize:["prize"],winner:["winner"]});
+  await take("Matches","match",{date:["date"],season:["season"],win:["winner"],lose:["loser"],score:["score"],tour:["tournament"],round:["round"]});
+  await take("News","news",{date:["date"],title:["title"],text:["text"]});
+  return out.filter(r=>Object.values(r.data).some(Boolean))}
+
+/* ---------- navigation ---------- */
+function go(v){VIEW=v;store.set("aph-view",v);editing=null;document.querySelectorAll("#nav button").forEach(b=>b.setAttribute("aria-current",b.dataset.v===v?"true":"false"));
+  if(v==="draw")renderDraw();else if(v==="setting")renderSettings();else renderKind(v)}
+document.querySelectorAll("#nav button").forEach(b=>b.onclick=()=>go(b.dataset.v));
+async function start(){$("#loginView").classList.add("hide");$("#appView").classList.remove("hide");
+  try{await load();go(FORMS[VIEW]||VIEW==="draw"||VIEW==="setting"?VIEW:"draw")}catch(err){$("#main").innerHTML=`<h1>Not connected</h1><p class="sub">${esc(err.message)}</p>`}}
+if(KEY)api({action:"check"}).then(start).catch(()=>lock());
+</script>
+</body>
+</html>
