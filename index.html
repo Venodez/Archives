@@ -352,6 +352,11 @@ select option{background:var(--paper);color:var(--cream)}
 .mrow .side:first-child .tmn+.tmp{justify-content:flex-end}
 .mrow .tmp button.n{font-size:13px;font-weight:600;color:var(--muted)}
 .mrow .tmp .amp{font-size:12px}
+.ttip{position:fixed;z-index:400;min-width:170px;padding:10px 12px;background:rgba(14,11,8,.96);border:1px solid rgba(241,212,140,.45);border-radius:6px;box-shadow:0 12px 34px rgba(0,0,0,.6);pointer-events:none}
+.ttip-k{margin:0 0 8px;font:700 12px var(--f-num);letter-spacing:.08em;text-transform:uppercase;color:var(--gold2)}
+.ttip-p{display:flex;align-items:center;gap:10px;padding:4px 0}
+.ttip-p b{font:700 15px var(--f-disp);color:var(--cream)}
+[data-team]{cursor:help}
 .tbadge{display:inline-block;margin-right:6px;padding:1px 5px;border-radius:3px;font:700 10.5px/1.4 var(--f-num);letter-spacing:.06em;font-style:normal;vertical-align:2px;color:#fff;background:var(--tc);box-shadow:inset 0 0 0 1px rgba(255,255,255,.18)}
 .mrow .score{text-align:center;font:700 16px var(--f-type);color:var(--gold2);letter-spacing:.08em}
 .mrow .tag{justify-self:end;font-size:11.5px;color:var(--muted);text-align:right}
@@ -1189,9 +1194,22 @@ const teamOf=side=>{const p=team(side);return p.length===2?TEAM_PAIR[p.map(norm)
 const label=side=>{const t=teamOf(side);return t?t.name:side};
 const tBadge=t=>t&&t.tag?`<i class="tbadge" style="--tc:${esc(t.color||"#d4a64c")}">${esc(t.tag)}</i>`:"";
 function setTeams(rows){TEAMS={};TEAM_PAIR={};rows.forEach(t=>{if(!t.name||!t.players[0]||!t.players[1])return;TEAMS[norm(t.name)]=t;TEAM_PAIR[t.players.map(norm).sort().join("&")]=t})}
+
+/* hovering a team shows its two players */
+(()=>{const tip=document.createElement("div");tip.className="ttip";tip.setAttribute("role","tooltip");tip.hidden=true;document.body.appendChild(tip);let cur=null;
+  const show=el=>{const t=TEAMS[norm(el.dataset.team)];if(!t)return;cur=el;
+    tip.innerHTML=`<p class="ttip-k">${tBadge(t)}${esc(t.name)}</p>${t.players.map(n=>`<div class="ttip-p">${face(n)}<b>${esc(n)}</b></div>`).join("")}`;
+    tip.hidden=false;const r=el.getBoundingClientRect(),w=tip.offsetWidth,hh=tip.offsetHeight;
+    let x=r.left+r.width/2-w/2,y=r.top-hh-10;if(y<8)y=r.bottom+10;x=Math.max(8,Math.min(innerWidth-w-8,x));
+    tip.style.left=x+"px";tip.style.top=y+"px"};
+  const hide=()=>{cur=null;tip.hidden=true};
+  document.addEventListener("pointerover",e=>{const el=e.target.closest&&e.target.closest("[data-team]");if(el){if(el!==cur)show(el)}else if(cur)hide()});
+  document.addEventListener("focusin",e=>{const el=e.target.closest&&e.target.closest("[data-team]");el?show(el):hide()});
+  document.addEventListener("click",e=>{const el=e.target.closest&&e.target.closest("[data-team]");if(el&&e.pointerType!=="mouse"){el===cur&&!tip.hidden?hide():show(el)}else if(!el)hide()},true);
+  addEventListener("scroll",hide,true)})();
 const inTeam=(side,n)=>team(side).some(x=>same(x,n));
 const sameTeam=(a,b)=>team(a).map(norm).sort().join("&")===team(b).map(norm).sort().join("&");
-const nameBtns=(side,cls="n")=>{const b=team(side).map(n=>`<button class="${cls}" type="button" data-p="${esc(n)}">${esc(n)}</button>`).join(`<span class="amp">&amp;</span>`),t=teamOf(side);return t?`<span class="tmn">${tBadge(t)}${esc(t.name)}</span><span class="tmp">${b}</span>`:b};
+const nameBtns=(side,cls="n")=>{const b=team(side).map(n=>`<button class="${cls}" type="button" data-p="${esc(n)}">${esc(n)}</button>`).join(`<span class="amp">&amp;</span>`),t=teamOf(side);return t?`<span class="tmn" data-team="${esc(t.name)}">${tBadge(t)}${esc(t.name)}</span><span class="tmp">${b}</span>`:b};
 /* dates: a day stays that day for everyone, a day with a time is shown in each visitor's own time zone */
 let SHEET_TZ="Europe/Paris";
 const timed=d=>/T\d\d:\d\d/.test(d||"");
@@ -1321,12 +1339,12 @@ function drawBracket(t,first){
   let id=0;const links=[];
   const card=(node,cls="")=>{if(!node)return `<div class="bm ghost${cls}" aria-hidden="true"></div>`;const m=node.m,[a,b]=sc(m),k=node.id=++id;
     node.kids.forEach(c=>c&&links.push([c,node]));
-    return `<div class="bm${cls}" data-k="${k}"><div class="w"><span class="nm">${tBadge(teamOf(m.win))}${esc(label(m.win))}</span><b>${esc(a)}</b></div><div class="l"><span class="nm">${tBadge(teamOf(m.lose))}${esc(label(m.lose))}</span><b>${esc(b)}</b></div>${mapOf(m)?`<div class="bk-map">${esc(mapOf(m))}</div>`:""}</div>`};
+    return `<div class="bm${cls}" data-k="${k}"><div class="w"><span class="nm"${teamOf(m.win)?` data-team="${esc(label(m.win))}" tabindex="0"`:""}>${tBadge(teamOf(m.win))}${esc(label(m.win))}</span><b>${esc(a)}</b></div><div class="l"><span class="nm"${teamOf(m.lose)?` data-team="${esc(label(m.lose))}" tabindex="0"`:""}>${tBadge(teamOf(m.lose))}${esc(label(m.lose))}</span><b>${esc(b)}</b></div>${mapOf(m)?`<div class="bk-map">${esc(mapOf(m))}</div>`:""}</div>`};
   // place every match in its column, empty slots keep the tree straight
   const levels=(node,top)=>{const L=Array.from({length:top+1},(_,l)=>Array(2**(top-l)).fill(null));
     const put=(x,l,i)=>{L[l][i]=x;if(l>0)[0,1].forEach(j=>put(x&&x.kids[j]||null,l-1,2*i+j))};put(node,top,0);return L};
   const head=r=>`<h4 class="bk-r">${ROUNDS[r]}</h4>`;
-  const champ=(t.win?`<div class="bk-champ"><span class="crown" aria-hidden="true">♛</span><span class="lbl">Campione</span><b>${tBadge(teamOf(t.win))}${esc(label(t.win))}</b>${t.score?`<span class="sc">won the final ${esc(t.score)}</span>`:""}</div>`:"")+(t.prize?`<div class="bk-prize">${prizeHTML(t.prize,"dark")}</div>`:"");
+  const champ=(t.win?`<div class="bk-champ"><span class="crown" aria-hidden="true">♛</span><span class="lbl">Campione</span><b${teamOf(t.win)?` data-team="${esc(label(t.win))}" tabindex="0"`:""}>${tBadge(teamOf(t.win))}${esc(label(t.win))}</b>${t.score?`<span class="sc">won the final ${esc(t.score)}</span>`:""}</div>`:"")+(t.prize?`<div class="bk-prize">${prizeHTML(t.prize,"dark")}</div>`:"");
   const center=`<div class="bcol bk-mid">${champ}<div class="bk-fin">${head(rounds[n-1])}${card(root," final")}</div>${third?`<div class="third">${head("b")}${card({m:third,kids:[]})}</div>`:""}</div>`;
   const wide=n>=2&&wrap.clientWidth>=(2*n-2)*178+230+90&&root&&root.kids.length===2;
   let cols=[];
